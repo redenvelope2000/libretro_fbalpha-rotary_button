@@ -200,7 +200,8 @@ static const struct retro_variable var_fba_neogeo_mode = { "fba-neogeo-mode", "F
 #define RETRO_GAME_TYPE_SGX		7
 #define RETRO_GAME_TYPE_SMS		8
 #define RETRO_GAME_TYPE_TG		9
-#define RETRO_GAME_TYPE_NEOCD	10
+#define RETRO_GAME_TYPE_SPEC	10
+#define RETRO_GAME_TYPE_NEOCD	11
 
 void retro_set_environment(retro_environment_t cb)
 {
@@ -223,6 +224,7 @@ void retro_set_environment(retro_environment_t cb)
 		{ "Sega Master System", "sms", subsystem_rom, 1, RETRO_GAME_TYPE_SMS },
 		{ "Sega Megadrive", "md", subsystem_rom, 1, RETRO_GAME_TYPE_MD },
 		{ "Sega SG-1000", "sg1k", subsystem_rom, 1, RETRO_GAME_TYPE_SG1K },
+		{ "ZX Spectrum", "spec", subsystem_rom, 1, RETRO_GAME_TYPE_SPEC },
 		{ "Neogeo CD", "neocd", subsystem_iso, 1, RETRO_GAME_TYPE_NEOCD },
 		{ NULL },
 	};
@@ -1233,6 +1235,9 @@ int CreateAllDatfiles()
 	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, MSX 1 Games only");
 	create_datfile(szFilename, DAT_MSX_ONLY);
 
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, ZX Spectrum Games only");
+	create_datfile(szFilename, DAT_SPECTRUM_ONLY);
+
 	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, Neogeo only");
 	create_datfile(szFilename, DAT_NEOGEO_ONLY);
 
@@ -1952,6 +1957,9 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 			break;
 		case RETRO_GAME_TYPE_SMS:
 			prefix = "sms_";
+			break;
+		case RETRO_GAME_TYPE_SPEC:
+			prefix = "spec_";
 			break;
 		case RETRO_GAME_TYPE_TG:
 			prefix = "tg_";

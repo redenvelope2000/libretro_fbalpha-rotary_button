@@ -143,10 +143,7 @@ else
 		$(FBA_CPU_DIR)/mips3_intf.cpp
 endif
 
-FBA_BURN_DIRS := $(FBA_BURN_DIR) \
-	$(FBA_BURN_DIR)/devices \
-	$(FBA_BURN_DIR)/snd \
-	$(CAPCOM_DIR) \
+FBA_BURN_DRIVERS_DIRS := $(CAPCOM_DIR) \
 	$(FBA_BURN_DRIVERS_DIR)/cave \
 	$(FBA_BURN_DRIVERS_DIR)/coleco \
 	$(CPS3_DIR) \
@@ -171,6 +168,11 @@ FBA_BURN_DIRS := $(FBA_BURN_DIR) \
 	$(FBA_BURN_DRIVERS_DIR)/taito \
 	$(FBA_BURN_DRIVERS_DIR)/toaplan \
 	$(FBA_BURN_DRIVERS_DIR)
+
+FBA_BURN_DIRS := $(FBA_BURN_DIR) \
+	$(FBA_BURN_DIR)/devices \
+	$(FBA_BURN_DIR)/snd \
+	$(FBA_BURN_DRIVERS_DIRS)
 
 FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 	$(ADSP2100_DIR) \
