@@ -439,7 +439,7 @@ endif
 CC_SYSTEM = gcc
 CXX_SYSTEM = g++
 
-include Makefile.common
+include makefile.libretro_common
 
 FBA_CXXOBJ := $(SOURCES_CXX:.cpp=.o)
 FBA_COBJ := $(SOURCES_C:.c=.o)
