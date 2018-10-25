@@ -6,7 +6,7 @@ https://www.fbalpha.com
 
 This is a fork of the official repository of the FB Alpha Emulator.
 
-Use of this program and it's source code is subject to the license conditions provided in the [license.txt](/src/license.txt) file in the src folder.
+Use of this program and it's source code is subject to the license conditions provided in the [license.txt](src/license.txt) file in the src folder.
 
 ## Roms
 
@@ -16,7 +16,7 @@ Also, i don't provide a "parent-only" dat file, this is usually a bad idea to on
 
 ## Emulating consoles
 
-You can emulate consoles (with specific romsets, dats are also in the [dats](dats/) directory) by prefixing the name of the roms with `XXX_` and removing the `zip|7z` extension, or using the `--subsystem XXX` argument in the command line, here is the list of available prefix :
+You can emulate consoles (with specific romsets, dats are also in the [dats](dats/) directory) by prefixing the name of the roms with `XXX_` and removing the `zip|7z` extension, or using the `--subsystem XXX` argument in the command line, here is the list of available prefixes :
 * CBS ColecoVision : `cv`
 * MSX 1 : `msx`
 * Nec PC-Engine : `pce`
@@ -26,6 +26,7 @@ You can emulate consoles (with specific romsets, dats are also in the [dats](dat
 * Sega Master System : `sms`
 * Sega Megadrive : `md`
 * Sega SG-1000 : `sg1k`
+* ZX Spectrum : `spec`
 
 ## Samples
 
