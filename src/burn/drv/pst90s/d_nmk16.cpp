@@ -585,6 +585,70 @@ static struct BurnDIPInfo HachamfbDIPList[]=
 
 STDDIPINFO(Hachamfb)
 
+static struct BurnDIPInfo HachamfpDIPList[]=
+{
+	{0x12, 0xff, 0xff, 0xff, NULL				},
+	{0x13, 0xff, 0xff, 0xff, NULL				},
+
+	{0   , 0xfe, 0   ,    2, "Flip Screen"			},
+	{0x12, 0x01, 0x01, 0x01, "Off"				},
+	{0x12, 0x01, 0x01, 0x00, "On"				},
+
+	{0   , 0xfe, 0   ,    2, "Unused"			},
+	{0x12, 0x01, 0x02, 0x02, "Japanese"			},
+	{0x12, 0x01, 0x02, 0x00, "English"			},
+
+	{0   , 0xfe, 0   ,    4, "Difficulty"			},
+	{0x12, 0x01, 0x0c, 0x04, "Easy"				},
+	{0x12, 0x01, 0x0c, 0x0c, "Normal"			},
+	{0x12, 0x01, 0x0c, 0x08, "Hard"				},
+	{0x12, 0x01, 0x0c, 0x00, "Hardest"			},
+
+	{0   , 0xfe, 0   ,    2, "Unused"			},
+	{0x12, 0x01, 0x10, 0x10, "Off"				},
+	{0x12, 0x01, 0x10, 0x00, "On"				},
+
+	{0   , 0xfe, 0   ,    2, "Unused"			},
+	{0x12, 0x01, 0x20, 0x20, "Off"				},
+	{0x12, 0x01, 0x20, 0x00, "On"				},
+
+	{0   , 0xfe, 0   ,    4, "Lives"			},
+	{0x12, 0x01, 0xc0, 0x00, "1"				},
+	{0x12, 0x01, 0xc0, 0x40, "2"				},
+	{0x12, 0x01, 0xc0, 0xc0, "3"				},
+	{0x12, 0x01, 0xc0, 0x80, "4"				},
+
+	{0   , 0xfe, 0   ,    2, "Unused"			},
+	{0x13, 0x01, 0x01, 0x00, "Off"				},
+	{0x13, 0x01, 0x01, 0x01, "On"				},
+
+	{0   , 0xfe, 0   ,    2, "Demo Sounds"			},
+	{0x13, 0x01, 0x02, 0x00, "Off"				},
+	{0x13, 0x01, 0x02, 0x02, "On"				},
+
+	{0   , 0xfe, 0   ,    8, "Coin B"			},
+	{0x13, 0x01, 0x1c, 0x10, "4 Coins 1 Credits"		},
+	{0x13, 0x01, 0x1c, 0x08, "3 Coins 1 Credits"		},
+	{0x13, 0x01, 0x1c, 0x18, "2 Coins 1 Credits"		},
+	{0x13, 0x01, 0x1c, 0x1c, "1 Coin  1 Credits"		},
+	{0x13, 0x01, 0x1c, 0x0c, "1 Coin  2 Credits"		},
+	{0x13, 0x01, 0x1c, 0x14, "1 Coin  3 Credits"		},
+	{0x13, 0x01, 0x1c, 0x04, "1 Coin  4 Credits"		},
+	{0x13, 0x01, 0x1c, 0x00, "Free Play"			},
+
+	{0   , 0xfe, 0   ,    8, "Coin A"			},
+	{0x13, 0x01, 0xe0, 0x80, "4 Coins 1 Credits"		},
+	{0x13, 0x01, 0xe0, 0x40, "3 Coins 1 Credits"		},
+	{0x13, 0x01, 0xe0, 0xc0, "2 Coins 1 Credits"		},
+	{0x13, 0x01, 0xe0, 0xe0, "1 Coin  1 Credits"		},
+	{0x13, 0x01, 0xe0, 0x60, "1 Coin  2 Credits"		},
+	{0x13, 0x01, 0xe0, 0xa0, "1 Coin  3 Credits"		},
+	{0x13, 0x01, 0xe0, 0x20, "1 Coin  4 Credits"		},
+	{0x13, 0x01, 0xe0, 0x00, "Free Play"			},
+};
+
+STDDIPINFO(Hachamfp)
+
 static struct BurnDIPInfo VandykeDIPList[]=
 {
 	{0x12, 0xff, 0xff, 0xff, NULL			},
@@ -1998,9 +2062,9 @@ static void HachaRAMProt(INT32 offset)
 		case 0xe51e/2: PROT_INPUT(0xe51e/2,0x0f82,0xe008/2,0x00080008); break;
 		case 0xe6b4/2: PROT_INPUT(0xe6b4/2,0x79be,0xe00c/2,0x0008000a); break;
 		case 0xe10e/2: PROT_JSR(0xe10e,0x8007,0x870a); //870a not 9d66
-			       PROT_JSR(0xe10e,0x8000,0xd9c6); break;
-		case 0xe11e/2: PROT_JSR(0xe11e,0x8038,0x972a); // 972a
-					  PROT_JSR(0xe11e,0x8031,0xd1f8); break;
+			          PROT_JSR(0xe10e,0x8000,0xd9c6); break;
+		case 0xe11e/2: PROT_JSR(0xe11e,0x8038,0x7b9c); // 972a
+					  PROT_JSR(0xe11e,0x8031,0x7a54); break;
 		case 0xe12e/2: PROT_JSR(0xe12e,0x8019,0x9642); // OK-9642
 					  PROT_JSR(0xe12e,0x8022,0xda06); break;
 		case 0xe13e/2: PROT_JSR(0xe13e,0x802a,0x9d66); // 9d66 not 9400 - OK
@@ -2008,16 +2072,16 @@ static void HachaRAMProt(INT32 offset)
 		case 0xe14e/2: PROT_JSR(0xe14e,0x800b,0xb3f2); // b3f2 - OK
 					  PROT_JSR(0xe14e,0x8004,0x8994); break;
 		case 0xe15e/2: PROT_JSR(0xe15e,0x803c,0xb59e); // b59e - OK
-					  PROT_JSR(0xe15e,0x8035,0x8d0c); break;
+					  PROT_JSR(0xe15e,0x8035,0x8c36); break;
 		case 0xe16e/2: PROT_JSR(0xe16e,0x801d,0x9ac2); // 9ac2 - OK
-				 	  PROT_JSR(0xe16e,0x8026,0x8c36); break;
+				 	  PROT_JSR(0xe16e,0x8026,0x8d0c); break;
 		case 0xe17e/2: PROT_JSR(0xe17e,0x802e,0xc366); // c366 - OK
 					  PROT_JSR(0xe17e,0x8017,0x870a); break;
-		case 0xe18e/2: PROT_JSR(0xe18e,0x8004,0xd620);       		 // unused
-					  PROT_JSR(0xe18e,0x8008,0x972a); break; // unused
+		case 0xe18e/2: PROT_JSR(0xe18e,0x8004,0x7b9c);       		 // unused
+					  PROT_JSR(0xe18e,0x8008,0x7b9c); break; // unused
 		case 0xe19e/2: PROT_JSR(0xe19e,0x8030,0xd9c6); // OK-d9c6
 					  PROT_JSR(0xe19e,0x8039,0x9642); break;
-		case 0xe1ae/2: PROT_JSR(0xe1ae,0x8011,0xd1f8); // d1f8 not c67e
+		case 0xe1ae/2: PROT_JSR(0xe1ae,0x8011,0x7a54); // d1f8 not c67e
 					  PROT_JSR(0xe1ae,0x802a,0x9d66); break;
 		case 0xe1be/2: PROT_JSR(0xe1be,0x8022,0xda06); // da06
 					  PROT_JSR(0xe1be,0x801b,0xb3f2); break;
@@ -2025,10 +2089,10 @@ static void HachaRAMProt(INT32 offset)
 					  PROT_JSR(0xe1ce,0x800c,0xb59e); break;
 		case 0xe1de/2: PROT_JSR(0xe1de,0x8034,0x8994); // 8994 - OK
 					  PROT_JSR(0xe1de,0x803d,0x9ac2); break;
-		case 0xe1ee/2: PROT_JSR(0xe1ee,0x8015,0x8d0c); // 8d0c not 82f6
+		case 0xe1ee/2: PROT_JSR(0xe1ee,0x8015,0x8c36); // 8d0c not 82f6
 					  PROT_JSR(0xe1ee,0x802e,0xc366); break;
-		case 0xe1fe/2: PROT_JSR(0xe1fe,0x8026,0x8c36); // 8c36
-					  PROT_JSR(0xe1fe,0x8016,0xd620); break;  // unused
+		case 0xe1fe/2: PROT_JSR(0xe1fe,0x8026,0x8d0c); // 8c36
+					  PROT_JSR(0xe1fe,0x8016,0x7b9c); break;  // unused
 		case 0xef00/2:
 			if(nmk16_mainram[0xef00/2] == BURN_ENDIAN_SWAP_INT16(0x60fe))
 			{
@@ -3437,12 +3501,18 @@ static UINT8 __fastcall hachamf_main_read_byte(UINT32 address)
 			return DrvInputs[1] >> ((~address & 1) << 3);
 
 		case 0x080008:
+			{
+				return (HachamfTdragonMCU) ? DrvDips[0] : 0;
+			}
+
 		case 0x080009:
-			return DrvDips[0];
+			{
+				return (HachamfTdragonMCU) ? DrvDips[1] : DrvDips[0];
+			}
 
 		case 0x08000a:
 		case 0x08000b:
-			return DrvDips[1];
+			return DrvDips[1] >> ((~address & 1) << 3);
 
 		case 0x08000e:
 		case 0x08000f:
@@ -3463,7 +3533,12 @@ static UINT16 __fastcall hachamf_main_read_word(UINT32 address)
 			return DrvInputs[1];
 
 		case 0x080008:
-			return DrvDips[0];
+			{
+				if (HachamfTdragonMCU)
+					return (DrvDips[0] << 8) | DrvDips[1];
+				else
+					return DrvDips[0];
+			}
 
 		case 0x08000a:
 			return DrvDips[1];
@@ -3962,7 +4037,7 @@ static INT32 MemIndex()
 	DrvGfxROM1		= Next; Next += 0x800000;
 	DrvGfxROM2		= Next; Next += 0x800000;
 
-	if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
+	if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "rapheroa") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
 					Next += 0x800000;
 	}
 
@@ -3971,13 +4046,13 @@ static INT32 MemIndex()
 	MSM6295ROM		= Next;
 	DrvSndROM0		= Next; Next += 0x300000;
 
-	if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
+	if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "rapheroa") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
 					Next += 0x140000;
 	}
 
 	DrvSndROM1		= Next; Next += 0x300000;
 
-	if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
+	if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "rapheroa") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
 					Next += 0x140000;
 	}
 
@@ -5371,7 +5446,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		if (!no_z80)
 			ZetScan(nAction);
 		SekScan(nAction);
-		if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
+		if (strcmp(BurnDrvGetTextA(DRV_NAME), "raphero") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "rapheroa") == 0 || strcmp(BurnDrvGetTextA(DRV_NAME), "arcadian") == 0) {
 			tlcs90Scan(nAction);
 		}
 
@@ -9319,7 +9394,7 @@ static INT32 HachamfLoadCallback()
 	SekMapMemory(DrvScrollRAM,	0x08c000, 0x08c3ff, MAP_WRITE);
 	SekMapMemory(DrvBgRAM0,		0x090000, 0x093fff, MAP_RAM);
 	SekMapMemory(DrvTxRAM,		0x09c000, 0x09c7ff, MAP_RAM);
-	SekMapMemory(Drv68KRAM,		0x0f0000, 0x0fffff, MAP_RAM);
+	SekMapMemory(Drv68KRAM,		0x0f0000, 0x0fffff, MAP_ROM); // write in handler
 	SekSetWriteWordHandler(0,	hachamf_main_write_word);
 	SekSetWriteByteHandler(0,	hachamf_main_write_byte);
 	SekSetReadWordHandler(0,	hachamf_main_read_word);
@@ -9455,6 +9530,91 @@ struct BurnDriver BurnDrvHachamfb = {
 	BDF_GAME_WORKING | BDF_CLONE | BDF_BOOTLEG, 2, HARDWARE_MISC_POST90S, GBF_HORSHOOT, 0,
 	NULL, hachamfbRomInfo, hachamfbRomName, NULL, NULL, CommonInputInfo, HachamfbDIPInfo,
 	HachamfbInit, NMK004Exit, NMK004Frame, HachamfDraw, DrvScan, NULL, 0x400,
+	256, 224, 4, 3
+};
+
+
+// Hacha Mecha Fighter (Location Test Prototype, 19th Sep. 1991)
+
+static struct BurnRomInfo hachamfpRomDesc[] = {
+	{ "kf-68-pe-b.ic7",	0x20000, 0xb98a525e, 1 | BRF_PRG | BRF_ESS }, //  0 68k code
+	{ "kf-68-po-b.ic6",	0x20000, 0xb62ad179, 1 | BRF_PRG | BRF_ESS }, //  1
+
+	{ "kf-snd.ic4",		0x10000, 0xf7cace47, 2 | BRF_PRG | BRF_ESS }, //  2 NMK004 data
+
+	{ "kf-vram.ic3",	0x20000, 0xa2c1e25d, 3 | BRF_GRA },           //  3 Characters
+
+	{ "kf-scl0.ic5",	0x80000, 0x8604adff, 4 | BRF_GRA },           //  4 Tiles
+	{ "kf-scl1.ic12",	0x80000, 0x05a624e3, 4 | BRF_GRA },           //  5
+
+	{ "kf-obj0.ic8",	0x80000, 0xa471bbd8, 5 | BRF_GRA },           //  6 Sprites
+	{ "kf-obj1.ic11",	0x80000, 0x81594aad, 5 | BRF_GRA },           //  7
+
+	{ "kf-a0.ic2",		0x80000, 0xe068d2cf, 6 | BRF_SND },           //  8 OKI1 Samples
+
+	{ "kf-a1.ic1",		0x80000, 0xd945aabb, 7 | BRF_SND },           //  9 OKI2 Samples
+
+	{ "82s135.ic50",	0x00100, 0x633ab1c9, 8 | BRF_OPT },           // 10 proms
+	{ "82s129.ic51",	0x00100, 0xcfdbb86c, 8 | BRF_OPT },           // 11
+};
+
+STDROMPICKEXT(hachamfp, hachamfp, nmk004)
+STD_ROM_FN(hachamfp)
+
+static INT32 HachamfpLoadCallback()
+{
+	{
+		if (BurnLoadRom(Drv68KROM  + 0x000001,  0, 2)) return 1;
+		if (BurnLoadRom(Drv68KROM  + 0x000000,  1, 2)) return 1;
+
+		if (BurnLoadRom(DrvZ80ROM  + 0x000000,  2, 1)) return 1;
+
+		if (BurnLoadRom(DrvGfxROM0 + 0x000000,  3, 1)) return 1;
+
+		if (BurnLoadRom(DrvGfxROM1 + 0x000000,  4, 1)) return 1;
+		if (BurnLoadRom(DrvGfxROM1 + 0x080000,  5, 1)) return 1;
+
+		if (BurnLoadRom(DrvGfxROM2 + 0x000000,  6, 2)) return 1;
+		if (BurnLoadRom(DrvGfxROM2 + 0x000001,  7, 2)) return 1;
+
+		if (BurnLoadRom(DrvSndROM0 + 0x020000,  8, 1)) return 1;
+		memcpy (DrvSndROM0 + 0x000000, DrvSndROM0 + 0x20000, 0x20000);
+
+		if (BurnLoadRom(DrvSndROM1 + 0x020000,  9, 1)) return 1;
+		memcpy (DrvSndROM1 + 0x000000, DrvSndROM1 + 0x20000, 0x20000);
+
+		DrvGfxDecode(0x20000, 0x100000, 0x100000);
+	}
+
+	SekInit(0, 0x68000);
+	SekOpen(0);
+	SekMapMemory(Drv68KROM,		0x000000, 0x03ffff, MAP_ROM);
+	SekMapMemory(DrvPalRAM,		0x088000, 0x0887ff, MAP_RAM);
+	SekMapMemory(DrvScrollRAM,	0x08c000, 0x08c3ff, MAP_WRITE);
+	SekMapMemory(DrvBgRAM0,		0x090000, 0x093fff, MAP_RAM);
+	SekMapMemory(DrvTxRAM,		0x09c000, 0x09c7ff, MAP_RAM);
+	SekMapMemory(Drv68KRAM,		0x0f0000, 0x0fffff, MAP_RAM);
+	SekSetWriteWordHandler(0,	hachamf_main_write_word);
+	SekSetWriteByteHandler(0,	hachamf_main_write_byte);
+	SekSetReadWordHandler(0,	hachamf_main_read_word);
+	SekSetReadByteHandler(0,	hachamf_main_read_byte);
+	SekClose();
+
+	return 0;
+}
+
+static INT32 HachamfpInit()
+{
+	return NMK004Init(HachamfpLoadCallback, 10000000);
+}
+
+struct BurnDriver BurnDrvHachamfp = {
+	"hachamfp", "hachamf", "nmk004", NULL, "1991",
+	"Hacha Mecha Fighter (Location Test Prototype, 19th Sep. 1991)\0", NULL, "NMK", "NMK16",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_POST90S, GBF_HORSHOOT, 0,
+	NULL, hachamfpRomInfo, hachamfpRomName, NULL, NULL, CommonInputInfo, HachamfpDIPInfo,
+	HachamfpInit, NMK004Exit, NMK004Frame, HachamfDraw, DrvScan, NULL, 0x400,
 	256, 224, 4, 3
 };
 
@@ -9765,7 +9925,7 @@ struct BurnDriver BurnDrvSbsgomo = {
 // Rapid Hero
 
 static struct BurnRomInfo rapheroRomDesc[] = {
-	{ "rhp94099.3",		0x080000, 0xec9b4f05, 1 | BRF_PRG | BRF_ESS }, //  0 68k code
+	{ "3",				0x080000, 0x3257bfbd, 1 | BRF_PRG | BRF_ESS }, //  0 68k code
 
 	{ "rhp94099.2",		0x020000, 0xfe01ece1, 2 | BRF_PRG | BRF_ESS }, //  1 Tmp90c841 Code
 
@@ -9790,6 +9950,33 @@ static struct BurnRomInfo rapheroRomDesc[] = {
 
 STD_ROM_PICK(raphero)
 STD_ROM_FN(raphero)
+
+static struct BurnRomInfo rapheroaRomDesc[] = {
+	{ "rhp94099.3",		0x080000, 0xec9b4f05, 1 | BRF_PRG | BRF_ESS }, //  0 68k code
+
+	{ "rhp94099.2",		0x020000, 0xfe01ece1, 2 | BRF_PRG | BRF_ESS }, //  1 Tmp90c841 Code
+
+	{ "rhp94099.1",		0x020000, 0x55a7a011, 3 | BRF_GRA },           //  2 Characters
+
+	{ "rhp94099.4",		0x200000, 0x076eee7b, 4 | BRF_GRA },           //  3 Tiles
+
+	{ "rhp94099.8",		0x200000, 0x49892f07, 5 | BRF_GRA },           //  4 Sprites
+	{ "rhp94099.9",		0x200000, 0xea2e47f0, 5 | BRF_GRA },           //  5
+	{ "rhp94099.10",	0x200000, 0x512cb839, 5 | BRF_GRA },           //  6
+
+	{ "rhp94099.6",		0x200000, 0xf1a80e5a, 7 | BRF_SND },           //  7 OKI1 Samples
+	{ "rhp94099.7",		0x200000, 0x0d99547e, 7 | BRF_SND },           //  8
+
+	{ "rhp94099.5",		0x200000, 0x515eba93, 7 | BRF_SND },           //  9 OKI2 Samples
+	{ "rhp94099.6",		0x200000, 0xf1a80e5a, 7 | BRF_SND },           // 10
+
+	{ "prom1.u19",		0x000100, 0x4299776e, 0 | BRF_OPT },           // 11 Unused proms
+	{ "prom2.u53",		0x000100, 0xe6ead349, 0 | BRF_OPT },           // 12
+	{ "prom3.u60",		0x000100, 0x304f98c6, 0 | BRF_OPT },           // 13
+};
+
+STD_ROM_PICK(rapheroa)
+STD_ROM_FN(rapheroa)
 
 static void __fastcall raphero_main_write_byte(UINT32 address, UINT8 data)
 {
@@ -10146,10 +10333,20 @@ static INT32 RapheroFrame()
 
 struct BurnDriver BurnDrvRaphero = {
 	"raphero", "arcadian", NULL, NULL, "1994",
-	"Rapid Hero\0", NULL, "Media Trading Corp", "NMK16",
+	"Rapid Hero (NMK)\0", NULL, "NMK", "NMK16",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL, 2, HARDWARE_MISC_POST90S, GBF_VERSHOOT, 0,
 	NULL, rapheroRomInfo, rapheroRomName, NULL, NULL, Tdragon2InputInfo, RapheroDIPInfo,
+	RapheroInit, RapheroExit, RapheroFrame, RapheroDraw, DrvScan, NULL, 0x400,
+	224, 384, 3, 4
+};
+
+struct BurnDriver BurnDrvRapheroa = {
+	"rapheroa", "arcadian", NULL, NULL, "1994",
+	"Rapid Hero (Media Trading)\0", NULL, "Media Trading Corp", "NMK16",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL, 2, HARDWARE_MISC_POST90S, GBF_VERSHOOT, 0,
+	NULL, rapheroaRomInfo, rapheroaRomName, NULL, NULL, Tdragon2InputInfo, RapheroDIPInfo,
 	RapheroInit, RapheroExit, RapheroFrame, RapheroDraw, DrvScan, NULL, 0x400,
 	224, 384, 3, 4
 };
