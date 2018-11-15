@@ -17,12 +17,6 @@
 #define RETROPAD_CLASSIC	RETRO_DEVICE_ANALOG
 #define RETROPAD_MODERN		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_ANALOG, 1)
 
-#if defined(_XBOX) || defined(_WIN32)
-   char slash = '\\';
-#else
-   char slash = '/';
-#endif
-
 static void log_dummy(enum retro_log_level level, const char *fmt, ...) { }
 static const char *print_label(unsigned i);
 
@@ -1012,21 +1006,21 @@ static void locate_archive(std::vector<std::string>& pathList, const char* const
 	static char path[MAX_PATH];
 
 	// Search rom dir
-	snprintf(path, sizeof(path), "%s%c%s", g_rom_dir, slash, romName);
+	snprintf(path, sizeof(path), "%s%c%s", g_rom_dir, path_default_slash_c(), romName);
 	if (ZipOpen(path) == 0)
 	{
 		g_find_list_path.push_back(path);
 		return;
 	}
 	// Search system fba subdirectory (where samples/hiscore are stored)
-	snprintf(path, sizeof(path), "%s%cfba%c%s", g_system_dir, slash, slash, romName);
+	snprintf(path, sizeof(path), "%s%cfba%c%s", g_system_dir, path_default_slash_c(), path_default_slash_c(), romName);
 	if (ZipOpen(path) == 0)
 	{
 		g_find_list_path.push_back(path);
 		return;
 	}
 	// Search system directory
-	snprintf(path, sizeof(path), "%s%c%s", g_system_dir, slash, romName);
+	snprintf(path, sizeof(path), "%s%c%s", g_system_dir, path_default_slash_c(), romName);
 	if (ZipOpen(path) == 0)
 	{
 		g_find_list_path.push_back(path);
@@ -1207,40 +1201,40 @@ int CreateAllDatfiles()
 	INT32 nRet = 0;
 	TCHAR szFilename[MAX_PATH];
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML");
 	create_datfile(szFilename, DAT_ARCADE_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, Megadrive only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Megadrive only");
 	create_datfile(szFilename, DAT_MEGADRIVE_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, PC-Engine only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, PC-Engine only");
 	create_datfile(szFilename, DAT_PCENGINE_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, TurboGrafx16 only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, TurboGrafx16 only");
 	create_datfile(szFilename, DAT_TG16_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, SuprGrafx only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, SuprGrafx only");
 	create_datfile(szFilename, DAT_SGX_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, Sega SG-1000 only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Sega SG-1000 only");
 	create_datfile(szFilename, DAT_SG1000_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, ColecoVision only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, ColecoVision only");
 	create_datfile(szFilename, DAT_COLECO_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, Master System only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Master System only");
 	create_datfile(szFilename, DAT_MASTERSYSTEM_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, Game Gear only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Game Gear only");
 	create_datfile(szFilename, DAT_GAMEGEAR_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, MSX 1 Games only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, MSX 1 Games only");
 	create_datfile(szFilename, DAT_MSX_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, ZX Spectrum Games only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, ZX Spectrum Games only");
 	create_datfile(szFilename, DAT_SPECTRUM_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", slash, szAppBurnVer, "ClrMame Pro XML, Neogeo only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Neogeo only");
 	create_datfile(szFilename, DAT_NEOGEO_ONLY);
 
 	return nRet;
@@ -1749,15 +1743,8 @@ static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 
 static void extract_basename(char *buf, const char *path, size_t size, char *prefix)
 {
-   const char *base = strrchr(path, slash);
-   if (!base)
-      base = path;
-
-   if (*base == slash)
-      base++;
-
    strcpy(buf, prefix);
-   strncat(buf, base, size - 1);
+   strncat(buf, path_basename(path), size - 1);
    buf[size - 1] = '\0';
 
    char *ext = strrchr(buf, '.');
@@ -1770,7 +1757,7 @@ static void extract_directory(char *buf, const char *path, size_t size)
    strncpy(buf, path, size - 1);
    buf[size - 1] = '\0';
 
-   char *base = strrchr(buf, slash);
+   char *base = strrchr(buf, path_default_slash_c());
 
    if (base)
       *base = '\0';
@@ -1805,16 +1792,16 @@ static bool retro_load_game_common()
 	}
 
 	// Initialize EEPROM path
-	snprintf (szAppEEPROMPath, sizeof(szAppEEPROMPath), "%s%cfba%c", g_save_dir, slash, slash);
+	snprintf (szAppEEPROMPath, sizeof(szAppEEPROMPath), "%s%cfba%c", g_save_dir, path_default_slash_c(), path_default_slash_c());
 
 	// Create EEPROM path if it does not exist
 	path_mkdir(szAppEEPROMPath);
 
 	// Initialize Hiscore path
-	snprintf (szAppHiscorePath, sizeof(szAppHiscorePath), "%s%cfba%c", g_system_dir, slash, slash);
+	snprintf (szAppHiscorePath, sizeof(szAppHiscorePath), "%s%cfba%c", g_system_dir, path_default_slash_c(), path_default_slash_c());
 
 	// Initialize Samples path
-	snprintf (szAppSamplesPath, sizeof(szAppSamplesPath), "%s%cfba%csamples%c", g_system_dir, slash, slash, slash);
+	snprintf (szAppSamplesPath, sizeof(szAppSamplesPath), "%s%cfba%csamples%c", g_system_dir, path_default_slash_c(), path_default_slash_c(), path_default_slash_c());
 
 	// Intialize state_sizes (for serialization)
 	state_sizes[0] = 0;
@@ -1878,7 +1865,7 @@ static bool retro_load_game_common()
 		}
 
 		// Loading minimal savestate (not exactly sure why it is needed)
-		snprintf (g_autofs_path, sizeof(g_autofs_path), "%s%cfba%c%s.fs", g_save_dir, slash, slash, BurnDrvGetTextA(DRV_NAME));
+		snprintf (g_autofs_path, sizeof(g_autofs_path), "%s%cfba%c%s.fs", g_save_dir, path_default_slash_c(), path_default_slash_c(), BurnDrvGetTextA(DRV_NAME));
 		BurnStateLoad(g_autofs_path, 0, NULL);
 
 		// Initializing display, autorotate if needed
