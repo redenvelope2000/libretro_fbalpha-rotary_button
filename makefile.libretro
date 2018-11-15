@@ -515,10 +515,10 @@ CXXFLAGS += $(fpic) $(FBA_DEFINES)
 LDFLAGS += $(fpic)
 
 ifeq (,$(findstring msvc,$(platform)))
-   CFLAGS += -fforce-addr $(INLINE_LIMIT)  \
+   CFLAGS += -funroll-loops -fforce-addr $(INLINE_LIMIT)  \
       -Wall -Wno-long-long -Wno-sign-compare -Wno-uninitialized -Wno-unused \
       -Wno-sequence-point -Wno-strict-aliasing
-   CXXFLAGS += -fforce-addr $(INLINE_LIMIT) \
+   CXXFLAGS += -funroll-loops -fforce-addr $(INLINE_LIMIT) \
       -fcheck-new \
       -Wall -W -Wshadow -Wno-long-long -Wno-write-strings \
       -Wunknown-pragmas -Wundef -Wno-conversion -Wno-missing-braces -Wno-multichar \
