@@ -134,7 +134,7 @@ else ifneq (,$(findstring ios,$(platform)))
    fpic := -fPIC
    SHARED := -dynamiclib
    HAVE_NEON = 1
-   USE_CYCLONE = 1
+   #USE_CYCLONE = 1
    ifeq ($(IOSSDK),)
       IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
    endif
