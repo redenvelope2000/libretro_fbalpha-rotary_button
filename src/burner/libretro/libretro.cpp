@@ -73,6 +73,11 @@ bool allow_neogeo_mode = true;
 UINT16 switch_ncode = 0;
 int kNetGame = 0;
 INT32 nReplayStatus = 0;
+#ifdef USE_CYCLONE
+// 0 - c68k, 1 - m68k
+// we don't use cyclone by default because it breaks savestates cross-platform compatibility (including netplay)
+int nSekCpuCore = 1;
+#endif
 
 enum neo_geo_modes
 {
@@ -181,6 +186,9 @@ static const struct retro_variable var_fba_hiscores = { "fba-hiscores", "Hiscore
 static const struct retro_variable var_fba_samplerate = { "fba-samplerate", "Samplerate (need to quit retroarch); 48000|44100|22050|11025" };
 static const struct retro_variable var_fba_sample_interpolation = { "fba-sample-interpolation", "Sample Interpolation; 4-point 3rd order|2-point 1st order|disabled" };
 static const struct retro_variable var_fba_fm_interpolation = { "fba-fm-interpolation", "FM Interpolation; 4-point 3rd order|disabled" };
+#ifdef USE_CYCLONE
+static const struct retro_variable var_fba_cyclone = { "fba-cyclone", "Cyclone; disabled|enabled" };
+#endif
 
 // Neo Geo core options
 static const struct retro_variable var_fba_neogeo_mode = { "fba-neogeo-mode", "Force Neo Geo mode (if available); MVS|AES|UNIBIOS|DIPSWITCH" };
@@ -737,6 +745,9 @@ static void set_environment()
 	vars_systems.push_back(&var_fba_samplerate);
 	vars_systems.push_back(&var_fba_sample_interpolation);
 	vars_systems.push_back(&var_fba_fm_interpolation);
+#ifdef USE_CYCLONE
+	vars_systems.push_back(&var_fba_cyclone);
+#endif
 
 	if (pgi_diag)
 	{
@@ -1443,29 +1454,40 @@ static void check_variables(void)
          g_audio_samplerate = 48000;
    }
 
-   var.key = var_fba_sample_interpolation.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
+	var.key = var_fba_sample_interpolation.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
 	   if (strcmp(var.value, "4-point 3rd order") == 0)
-	      nInterpolation = 3;
+		  nInterpolation = 3;
 	   else if (strcmp(var.value, "2-point 1st order") == 0)
-	      nInterpolation = 1;
+		  nInterpolation = 1;
 	   else if (strcmp(var.value, "disabled") == 0)
-	      nInterpolation = 0;
+		  nInterpolation = 0;
 	   else
-	      nInterpolation = 3;
+		  nInterpolation = 3;
 	}
 
-   var.key = var_fba_fm_interpolation.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
-	   if (strcmp(var.value, "4-point 3rd order") == 0)
-	      nFMInterpolation = 3;
-	   else if (strcmp(var.value, "disabled") == 0)
-	      nFMInterpolation = 0;
-	   else
-	      nFMInterpolation = 3;
+	var.key = var_fba_fm_interpolation.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "4-point 3rd order") == 0)
+			nFMInterpolation = 3;
+		else if (strcmp(var.value, "disabled") == 0)
+			nFMInterpolation = 0;
+		else
+			nFMInterpolation = 3;
 	}
+
+#ifdef USE_CYCLONE
+	var.key = var_fba_cyclone.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "enabled") == 0)
+			nSekCpuCore = 0;
+		else if (strcmp(var.value, "disabled") == 0)
+			nSekCpuCore = 1;
+	}
+#endif
 }
 
 void retro_run()

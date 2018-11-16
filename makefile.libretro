@@ -83,9 +83,11 @@ ifneq (,$(findstring unix,$(platform)))
    ifneq (,$(findstring rpi2,$(platform)))
       PLATFORM_DEFINES := -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
       HAVE_NEON = 1
+      USE_CYCLONE = 1
    else ifneq (,$(findstring rpi3,$(platform)))
       PLATFORM_DEFINES := -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
       HAVE_NEON = 1
+      USE_CYCLONE = 1
    endif
 
    # Solaris
@@ -102,6 +104,7 @@ ifneq (,$(findstring unix,$(platform)))
          CXX = arm-linux-androideabi-g++
          PLATFORM_DEFINES += -DANDROID -Dlog2\(x\)=\(log\(x\)/1.4426950408889634\)
       endif
+      USE_CYCLONE = 1
    endif
 
 # OS X
@@ -131,6 +134,7 @@ else ifneq (,$(findstring ios,$(platform)))
    fpic := -fPIC
    SHARED := -dynamiclib
    HAVE_NEON = 1
+   USE_CYCLONE = 1
    ifeq ($(IOSSDK),)
       IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
    endif
@@ -167,6 +171,7 @@ else ifeq ($(platform), theos_ios)
    LIBRARY_NAME = $(TARGET_NAME)_libretro_ios
    ENDIANNESS_DEFINES := -DLSB_FIRST
    CFLAGS += -DIOS
+   USE_CYCLONE = 1
 
 # QNX
 else ifeq ($(platform), qnx)
@@ -179,6 +184,7 @@ else ifeq ($(platform), qnx)
    AR = qcc -Vgcc_ntoarmv7le
    PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
    HAVE_NEON = 1
+   USE_CYCLONE = 1
 
 # PS3
 else ifneq (,$(filter $(platform), ps3 sncps3 psl1ght))
@@ -222,6 +228,7 @@ else ifeq ($(platform), vita)
    CXXFLAGS += -mfloat-abi=hard -fsingle-precision-constant -fpermissive -fno-rtti -fno-exceptions
    EXTERNAL_ZLIB = 1
    STATIC_LINKING = 1
+   USE_CYCLONE = 1
 
 # Xbox 360
 else ifeq ($(platform), xenon)
@@ -241,6 +248,7 @@ else ifeq ($(platform), switch)
    ENDIANNESS_DEFINES := -DLSB_FIRST
    PLATFORM_DEFINES := -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
    HAVE_NEON = 1
+   USE_CYCLONE = 1
 
 # Nintendo Switch (libnx)
 else ifeq ($(platform), libnx)
@@ -283,6 +291,7 @@ else ifeq ($(platform), classic_armv7_a7)
 	# ASFLAGS += $(CFLAGS)
 	USE_EXPERIMENTAL_FLAGS = 1
 	HAVE_NEON = 1
+	USE_CYCLONE = 1
 	ARCH = arm
 	ENDIANNESS_DEFINES := -DLSB_FIRST
 	ifeq ($(shell echo `$(CC) -dumpversion` "< 4.9" | bc -l), 1)
@@ -463,6 +472,10 @@ endif
 
 ifeq ($(FASTCALL), 1)
    FBA_DEFINES += -DFASTCALL
+endif
+
+ifeq ($(USE_CYCLONE), 1)
+   FBA_DEFINES += -USE_CYCLONE
 endif
 
 ifeq ($(FASTMATH), 1)

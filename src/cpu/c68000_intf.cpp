@@ -5,10 +5,6 @@
 #include "m68000_debug.h"
 
 #define EMU_C68K
-#define SEK_CORE_C68K (0)
-#define SEK_CORE_M68K (1)
-
-INT32 nSekCpuCore = SEK_CORE_C68K;  // 0 - c68k, 1 - m68k
 
 #ifdef EMU_M68K
 INT32 nSekM68KContextSize[SEK_MAX];
@@ -28,6 +24,22 @@ INT32 nSekActive = -1;								// The cpu which is currently being emulated
 INT32 nSekCyclesTotal, nSekCyclesScanline, nSekCyclesSegment, nSekCyclesDone, nSekCyclesToDo;
 
 INT32 nSekCPUType[SEK_MAX], nSekCycles[SEK_MAX], nSekIRQPending[SEK_MAX];
+
+cpu_core_config SekConfig =
+{
+	SekOpen,
+	SekClose,
+	SekCheatRead,
+	SekWriteByteROM,
+	SekGetActive,
+	SekTotalCycles,
+	SekNewFrame,
+	SekRun,
+	SekRunEnd,
+	SekReset,
+	0x1000000,
+	0
+};
 
 // ----------------------------------------------------------------------------
 // Default memory access handlers
@@ -614,22 +626,6 @@ UINT8 SekCheatRead(UINT32 a)
 {
 	return SekReadByte(a);
 }
-
-cpu_core_config SekConfig =
-{
-	SekOpen,
-	SekClose,
-	SekCheatRead,
-	SekWriteByteROM,
-	SekGetActive,
-	SekTotalCycles,
-	SekNewFrame,
-	SekRun,
-	SekRunEnd,
-	SekReset,
-	(1<<24),	// 0x1000000
-	0
-};
 
 INT32 SekInit(INT32 nCount, INT32 nCPUType)
 {
