@@ -475,7 +475,7 @@ ifeq ($(FASTCALL), 1)
 endif
 
 ifeq ($(USE_CYCLONE), 1)
-   FBA_DEFINES += -USE_CYCLONE
+   FBA_DEFINES += -DUSE_CYCLONE
 endif
 
 ifeq ($(FASTMATH), 1)
