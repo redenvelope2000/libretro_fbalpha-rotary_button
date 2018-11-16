@@ -8,7 +8,8 @@ INCLUDE_7Z_SUPPORT        := 1
 EXTERNAL_ZLIB             := 0
 BUILD_X64_EXE             := 0
 WANT_NEOGEOCD             := 0
-HAVE_NEON                 := 0
+HAVE_NEON                 := 1
+USE_CYCLONE               := 1
 
 CFLAGS      :=
 CXXFLAGS    :=
