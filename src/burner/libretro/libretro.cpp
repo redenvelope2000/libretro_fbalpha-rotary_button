@@ -1263,7 +1263,9 @@ void retro_init()
 		log_cb = log_dummy;
 
 	snprintf(szAppBurnVer, sizeof(szAppBurnVer), "%x.%x.%x.%02x", nBurnVer >> 20, (nBurnVer >> 16) & 0x0F, (nBurnVer >> 8) & 0xFF, nBurnVer & 0xFF);
+#ifdef USE_CYCLONE
 	nSekCpuCore = (cyclone_enabled ? 0 : 1);
+#endif
 	BurnLibInit();
 #ifdef AUTOGEN_DATS
 	CreateAllDatfiles();
