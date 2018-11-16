@@ -77,6 +77,7 @@ INT32 nReplayStatus = 0;
 // 0 - c68k, 1 - m68k
 // we don't use cyclone by default because it breaks savestates cross-platform compatibility (including netplay)
 int nSekCpuCore = 1;
+static bool cyclone_enabled = false;
 #endif
 
 enum neo_geo_modes
@@ -187,7 +188,7 @@ static const struct retro_variable var_fba_samplerate = { "fba-samplerate", "Sam
 static const struct retro_variable var_fba_sample_interpolation = { "fba-sample-interpolation", "Sample Interpolation; 4-point 3rd order|2-point 1st order|disabled" };
 static const struct retro_variable var_fba_fm_interpolation = { "fba-fm-interpolation", "FM Interpolation; 4-point 3rd order|disabled" };
 #ifdef USE_CYCLONE
-static const struct retro_variable var_fba_cyclone = { "fba-cyclone", "Cyclone; disabled|enabled" };
+static const struct retro_variable var_fba_cyclone = { "fba-cyclone", "Cyclone (restart); disabled|enabled" };
 #endif
 
 // Neo Geo core options
@@ -1254,17 +1255,18 @@ int CreateAllDatfiles()
 
 void retro_init()
 {
-   struct retro_log_callback log;
+	struct retro_log_callback log;
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
-      log_cb = log.log;
-   else
-      log_cb = log_dummy;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
+		log_cb = log.log;
+	else
+		log_cb = log_dummy;
 
-   snprintf(szAppBurnVer, sizeof(szAppBurnVer), "%x.%x.%x.%02x", nBurnVer >> 20, (nBurnVer >> 16) & 0x0F, (nBurnVer >> 8) & 0xFF, nBurnVer & 0xFF);
-   BurnLibInit();
+	snprintf(szAppBurnVer, sizeof(szAppBurnVer), "%x.%x.%x.%02x", nBurnVer >> 20, (nBurnVer >> 16) & 0x0F, (nBurnVer >> 8) & 0xFF, nBurnVer & 0xFF);
+	nSekCpuCore = (cyclone_enabled ? 0 : 1);
+	BurnLibInit();
 #ifdef AUTOGEN_DATS
-   CreateAllDatfiles();
+	CreateAllDatfiles();
 #endif
 }
 
@@ -1483,9 +1485,9 @@ static void check_variables(void)
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
 		if (strcmp(var.value, "enabled") == 0)
-			nSekCpuCore = 0;
+			cyclone_enabled = true;
 		else if (strcmp(var.value, "disabled") == 0)
-			nSekCpuCore = 1;
+			cyclone_enabled = false;
 	}
 #endif
 }
