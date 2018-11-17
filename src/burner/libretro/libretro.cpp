@@ -185,7 +185,7 @@ static const struct retro_variable var_fba_samplerate = { "fba-samplerate", "Sam
 static const struct retro_variable var_fba_sample_interpolation = { "fba-sample-interpolation", "Sample Interpolation; 4-point 3rd order|2-point 1st order|disabled" };
 static const struct retro_variable var_fba_fm_interpolation = { "fba-fm-interpolation", "FM Interpolation; 4-point 3rd order|disabled" };
 #ifdef USE_CYCLONE
-static const struct retro_variable var_fba_cyclone = { "fba-cyclone", "Cyclone (restart); disabled|enabled" };
+static const struct retro_variable var_fba_cyclone = { "fba-cyclone", "Cyclone (need to quit retroarch, change savestate format, use at your own risk); disabled|enabled" };
 #endif
 
 // Neo Geo core options
