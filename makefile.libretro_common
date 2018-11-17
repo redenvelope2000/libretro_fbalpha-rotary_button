@@ -314,8 +314,8 @@ ifeq ($(USE_CYCLONE), 1)
 	ifneq (,$(findstring android,$(platform)))
 		ARM_FLAGS =
 	endif
-	CFLAGS			+= -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-optimize-sibling-calls -funsafe-math-optimizations -fsingle-precision-constant
-	CXXFLAGS		+= -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-optimize-sibling-calls -funsafe-math-optimizations -fsingle-precision-constant
+	CFLAGS			+= -fno-optimize-sibling-calls -funsafe-math-optimizations -fsingle-precision-constant
+	CXXFLAGS		+= -fno-optimize-sibling-calls -funsafe-math-optimizations -fsingle-precision-constant
 else
 	BURN_BLACKLIST	+= $(FBA_CPU_DIR)/c68000_intf.cpp
 	SOURCES_S		:= 
