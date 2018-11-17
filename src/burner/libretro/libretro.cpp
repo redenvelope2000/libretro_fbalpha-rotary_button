@@ -42,25 +42,25 @@ static retro_audio_sample_batch_t audio_batch_cb;
 char bprintf_buf[BPRINTF_BUFFER_SIZE];
 static INT32 __cdecl libretro_bprintf(INT32 nStatus, TCHAR* szFormat, ...)
 {
-   va_list vp;
-   va_start(vp, szFormat);
-   int rc = vsnprintf(bprintf_buf, BPRINTF_BUFFER_SIZE, szFormat, vp);
-   va_end(vp);
+	va_list vp;
+	va_start(vp, szFormat);
+	int rc = vsnprintf(bprintf_buf, BPRINTF_BUFFER_SIZE, szFormat, vp);
+	va_end(vp);
 
-   if (rc >= 0)
-   {
-      retro_log_level retro_log = RETRO_LOG_DEBUG;
-      if (nStatus == PRINT_UI)
-         retro_log = RETRO_LOG_INFO;
-      else if (nStatus == PRINT_IMPORTANT)
-         retro_log = RETRO_LOG_WARN;
-      else if (nStatus == PRINT_ERROR)
-         retro_log = RETRO_LOG_ERROR;
-         
-      log_cb(retro_log, bprintf_buf);
-   }
-   
-   return rc;
+	if (rc >= 0)
+	{
+		retro_log_level retro_log = RETRO_LOG_DEBUG;
+		if (nStatus == PRINT_UI)
+			retro_log = RETRO_LOG_INFO;
+		else if (nStatus == PRINT_IMPORTANT)
+			retro_log = RETRO_LOG_WARN;
+		else if (nStatus == PRINT_ERROR)
+			retro_log = RETRO_LOG_ERROR;
+
+		log_cb(retro_log, bprintf_buf);
+	}
+
+	return rc;
 }
 
 INT32 (__cdecl *bprintf) (INT32 nStatus, TCHAR* szFormat, ...) = libretro_bprintf;
@@ -82,17 +82,17 @@ static bool cyclone_enabled = false;
 
 enum neo_geo_modes
 {
-   /* MVS */
-   NEO_GEO_MODE_MVS = 0,
+	/* MVS */
+	NEO_GEO_MODE_MVS = 0,
 
-   /* AES */
-   NEO_GEO_MODE_AES = 1,
+	/* AES */
+	NEO_GEO_MODE_AES = 1,
 
-   /* UNIBIOS */
-   NEO_GEO_MODE_UNIBIOS = 2,
+	/* UNIBIOS */
+	NEO_GEO_MODE_UNIBIOS = 2,
 
-   /* DIPSWITCH */
-   NEO_GEO_MODE_DIPSWITCH = 3,
+	/* DIPSWITCH */
+	NEO_GEO_MODE_DIPSWITCH = 3,
 };
 
 #define MAX_KEYBINDS 0x5000
@@ -130,15 +130,12 @@ extern INT32 EnableHiscores;
 #define STAT_SMALL   3
 #define STAT_LARGE   4
 
-#define cpsx 1
-#define neogeo 2
-
 struct ROMFIND
 {
-   unsigned int nState;
-   int nArchive;
-   int nPos;
-   BurnRomInfo ri;
+	unsigned int nState;
+	int nArchive;
+	int nPos;
+	BurnRomInfo ri;
 };
 
 static std::vector<std::string> g_find_list_path;
@@ -290,8 +287,8 @@ static struct RomBiosInfo uni_bioses[] = {
 
 #if 0
 static struct RomBiosInfo unknown_bioses[] = {
-   {"neopen.sp1",        0xcb915e76, 0x21, "NeoOpen BIOS v0.1 beta"         ,  1 },
-   {NULL, 0, 0, NULL, 0 }
+	{"neopen.sp1",        0xcb915e76, 0x21, "NeoOpen BIOS v0.1 beta"         ,  1 },
+	{NULL, 0, 0, NULL, 0 }
 };
 #endif
 
@@ -301,68 +298,68 @@ static RomBiosInfo *available_uni_bios = NULL;
 
 void set_neo_system_bios()
 {
-   if (g_opt_neo_geo_mode == NEO_GEO_MODE_DIPSWITCH)
-   {
-      // Nothing to do in DIPSWITCH mode because the NeoSystem variable is changed by the DIP Switch core option
-      log_cb(RETRO_LOG_INFO, "DIPSWITCH Neo Geo Mode selected => NeoSystem: 0x%02x.\n", NeoSystem);
-   }
-   else if (g_opt_neo_geo_mode == NEO_GEO_MODE_MVS)
-   {
-      NeoSystem &= ~(UINT8)0x1f;
-      if (available_mvs_bios)
-      {
-         NeoSystem |= available_mvs_bios->NeoSystem;
-         log_cb(RETRO_LOG_INFO, "MVS Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
-      }
-      else
-      {
-         // fallback to another bios type if we didn't find the bios selected by the user
-         available_mvs_bios = (available_aes_bios) ? available_aes_bios : available_uni_bios;
-         if (available_mvs_bios)
-         {
-            NeoSystem |= available_mvs_bios->NeoSystem;
-            log_cb(RETRO_LOG_WARN, "MVS Neo Geo Mode selected but MVS bios not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
-         }
-      }
-   }
-   else if (g_opt_neo_geo_mode == NEO_GEO_MODE_AES)
-   {
-      NeoSystem &= ~(UINT8)0x1f;
-      if (available_aes_bios)
-      {
-         NeoSystem |= available_aes_bios->NeoSystem;
-         log_cb(RETRO_LOG_INFO, "AES Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
-      }
-      else
-      {
-         // fallback to another bios type if we didn't find the bios selected by the user
-         available_aes_bios = (available_mvs_bios) ? available_mvs_bios : available_uni_bios;
-         if (available_aes_bios)
-         {
-            NeoSystem |= available_aes_bios->NeoSystem;
-            log_cb(RETRO_LOG_WARN, "AES Neo Geo Mode selected but AES bios not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
-         }
-      }      
-   }
-   else if (g_opt_neo_geo_mode == NEO_GEO_MODE_UNIBIOS)
-   {
-      NeoSystem &= ~(UINT8)0x1f;
-      if (available_uni_bios)
-      {
-         NeoSystem |= available_uni_bios->NeoSystem;
-         log_cb(RETRO_LOG_INFO, "UNIBIOS Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
-      }
-      else
-      {
-         // fallback to another bios type if we didn't find the bios selected by the user
-         available_uni_bios = (available_mvs_bios) ? available_mvs_bios : available_aes_bios;
-         if (available_uni_bios)
-         {
-            NeoSystem |= available_uni_bios->NeoSystem;
-            log_cb(RETRO_LOG_WARN, "UNIBIOS Neo Geo Mode selected but UNIBIOS not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
-         }
-      }
-   }
+	if (g_opt_neo_geo_mode == NEO_GEO_MODE_DIPSWITCH)
+	{
+		// Nothing to do in DIPSWITCH mode because the NeoSystem variable is changed by the DIP Switch core option
+		log_cb(RETRO_LOG_INFO, "DIPSWITCH Neo Geo Mode selected => NeoSystem: 0x%02x.\n", NeoSystem);
+	}
+	else if (g_opt_neo_geo_mode == NEO_GEO_MODE_MVS)
+	{
+		NeoSystem &= ~(UINT8)0x1f;
+		if (available_mvs_bios)
+		{
+			NeoSystem |= available_mvs_bios->NeoSystem;
+			log_cb(RETRO_LOG_INFO, "MVS Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
+		}
+		else
+		{
+			// fallback to another bios type if we didn't find the bios selected by the user
+			available_mvs_bios = (available_aes_bios) ? available_aes_bios : available_uni_bios;
+			if (available_mvs_bios)
+			{
+				NeoSystem |= available_mvs_bios->NeoSystem;
+				log_cb(RETRO_LOG_WARN, "MVS Neo Geo Mode selected but MVS bios not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_mvs_bios->filename, available_mvs_bios->crc, available_mvs_bios->friendly_name);
+			}
+		}
+	}
+	else if (g_opt_neo_geo_mode == NEO_GEO_MODE_AES)
+	{
+		NeoSystem &= ~(UINT8)0x1f;
+		if (available_aes_bios)
+		{
+			NeoSystem |= available_aes_bios->NeoSystem;
+			log_cb(RETRO_LOG_INFO, "AES Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
+		}
+		else
+		{
+			// fallback to another bios type if we didn't find the bios selected by the user
+			available_aes_bios = (available_mvs_bios) ? available_mvs_bios : available_uni_bios;
+			if (available_aes_bios)
+			{
+				NeoSystem |= available_aes_bios->NeoSystem;
+				log_cb(RETRO_LOG_WARN, "AES Neo Geo Mode selected but AES bios not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_aes_bios->filename, available_aes_bios->crc, available_aes_bios->friendly_name);
+			}
+		}
+	}
+	else if (g_opt_neo_geo_mode == NEO_GEO_MODE_UNIBIOS)
+	{
+		NeoSystem &= ~(UINT8)0x1f;
+		if (available_uni_bios)
+		{
+			NeoSystem |= available_uni_bios->NeoSystem;
+			log_cb(RETRO_LOG_INFO, "UNIBIOS Neo Geo Mode selected => Set NeoSystem: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
+		}
+		else
+		{
+			// fallback to another bios type if we didn't find the bios selected by the user
+			available_uni_bios = (available_mvs_bios) ? available_mvs_bios : available_aes_bios;
+			if (available_uni_bios)
+			{
+				NeoSystem |= available_uni_bios->NeoSystem;
+				log_cb(RETRO_LOG_WARN, "UNIBIOS Neo Geo Mode selected but UNIBIOS not available => fall back to another: 0x%02x (%s [0x%08x] (%s)).\n", NeoSystem, available_uni_bios->filename, available_uni_bios->crc, available_uni_bios->friendly_name);
+			}
+		}
+	}
 }
 
 char g_driver_name[128];
@@ -376,14 +373,14 @@ static bool driver_inited;
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   info->library_name = "FB Alpha";
+	info->library_name = "FB Alpha";
 #ifndef GIT_VERSION
 #define GIT_VERSION ""
 #endif
-   info->library_version = FBA_VERSION GIT_VERSION;
-   info->need_fullpath = true;
-   info->block_extract = true;
-   info->valid_extensions = "iso|zip|7z";
+	info->library_version = FBA_VERSION GIT_VERSION;
+	info->need_fullpath = true;
+	info->block_extract = true;
+	info->valid_extensions = "iso|zip|7z";
 }
 
 /////
@@ -411,13 +408,13 @@ TCHAR szAppBurnVer[16];
 // Replace the char c_find by the char c_replace in the destination c string
 char* str_char_replace(char* destination, char c_find, char c_replace)
 {
-   for (unsigned str_idx = 0; str_idx < strlen(destination); str_idx++)
-   {
-      if (destination[str_idx] == c_find)
-         destination[str_idx] = c_replace;
-   }
+	for (unsigned str_idx = 0; str_idx < strlen(destination); str_idx++)
+	{
+		if (destination[str_idx] == c_find)
+			destination[str_idx] = c_replace;
+	}
 
-   return destination;
+	return destination;
 }
 
 std::vector<retro_input_descriptor> normal_input_descriptors;
@@ -425,27 +422,27 @@ std::vector<retro_input_descriptor> macro_input_descriptors;
 
 struct macro_core_option_value
 {
-   unsigned retro_device_id;
-   const char* friendly_name;
+	unsigned retro_device_id;
+	const char* friendly_name;
 
-   macro_core_option_value(unsigned device_id, const char* name):
-	   retro_device_id(device_id),
-	   friendly_name(name)
-   {
-   }
+	macro_core_option_value(unsigned device_id, const char* name):
+		retro_device_id(device_id),
+		friendly_name(name)
+	{
+	}
 };
 
 struct macro_core_option
 {
-   struct GameInp *pgi;
+	struct GameInp *pgi;
 
-   char option_name[100];
-   char friendly_name[100];
+	char option_name[100];
+	char friendly_name[100];
 
-   std::string values_str;
-   std::vector<macro_core_option_value> values;
-   
-   macro_core_option_value *selected_value;
+	std::string values_str;
+	std::vector<macro_core_option_value> values;
+
+	macro_core_option_value *selected_value;
 };
 
 static std::vector<macro_core_option> macro_core_options;
@@ -455,18 +452,18 @@ static struct GameInp *pgi_diag;
 
 struct dipswitch_core_option_value
 {
-   struct GameInp *pgi;
-   BurnDIPInfo bdi;
-   char friendly_name[100];
+	struct GameInp *pgi;
+	BurnDIPInfo bdi;
+	char friendly_name[100];
 };
 
 struct dipswitch_core_option
 {
-   char option_name[100];
-   char friendly_name[100];
+	char option_name[100];
+	char friendly_name[100];
 
-   std::string values_str;
-   std::vector<dipswitch_core_option_value> values;
+	std::string values_str;
+	std::vector<dipswitch_core_option_value> values;
 };
 
 static int nDIPOffset;
@@ -475,18 +472,18 @@ static std::vector<dipswitch_core_option> dipswitch_core_options;
 
 static void InpDIPSWGetOffset (void)
 {
-   BurnDIPInfo bdi;
-   nDIPOffset = 0;
+	BurnDIPInfo bdi;
+	nDIPOffset = 0;
 
-   for(int i = 0; BurnDrvGetDIPInfo(&bdi, i) == 0; i++)
-   {
-      if (bdi.nFlags == 0xF0)
-      {
-         nDIPOffset = bdi.nInput;
-         log_cb(RETRO_LOG_INFO, "DIP switches offset: %d.\n", bdi.nInput);
-         break;
-      }
-   }
+	for(int i = 0; BurnDrvGetDIPInfo(&bdi, i) == 0; i++)
+	{
+		if (bdi.nFlags == 0xF0)
+		{
+			nDIPOffset = bdi.nInput;
+			log_cb(RETRO_LOG_INFO, "DIP switches offset: %d.\n", bdi.nInput);
+			break;
+		}
+	}
 }
 
 void InpDIPSWResetDIPs (void)
@@ -1263,9 +1260,6 @@ void retro_init()
 		log_cb = log_dummy;
 
 	snprintf(szAppBurnVer, sizeof(szAppBurnVer), "%x.%x.%x.%02x", nBurnVer >> 20, (nBurnVer >> 16) & 0x0F, (nBurnVer >> 8) & 0xFF, nBurnVer & 0xFF);
-#ifdef USE_CYCLONE
-	nSekCpuCore = (cyclone_enabled ? 0 : 1);
-#endif
 	BurnLibInit();
 #ifdef AUTOGEN_DATS
 	CreateAllDatfiles();
@@ -1845,6 +1839,9 @@ static bool retro_load_game_common()
 		set_environment();
 		check_variables();
 
+#ifdef USE_CYCLONE
+		nSekCpuCore = (cyclone_enabled ? 0 : 1);
+#endif
 		if (!open_archive()) {
 			log_cb(RETRO_LOG_ERROR, "[FBA] Can't launch this game, some files are missing.\n");
 			return false;
