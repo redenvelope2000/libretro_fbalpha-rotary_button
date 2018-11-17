@@ -423,7 +423,7 @@ extern "C" unsigned int m68k_checkpc(UINT32 pc)
 	pc -= c68k[nSekActive].membase; // Get real pc
 	pc &= 0xffffff;
 
-	c68k[nSekActive].membase = (int)FIND_F(pc) - (pc & ~SEK_PAGEM);
+	c68k[nSekActive].membase = (uintptr_t)FIND_F(pc) - (pc & ~SEK_PAGEM);
 
 	return c68k[nSekActive].membase + pc;
 }
