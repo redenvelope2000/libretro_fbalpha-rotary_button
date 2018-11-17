@@ -105,6 +105,9 @@ ifneq (,$(findstring unix,$(platform)))
          PLATFORM_DEFINES += -DANDROID -Dlog2\(x\)=\(log\(x\)/1.4426950408889634\)
       endif
       USE_CYCLONE = 1
+      ifneq (,$(findstring neon,$(platform)))
+         HAVE_NEON = 1
+      endif
    endif
 
 # OS X
