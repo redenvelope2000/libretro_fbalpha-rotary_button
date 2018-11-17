@@ -300,20 +300,38 @@ INCLUDE_DIRS := $(FBA_BURNER_DIR)/win32 \
 	$(FBA_GENERATED_DIR) \
 	$(FBA_LIB_DIR)
 
+ARM_FLAGS =
+
 ifeq ($(USE_CYCLONE), 1)
 	INCLUDE_DIRS	+= $(FBA_CPU_DIR)/cyclone
 	SOURCES_S		+= $(FBA_CPU_DIR)/cyclone/Cyclone.S
 	BURN_BLACKLIST	+= $(FBA_CPU_DIR)/m68000_intf.cpp
-	CFLAGS			+= -fno-asynchronous-unwind-tables -mword-relocations -fno-unwind-tables -fno-optimize-sibling-calls -funsafe-math-optimizations -mlittle-endian -munaligned-access -fsingle-precision-constant
-	CXXFLAGS		+= -fno-asynchronous-unwind-tables -mword-relocations -fno-unwind-tables -fno-optimize-sibling-calls -funsafe-math-optimizations -mlittle-endian -munaligned-access -fsingle-precision-constant
+	ARM_FLAGS		= -mword-relocations -mlittle-endian -munaligned-access
+	# ios and android don't support this
+	ifneq (,$(findstring ios,$(platform)))
+		ARM_FLAGS =
+	endif
+	ifneq (,$(findstring android,$(platform)))
+		ARM_FLAGS =
+	endif
+	CFLAGS			+= -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-optimize-sibling-calls -funsafe-math-optimizations -fsingle-precision-constant
+	CXXFLAGS		+= -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-optimize-sibling-calls -funsafe-math-optimizations -fsingle-precision-constant
 else
 	BURN_BLACKLIST	+= $(FBA_CPU_DIR)/c68000_intf.cpp
 	SOURCES_S		:= 
 endif
 
+NEON_FLAGS=
+
 ifeq ($(HAVE_NEON), 1)
-	CFLAGS			+= -mvectorize-with-neon-quad
-	CXXFLAGS		+= -mvectorize-with-neon-quad
+	NEON_FLAGS = -mvectorize-with-neon-quad
+	# ios and android don't support this
+	ifneq (,$(findstring ios,$(platform)))
+		NEON_FLAGS =
+	endif
+	ifneq (,$(findstring android,$(platform)))
+		NEON_FLAGS =
+	endif
 	SOURCES_S		+= $(LIBRETRO_COMM_DIR)/audio/resampler/drivers/sinc_resampler_neon.S
 endif
 
