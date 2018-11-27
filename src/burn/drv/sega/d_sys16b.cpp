@@ -5279,18 +5279,18 @@ static struct BurnRomInfo Shinobi3RomDesc[] = {
 	{ "epr-11283.a5",   0x10000, 0x9d46e707, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
 	{ "epr-11281.a2",   0x10000, 0x7961d07e, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
 
-	{ "epr-11284.b9",   0x10000, 0x5f62e163, SYS16_ROM_TILES | BRF_GRA },
-	{ "epr-11285.b10",  0x10000, 0x75f8fbc9, SYS16_ROM_TILES | BRF_GRA },
-	{ "epr-11286.b11",  0x10000, 0x06508bb9, SYS16_ROM_TILES | BRF_GRA },
+	{ "opr-11284.b9",   0x10000, 0x5f62e163, SYS16_ROM_TILES | BRF_GRA },
+	{ "opr-11285.b10",  0x10000, 0x75f8fbc9, SYS16_ROM_TILES | BRF_GRA },
+	{ "opr-11286.b11",  0x10000, 0x06508bb9, SYS16_ROM_TILES | BRF_GRA },
 	
-	{ "epr-11290.b1",   0x10000, 0x611f413a, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11294.b5",   0x10000, 0x5eb00fc1, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11291.b2",   0x10000, 0x3c0797c0, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11295.b6",   0x10000, 0x25307ef8, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11292.b3",   0x10000, 0xc29ac34e, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11296.b7",   0x10000, 0x04a437f8, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11293.b4",   0x10000, 0x41f41063, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11297.b8",   0x10000, 0xb6e1fd72, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11290.b1",   0x10000, 0x611f413a, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11294.b5",   0x10000, 0x5eb00fc1, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11291.b2",   0x10000, 0x3c0797c0, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11295.b6",   0x10000, 0x25307ef8, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11292.b3",   0x10000, 0xc29ac34e, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11296.b7",   0x10000, 0x04a437f8, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11293.b4",   0x10000, 0x41f41063, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11297.b8",   0x10000, 0xb6e1fd72, SYS16_ROM_SPRITES | BRF_GRA },
 
 	{ "epr-11372.a7",   0x08000, 0x0824269a, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
 	
@@ -5308,18 +5308,18 @@ static struct BurnRomInfo Shinobi4RomDesc[] = {
 	{ "epr-11360.a7",   0x20000, 0xb1f67ab9, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
 	{ "epr-11359.a5",   0x20000, 0x0f0306e1, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
 
-	{ "epr-11363.a14",  0x20000, 0x40914168, SYS16_ROM_TILES | BRF_GRA },
-	{ "epr-11364.a15",  0x20000, 0xe63649a4, SYS16_ROM_TILES | BRF_GRA },
-	{ "epr-11365.a16",  0x20000, 0x1ef55d20, SYS16_ROM_TILES | BRF_GRA },
+	{ "mpr-11363.a14",  0x20000, 0x40914168, SYS16_ROM_TILES | BRF_GRA },
+	{ "mpr-11364.a15",  0x20000, 0xe63649a4, SYS16_ROM_TILES | BRF_GRA },
+	{ "mpr-11365.a16",  0x20000, 0x1ef55d20, SYS16_ROM_TILES | BRF_GRA },
 	
-	{ "epr-11366.b1",   0x20000, 0x319ede73, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11368.b5",   0x20000, 0x0377d7ce, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11367.b2",   0x20000, 0x1d06c5c7, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11369.b6",   0x20000, 0xd751d2a2, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-11366.b1",   0x20000, 0x319ede73, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-11368.b5",   0x20000, 0x0377d7ce, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-11367.b2",   0x20000, 0x1d06c5c7, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-11369.b6",   0x20000, 0xd751d2a2, SYS16_ROM_SPRITES | BRF_GRA },
 
 	{ "epr-11377.a10",  0x08000, 0x0fb6af34, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
 	
-	{ "epr-11362.a11",  0x20000, 0x256af749, SYS16_ROM_UPD7759DATA | BRF_SND },
+	{ "mpr-11362.a11",  0x20000, 0x256af749, SYS16_ROM_UPD7759DATA | BRF_SND },
 	
 	{ "317-0054.key",   0x02000, 0x39fd4535, SYS16_ROM_KEY | BRF_ESS | BRF_PRG },
 };
@@ -5329,26 +5329,55 @@ STD_ROM_PICK(Shinobi4)
 STD_ROM_FN(Shinobi4)
 
 static struct BurnRomInfo Shinobi5RomDesc[] = {
-	{ "epr-11360.a7",   0x20000, 0xb1f67ab9, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
-	{ "epr-11359.a5",   0x20000, 0x0f0306e1, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
+	{ "epr-11299.a4",   0x10000, 0xb930399d, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
+	{ "epr-11298.a1",   0x10000, 0x343f4c46, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
+	{ "epr-11283.a5",   0x10000, 0x9d46e707, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
+	{ "epr-11281.a2",   0x10000, 0x7961d07e, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
 
-	{ "epr-11363.a14",  0x20000, 0x40914168, SYS16_ROM_TILES | BRF_GRA },
-	{ "epr-11364.a15",  0x20000, 0xe63649a4, SYS16_ROM_TILES | BRF_GRA },
-	{ "epr-11365.a16",  0x20000, 0x1ef55d20, SYS16_ROM_TILES | BRF_GRA },
+	{ "opr-11284.b9",   0x10000, 0x5f62e163, SYS16_ROM_TILES | BRF_GRA },
+	{ "opr-11285.b10",  0x10000, 0x75f8fbc9, SYS16_ROM_TILES | BRF_GRA },
+	{ "opr-11286.b11",  0x10000, 0x06508bb9, SYS16_ROM_TILES | BRF_GRA },
 	
-	{ "epr-11366.b1",   0x20000, 0x319ede73, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11368.b5",   0x20000, 0x0377d7ce, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11367.b2",   0x20000, 0x1d06c5c7, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-11369.b6",   0x20000, 0xd751d2a2, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11290.b1",   0x10000, 0x611f413a, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11294.b5",   0x10000, 0x5eb00fc1, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11291.b2",   0x10000, 0x3c0797c0, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11295.b6",   0x10000, 0x25307ef8, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11292.b3",   0x10000, 0xc29ac34e, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11296.b7",   0x10000, 0x04a437f8, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11293.b4",   0x10000, 0x41f41063, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "opr-11297.b8",   0x10000, 0xb6e1fd72, SYS16_ROM_SPRITES | BRF_GRA },
 
-	{ "epr-11361.a10",  0x08000, 0x1f47ebcb, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
-	
-	{ "epr-11362.a11",  0x20000, 0x256af749, SYS16_ROM_UPD7759DATA | BRF_SND },
+	{ "epr-11287.a7",   0x08000, 0xe8cccd42, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
+
+	{ "epr-11288.a8",   0x08000, 0xc8df8460, SYS16_ROM_UPD7759DATA | BRF_SND },
+	{ "epr-11289.a9",   0x08000, 0xe5a4cf30, SYS16_ROM_UPD7759DATA | BRF_SND },
 };
 
 
 STD_ROM_PICK(Shinobi5)
 STD_ROM_FN(Shinobi5)
+
+static struct BurnRomInfo Shinobi6RomDesc[] = {
+	{ "epr-11360.a7",   0x20000, 0xb1f67ab9, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
+	{ "epr-11359.a5",   0x20000, 0x0f0306e1, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
+
+	{ "mpr-11363.a14",  0x20000, 0x40914168, SYS16_ROM_TILES | BRF_GRA },
+	{ "mpr-11364.a15",  0x20000, 0xe63649a4, SYS16_ROM_TILES | BRF_GRA },
+	{ "mpr-11365.a16",  0x20000, 0x1ef55d20, SYS16_ROM_TILES | BRF_GRA },
+	
+	{ "mpr-11366.b1",   0x20000, 0x319ede73, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-11368.b5",   0x20000, 0x0377d7ce, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-11367.b2",   0x20000, 0x1d06c5c7, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-11369.b6",   0x20000, 0xd751d2a2, SYS16_ROM_SPRITES | BRF_GRA },
+
+	{ "epr-11361.a10",  0x08000, 0x1f47ebcb, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
+	
+	{ "mpr-11362.a11",  0x20000, 0x256af749, SYS16_ROM_UPD7759DATA | BRF_SND },
+};
+
+
+STD_ROM_PICK(Shinobi6)
+STD_ROM_FN(Shinobi6)
 
 static struct BurnRomInfo SjryukoRomDesc[] = {
 	{ "epr-12256.a4",     0x08000, 0x5987ee1b, SYS16_ROM_PROG | BRF_ESS | BRF_PRG },
@@ -5537,8 +5566,8 @@ static struct BurnRomInfo Tetris2RomDesc[] = {
 	{ "epr-12166.b10", 0x10000, 0x9abd183b, SYS16_ROM_TILES | BRF_GRA },
 	{ "epr-12167.b11", 0x10000, 0x2495fd4e, SYS16_ROM_TILES | BRF_GRA },
 	
-	{ "epr-12194.b1",  0x10000, 0x2fb38880, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-12195.b5",  0x10000, 0xd6a02cba, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-12194.b1",  0x10000, 0x2fb38880, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-12195.b5",  0x10000, 0xd6a02cba, SYS16_ROM_SPRITES | BRF_GRA },
 
 	{ "epr-12168.a7",  0x08000, 0xbd9ba01b, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
 	
@@ -5557,8 +5586,8 @@ static struct BurnRomInfo Tetris2dRomDesc[] = {
 	{ "epr-12166.b10",          0x10000, 0x9abd183b, SYS16_ROM_TILES | BRF_GRA },
 	{ "epr-12167.b11",          0x10000, 0x2495fd4e, SYS16_ROM_TILES | BRF_GRA },
 
-	{ "epr-12194.b1",           0x10000, 0x2fb38880, SYS16_ROM_SPRITES | BRF_GRA },
-	{ "epr-12195.b5",           0x10000, 0xd6a02cba, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-12194.b1",           0x10000, 0x2fb38880, SYS16_ROM_SPRITES | BRF_GRA },
+	{ "mpr-12195.b5",           0x10000, 0xd6a02cba, SYS16_ROM_SPRITES | BRF_GRA },
 
 	{ "epr-12168.a7",           0x08000, 0xbd9ba01b, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
 };
@@ -9752,8 +9781,18 @@ struct BurnDriver BurnDrvShinobi5 = {
 	"shinobi5", "shinobi", NULL, NULL, "1987",
 	"Shinobi (set 5, System 16B, unprotected)\0", NULL, "Sega", "System 16B",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_SEGA_SYSTEM16B | HARDWARE_SEGA_5521, GBF_PLATFORM, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_SEGA_SYSTEM16B | HARDWARE_SEGA_5358, GBF_PLATFORM, 0,
 	NULL, Shinobi5RomInfo, Shinobi5RomName, NULL, NULL, System16bfire3InputInfo, ShinobiDIPInfo,
+	System16Init, System16Exit, System16BFrame, System16BRender, System16Scan,
+	NULL, 0x1800, 320, 224, 4, 3
+};
+
+struct BurnDriver BurnDrvShinobi6 = {
+	"shinobi6", "shinobi", NULL, NULL, "1987",
+	"Shinobi (set 6, System 16B, unprotected)\0", NULL, "Sega", "System 16B",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_SEGA_SYSTEM16B | HARDWARE_SEGA_5521, GBF_PLATFORM, 0,
+	NULL, Shinobi6RomInfo, Shinobi6RomName, NULL, NULL, System16bfire3InputInfo, ShinobiDIPInfo,
 	System16Init, System16Exit, System16BFrame, System16BRender, System16Scan,
 	NULL, 0x1800, 320, 224, 4, 3
 };
