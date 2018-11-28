@@ -11,6 +11,11 @@ WANT_NEOGEOCD             := 0
 HAVE_NEON                 := 0
 USE_CYCLONE               := 0
 
+ifeq ($(TARGET_ARCH),armeabi-v7a)
+  HAVE_NEON               := 1
+  USE_CYCLONE             := 1
+endif
+
 CFLAGS      :=
 CXXFLAGS    :=
 LDFLAGS     :=
