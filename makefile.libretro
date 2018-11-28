@@ -479,10 +479,6 @@ ifeq ($(FASTCALL), 1)
    FBA_DEFINES += -DFASTCALL
 endif
 
-ifeq ($(USE_CYCLONE), 1)
-   FBA_DEFINES += -DUSE_CYCLONE
-endif
-
 ifeq ($(FASTMATH), 1)
    ifeq (,$(findstring msvc,$(platform)))
       CFLAGS += -ffast-math

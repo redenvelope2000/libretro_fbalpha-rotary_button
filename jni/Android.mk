@@ -8,8 +8,8 @@ INCLUDE_7Z_SUPPORT        := 1
 EXTERNAL_ZLIB             := 0
 BUILD_X64_EXE             := 0
 WANT_NEOGEOCD             := 0
-HAVE_NEON                 := 1
-USE_CYCLONE               := 1
+HAVE_NEON                 := 0
+USE_CYCLONE               := 0
 
 CFLAGS      :=
 CXXFLAGS    :=
@@ -20,7 +20,7 @@ FBA_DEFINES :=
 
 include $(ROOT_DIR)/makefile.libretro_common
 
-COMMON_FLAGS := -DUSE_CYCLONE -DUSE_SPEEDHACKS -D__LIBRETRO__ -DANDROID -DFRONTEND_SUPPORTS_RGB565 -Wno-write-strings -DLSB_FIRST $(FBA_DEFINES)
+COMMON_FLAGS := -DUSE_SPEEDHACKS -D__LIBRETRO__ -DANDROID -DFRONTEND_SUPPORTS_RGB565 -Wno-write-strings -DLSB_FIRST $(FBA_DEFINES)
 
 # Build shared library including static C module
 include $(CLEAR_VARS)
