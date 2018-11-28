@@ -269,33 +269,22 @@ unsigned int m68k_read32(unsigned int a)
 	pr = FIND_R(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER)
 	{
+		UINT32 r = 0;
+
 		if (a & 1)
 		{
-			UINT32 r = 0;
-
-			if (a & 2)
-			{
-				r  = M68KReadByte((a + 0)) * 0x1000000;
-				r += M68KReadByte((a + 1) ^ 1) * 0x100;
-				r += M68KReadByte((a + 2) ^ 1) * 0x10000;
-				r += M68KReadByte((a + 3));
-			}
-			else
-			{
-				r  = M68KReadByte((a + 0)) * 0x1000000;
-				r += M68KReadByte((a + 1)) * 0x100;
-				r += M68KReadByte((a + 2)) * 0x10000;
-				r += M68KReadByte((a + 3));
-			}
-
-			//bprintf(PRINT_NORMAL, _T("read32 0x%08X 0x%8.8x\n"), a, r);
+			r  = M68KReadByte((a + 0)) * 0x1000000;
+			r += M68KReadByte((a + 1)) * 0x10000;
+			r += M68KReadByte((a + 2)) * 0x100;
+			r += M68KReadByte((a + 3));
 
 			return BURN_ENDIAN_SWAP_INT32(r);
 		}
 		else
 		{
-			UINT32 r = *((UINT32*)(pr + (a & SEK_PAGEM)));
+			r = *((UINT32*)(pr + (a & SEK_PAGEM)));
 			r = (r >> 16) | (r << 16);
+
 			return BURN_ENDIAN_SWAP_INT32(r);
 		}
 	}
@@ -336,20 +325,10 @@ void m68k_write32(unsigned int a, unsigned int d)
 
 			d = BURN_ENDIAN_SWAP_INT32(d);
 
-			if (a & 2)
-			{
-				M68KWriteByte((a + 0), d / 0x1000000);
-				M68KWriteByte((a + 1) ^ 1, d / 0x100);
-				M68KWriteByte((a + 2) ^ 1, d / 0x10000);
-				M68KWriteByte((a + 3), d);
-			}
-			else
-			{
-				M68KWriteByte(a + 0, d / 0x1000000);
-				M68KWriteByte(a + 1, d / 0x100);
-				M68KWriteByte(a + 2, d / 0x10000);
-				M68KWriteByte(a + 3, d);
-			}
+			M68KWriteByte((a + 0), d / 0x1000000);
+			M68KWriteByte((a + 1), d / 0x10000);
+			M68KWriteByte((a + 2), d / 0x100);
+			M68KWriteByte((a + 3), d);
 
 			return;
 		}
@@ -357,6 +336,7 @@ void m68k_write32(unsigned int a, unsigned int d)
 		{
 			d = (d >> 16) | (d << 16);
 			*((UINT32*)(pr + (a & SEK_PAGEM))) = BURN_ENDIAN_SWAP_INT32(d);
+
 			return;
 		}
 	}
