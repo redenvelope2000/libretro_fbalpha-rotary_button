@@ -34,7 +34,6 @@
 #define _tcsncpy strncpy
 #define _stscanf sscanf
 #define _ftprintf fprintf
-#define dprintf printf
 
 #ifdef UNICODE //Is there any point in this? Can we not just typedef TCHAR to CHAR?
 	typedef wchar_t TCHAR;

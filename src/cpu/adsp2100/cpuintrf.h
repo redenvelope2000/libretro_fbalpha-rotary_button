@@ -3,6 +3,9 @@
 
 #include "burnint.h"
 
+#ifdef INLINE
+ #undef INLINE
+#endif
 #define INLINE inline
 
 #define logerror(...)

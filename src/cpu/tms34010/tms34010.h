@@ -6,6 +6,7 @@
 #define TMS34010_H
 
 //#include <cstdint>
+#include <stdint.h>
 #include <string>
 #include <list>
 #include <fstream>
