@@ -1,5 +1,7 @@
 // Based on MAME driver by Aaron Giles
 
+// sound is temp. broken -dink dec 05, 2018 - will fix asap!
+
 #include "driver.h"
 #include "burnint.h"
 #include "mips3_intf.h"
@@ -30,6 +32,7 @@ static UINT32 DrvInputs[3];
 static UINT32 nSoundData;
 static UINT32 nSoundCtrl;
 static ide::ide_disk *DrvDisk;
+static UINT8 DrvReset = 0;
 
 // Fast conversion from BGR555 to RGB565
 static UINT16 *DrvColorLUT;
@@ -60,6 +63,8 @@ static struct BurnInputInfo kinstInputList[] = {
     {"P2 Button Y",	BIT_DIGITAL,	DrvJoy2 + 4,	"p2 fire 5"	},
     {"P2 Button Z",	BIT_DIGITAL,	DrvJoy2 + 5,	"p2 fire 6"	},
     {"Test",        BIT_DIGITAL,    DrvDSW + 0,     "diag"      },
+	
+	{"Reset"      , BIT_DIGITAL,	&DrvReset,		"reset"     },
 };
 
 STDINPUTINFO(kinst)
@@ -106,8 +111,23 @@ static void GenerateColorLUT()
 {
     for (int i = 0; i < 0x8000; i++) {
         //UINT16 x = i;
-        DrvColorLUT[i] = RGB888_2_565(RGB555_2_888(i));
+        //DrvColorLUT[i] = RGB888_2_565(RGB555_2_888(i));
+		
+		INT32 r = (i >>  0) & 0x1f;
+		INT32 g = (i >>  5) & 0x1f;
+		INT32 b = (i >> 10) & 0x1f;
+
+		r = (r << 3) | (r >> 2);
+		g = (g << 3) | (g >> 2);
+		b = (b << 3) | (b >> 2);
+ 
+		DrvColorLUT[i] = BurnHighCol(r, g, b, 0);
     }
+}
+
+static void DrvDoReset()
+{
+	Mips3Reset();
 }
 
 static void IDESetIRQState(int state)
@@ -145,7 +165,7 @@ static UINT32 kinstRead(UINT32 address)
         switch (address & 0xFF) {
         case 0x90:
             tmp = ~2;
-            if (Dcs2kDataRead() & 0x800)
+            if (Dcs2kControlRead() & 0x800)
                 tmp |= 2;
             return tmp;
         case 0x98:
@@ -177,7 +197,7 @@ static UINT32 kinst2Read(UINT32 address)
         switch (address & 0xFF) {
         case 0x80:
             tmp = ~2;
-            if (Dcs2kDataRead() & 0x800)
+            if (Dcs2kControlRead() & 0x800)
                 tmp |= 2;
             return tmp;
         case 0xA0:
@@ -321,8 +341,8 @@ static INT32 LoadSoundBanks()
 static INT32 kinstSetup()
 {
     printf("kinst: loading image at kinst.img\n");
-    // FIXME:
-    if (!DrvDisk->load_disk_image("hdd/kinst.img")) {
+    // FIXME: this needs support adding for a hdd folder if we ever get to the point where we enable this driver in release builds
+    if (!DrvDisk->load_disk_image("kinst.img")) {
         printf("kinst: harddisk image not found!");
         return 1;
     }
@@ -346,7 +366,7 @@ static INT32 kinst2Setup()
 {
     printf("kinst: loading image at kinst2.img\n");
     // FIXME:
-    if (!DrvDisk->load_disk_image("hdd/kinst2.img")) {
+    if (!DrvDisk->load_disk_image("kinst2.img")) {
         printf("kinst: harddisk image not found!");
         return 1;
     }
@@ -390,14 +410,13 @@ static INT32 DrvInit(int version)
     if (nRet != 0)
         return 1;
 
-    Dcs2kInit();
+    Dcs2kInit(DCS_2K, MHz(10));
 
 #ifdef MIPS3_X64_DRC
     Mips3UseRecompiler(true);
 #endif
     Mips3Init();
-    Mips3Reset();
-
+    
     DrvVRAMBase = 0x30000;
 
     Mips3MapMemory(DrvBootROM,  0x1FC00000, 0x1FC7FFFF, MAP_READ);
@@ -421,6 +440,8 @@ static INT32 DrvInit(int version)
 
     nSoundData = 0;
     nSoundCtrl = 0;
+	
+	DrvDoReset();
 
     return 0;
 }
@@ -454,9 +475,6 @@ static INT32 DrvDraw()
     return 0;
 }
 
-#define MHz(x)  (x * 1000000)
-#define kHz(x)  (x * 1000)
-
 // R4600: 100 MHz
 // VIDEO:  60  Hz
 // VBLANK: 20 kHz, 50us (from MAME))
@@ -464,7 +482,14 @@ static INT32 DrvDraw()
 //
 static INT32 DrvFrame()
 {
-    MakeInputs();
+    if (DrvReset) DrvDoReset();
+	
+	if (DrvRecalc) {
+		GenerateColorLUT();
+		DrvRecalc = 0;
+	}
+	
+	MakeInputs();
 
     const long FPS = 60;
     const long nMipsCycPerFrame = MHz(100) / FPS;
@@ -487,9 +512,18 @@ static INT32 DrvFrame()
     Mips3SetIRQLine(VBLANK_IRQ, 0);
 
     bool isVblank = false;
+	bool dcsIrq = false;
 
     while ((nMipsTotalCyc < nMipsCycPerFrame) || (nDcsTotalCyc < nDcsCycPerFrame))
-    {
+	{
+		// @ 60hz, dcs needs 2 IRQs/frame
+		if (nDcsTotalCyc == 0)
+			DcsIRQ();
+		if (nDcsTotalCyc >= (nDcsCycPerFrame / 2) && !dcsIrq) {
+			DcsIRQ();
+			dcsIrq = true;
+		}
+
         if ((nNextMipsSegment + nMipsTotalCyc) > nMipsCycPerFrame)
             nNextMipsSegment -= (nNextMipsSegment + nMipsTotalCyc) - nMipsCycPerFrame;
 
@@ -552,11 +586,11 @@ static struct BurnRomInfo kinstRomDesc[] = {
 STD_ROM_PICK(kinst)
 STD_ROM_FN(kinst)
 
-struct BurnDriver BurnDrvKinst = {
+struct BurnDriverD BurnDrvKinst = {
     "kinst", NULL, NULL, NULL, "1994/1995",
-    "Killer Instinct (ver. 1.5)\0", NULL, "Rare/Nintendo", "MIDWAY",
+    "Killer Instinct (ver. 1.5)\0", "Works best in 64-bit build", "Rare/Nintendo", "MIDWAY",
     NULL, NULL, NULL, NULL,
-    BDF_GAME_WORKING | BDF_16BIT_ONLY, 2, HARDWARE_MISC_POST90S, GBF_VSFIGHT, 0,
+    BDF_GAME_WORKING | BDF_16BIT_ONLY, 2, HARDWARE_MIDWAY_KINST, GBF_VSFIGHT, 0,
     NULL, kinstRomInfo, kinstRomName, NULL, NULL, kinstInputInfo, kinstDIPInfo,
     kinstDrvInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x8000,
     320, 240, 4, 3
@@ -582,11 +616,11 @@ static struct BurnRomInfo kinst2RomDesc[] = {
 STD_ROM_PICK(kinst2)
 STD_ROM_FN(kinst2)
 
-struct BurnDriver BurnDrvKinst2 = {
+struct BurnDriverD BurnDrvKinst2 = {
     "kinst2", NULL, NULL, NULL, "1994/1995",
-    "Killer Instinct II (ver. 1.4)\0", NULL, "Rare/Nintendo", "MIDWAY",
+    "Killer Instinct II (ver. 1.4)\0", "Works best in 64-bit build", "Rare/Nintendo", "MIDWAY",
     NULL, NULL, NULL, NULL,
-    BDF_GAME_WORKING | BDF_16BIT_ONLY, 2, HARDWARE_MISC_POST90S, GBF_VSFIGHT, 0,
+    BDF_GAME_WORKING | BDF_16BIT_ONLY, 2, HARDWARE_MIDWAY_KINST, GBF_VSFIGHT, 0,
     NULL, kinst2RomInfo, kinst2RomName, NULL, NULL, kinstInputInfo, kinstDIPInfo,
     kinst2DrvInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x8000,
     320, 240, 4, 3

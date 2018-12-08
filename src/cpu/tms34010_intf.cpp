@@ -54,10 +54,34 @@ void TMS34010Init()
     TMS34010MapHandler(MAXHANDLER-1, 0xc0000000, 0xc00001ff, MAP_READ | MAP_WRITE);
 }
 
-int TMS34010Run(int cycles) 
+int TMS34010Run(int cycles)
 {
-    tms::run(&tms34010, cycles);
-    return 0;
+    return tms::run(&tms34010, cycles);
+}
+
+INT64 TMS34010TotalCycles()
+{
+	return tms::total_cycles(&tms34010);
+}
+
+void TMS34010NewFrame()
+{
+	tms::new_frame(&tms34010);
+}
+
+void TMS34010Scan(INT32 nAction)
+{
+	tms::scan(&tms34010, nAction);
+}
+
+UINT32 TMS34010GetPC()
+{
+	return tms::get_pc(&tms34010);
+}
+
+UINT32 TMS34010GetPPC()
+{
+	return tms::get_ppc(&tms34010);
 }
 
 void TMS34010Reset()
@@ -125,8 +149,8 @@ void TMS34010WriteWord(UINT32 address, UINT16 value)
 void TMS34010MapReset()
 {
     for (int page = 0; page < PAGE_COUNT; page++) {
-        g_mmap.map[page] = nullptr;
-        g_mmap.map[page + PAGE_WADD] = nullptr;
+        g_mmap.map[page] = NULL;
+        g_mmap.map[page + PAGE_WADD] = NULL;
     }
     for (int handler = 0; handler < MAXHANDLER; handler++) {
         g_mmap.read[handler] = default_read;

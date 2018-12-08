@@ -1,6 +1,7 @@
 #ifndef ADSP2100_DEFS
 #define ADSP2100_DEFS
 
+#include <stdint.h>
 #include "burnint.h"
 #include "cpuintrf.h"
 
@@ -163,12 +164,19 @@ typedef struct ADSP2100STATE
     UINT16		ifc;
     UINT8    	irq_state[9];
     UINT8    	irq_latch[9];
-    cpu_irq_callback irq_callback;
+
+	cpu_irq_callback irq_callback;
     //const device_config *device;
 
     /* other internal states */
-    int			icount;
-    int			chip_type;
+	int			icount;
+
+	int         total_cycles;
+	int         cycles_start;
+	int         end_run;
+
+
+	int			chip_type;
     int			mstat_mask;
     int			imask_mask;
 
