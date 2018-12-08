@@ -134,13 +134,10 @@ else
 	ifeq (,$(findstring msvc,$(platform)))
 		CXXFLAGS += -std=gnu++98
 	endif
-	ADSP2100_DIR :=
-	MIDWAY_DIR :=
 	MIPS3_DIR :=
 	MIPS3_X64_DYNAREC_DIR :=
-	TMS34010_DIR :=
-	BURN_BLACKLIST += $(FBA_CPU_DIR)/adsp2100_intf.cpp \
-		$(FBA_CPU_DIR)/tms34010_intf.cpp \
+	BURN_BLACKLIST += $(MIDWAY_DIR)/d_kinst.cpp \
+		$(MIDWAY_DIR)/ide.cpp \
 		$(FBA_CPU_DIR)/mips3_intf.cpp
 endif
 

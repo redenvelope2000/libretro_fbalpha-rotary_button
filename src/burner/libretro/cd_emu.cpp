@@ -1,6 +1,8 @@
 #include "burner.h"
 #include "cd_emu.h"
 
+#define dprintf printf
+
 CDEmuStatusValue CDEmuStatus;
 TCHAR CDEmuImage[MAX_PATH];
 

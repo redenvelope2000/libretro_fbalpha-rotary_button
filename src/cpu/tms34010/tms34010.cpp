@@ -11,6 +11,7 @@
 #include "tms34010_jump.h"
 #include "tms34010_shift.h"
 #include "tms34010_gfx.h"
+#include "stddef.h"
 
 #ifdef TMS34010_DEBUGGER
 #include <algorithm>
@@ -31,10 +32,23 @@ const char *io_regs_names[32] = {
     "DPYTAP", "HCOUNT", "VCOUNT", "DPYADR", "REFCNT"
 };
 
+void scan(cpu_state *cpu, sdword nAction)
+{
+	if (nAction & ACB_DRIVER_DATA) {
+		struct BurnArea ba;
+		memset(&ba, 0, sizeof(ba));
+		ba.Data	  = cpu;
+		ba.nLen	  = STRUCT_SIZE_HELPER(cpu_state, shiftreg);
+		ba.szName = "TMS34010 Regs";
+		BurnAcb(&ba);
+	}
+}
+
 void reset(cpu_state *cpu)
 {
     cpu->pc = rdfield_32(VECT_RESET);
-    cpu->icounter = 0;
+	cpu->icounter = 0;
+	cpu->total_cycles = 0;
     cpu->st = 0x00000010;
     for (int i = 0; i < 15; i++) {
         cpu->a[i].value = 0;
@@ -98,6 +112,7 @@ static void perform_trace(cpu_state *cpu)
 
 void run(cpu_state *cpu, int cycles, bool stepping)
 {
+	cpu->cycles_start = cycles;
     cpu->icounter = cycles;
     while (cpu->icounter > 0) {
 
@@ -125,12 +140,17 @@ void run(cpu_state *cpu, int cycles, bool stepping)
             return;
     }
     cpu->reason = ICOUNTER_EXPIRED;
+
+	cycles = cycles - cpu->icounter;
+	cpu->total_cycles += cycles;
+	cpu->cycles_start = cpu->icounter = 0;
 }
 
 #else
-void run(cpu_state *cpu, int cycles)
+int run(cpu_state *cpu, int cycles)
 {
-    cpu->icounter = cycles;
+	cpu->cycles_start = cycles;
+	cpu->icounter = cycles;
     while (cpu->icounter > 0) {
 
         check_irq(cpu);
@@ -139,9 +159,35 @@ void run(cpu_state *cpu, int cycles)
         cpu->last_pc = cpu->pc;
         cpu->pc += 16;
         opcode_table[(opcode >> 4) & 0xFFF](cpu, opcode);
-    }
+	}
+
+	cycles = cycles - cpu->icounter;
+	cpu->total_cycles += cycles;
+	cpu->cycles_start = cpu->icounter = 0;
+
+	return cycles;
 }
 #endif
+
+i64 total_cycles(cpu_state *cpu)
+{
+	return cpu->total_cycles + (cpu->cycles_start - cpu->icounter);
+}
+
+void new_frame(cpu_state *cpu)
+{
+	cpu->total_cycles = 0;
+}
+
+dword get_pc(cpu_state *cpu)
+{
+	return cpu->pc;
+}
+
+dword get_ppc(cpu_state *cpu)
+{
+	return cpu->last_pc;
+}
 
 void generate_irq(cpu_state *cpu, int num)
 {

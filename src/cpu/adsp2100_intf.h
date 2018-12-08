@@ -1,6 +1,5 @@
 #ifndef ADSP2100_INTF
 #define ADSP2100_INTF
-#include <cstdint>
 
 #include "adsp2100/adsp2100_defs.h"
 
@@ -8,7 +7,7 @@ enum {
     ADSP21XX_CLEAR_LINE = 0,				/* clear (a fired, held or pulsed) line */
     ADSP21XX_ASSERT_LINE,				/* assert an interrupt immediately */
     ADSP21XX_HOLD_LINE,					/* hold interrupt line until acknowledged */
-    ADSP21XX_PULSE_LINE,					/* pulse interrupt line for one instruction */
+    ADSP21XX_PULSE_LINE					/* pulse interrupt line for one instruction */
 };
 
 typedef unsigned short (*pAdsp2100ReadWordHandler)(unsigned int a);
@@ -26,6 +25,11 @@ int Adsp2100Exit();
 void Adsp2100Reset();
 int Adsp2100Run(int cycles);
 int Adsp2100LoadBootROM(void *src, void *dst);
+
+int Adsp2100TotalCycles();
+void Adsp2100NewFrame();
+void Adsp2100RunEnd();
+void Adsp2100Scan(INT32 nAction);
 
 void Adsp2100SetRxCallback(pAdsp2100RxCallback cb);
 void Adsp2100SetTxCallback(pAdsp2100TxCallback cb);
@@ -45,7 +49,6 @@ int Adsp2100SetReadDataWordHandler(int i, pAdsp2100ReadWordHandler pHandler);
 int Adsp2100SetWriteDataWordHandler(int i, pAdsp2100WriteWordHandler pHandler);
 
 void Adsp2100SetIRQLine(const int line, const int state);
-
 
 adsp2100_state *Adsp2100GetState();
 
