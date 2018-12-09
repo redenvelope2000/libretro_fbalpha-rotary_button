@@ -403,6 +403,7 @@ TCHAR szAppEEPROMPath[MAX_PATH];
 TCHAR szAppHiscorePath[MAX_PATH];
 TCHAR szAppSamplesPath[MAX_PATH];
 TCHAR szAppBlendPath[MAX_PATH];
+TCHAR szAppHDDPath[MAX_PATH];
 TCHAR szAppBurnVer[16];
 
 // Replace the char c_find by the char c_replace in the destination c string
