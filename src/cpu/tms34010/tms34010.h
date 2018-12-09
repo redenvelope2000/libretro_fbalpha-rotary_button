@@ -6,12 +6,12 @@
 #define TMS34010_H
 
 //#include <cstdint>
-#include <stdint.h>
+#include "burnint.h"
 #include <string>
 //#include <list>
 //#include <fstream>
 //#include <array>
-#include <math.h>
+#include <cmath>
 
 
 namespace tms
