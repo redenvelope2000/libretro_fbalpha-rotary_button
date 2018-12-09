@@ -59,6 +59,11 @@ int TMS34010Run(int cycles)
     return tms::run(&tms34010, cycles);
 }
 
+void TMS34010TimerCB(INT64 cycles, void (*timer_cb)())
+{
+	tms::timer_arm(&tms34010, cycles, timer_cb);
+}
+
 INT64 TMS34010TotalCycles()
 {
 	return tms::total_cycles(&tms34010);
@@ -67,6 +72,11 @@ INT64 TMS34010TotalCycles()
 void TMS34010NewFrame()
 {
 	tms::new_frame(&tms34010);
+}
+
+void TMS34010RunEnd()
+{
+	tms::stop(&tms34010);
 }
 
 void TMS34010Scan(INT32 nAction)
