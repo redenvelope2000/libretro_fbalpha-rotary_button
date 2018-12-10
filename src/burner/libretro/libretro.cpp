@@ -1827,6 +1827,9 @@ static bool retro_load_game_common()
 	// Initialize Samples path
 	snprintf (szAppSamplesPath, sizeof(szAppSamplesPath), "%s%cfba%csamples%c", g_system_dir, path_default_slash_c(), path_default_slash_c(), path_default_slash_c());
 
+	// Initialize HDD path
+	snprintf (szAppHDDPath, sizeof(szAppHDDPath), "%s%cfba%chdd%c", g_system_dir, path_default_slash_c(), path_default_slash_c(), path_default_slash_c());
+
 	// Intialize state_sizes (for serialization)
 	state_sizes[0] = 0;
 	state_sizes[1] = 0;
