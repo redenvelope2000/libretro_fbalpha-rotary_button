@@ -6,7 +6,7 @@
 #define TMS34010_H
 
 //#include <cstdint>
-#include "burnint.h"
+#include <stdint.h>
 #include <string>
 //#include <list>
 //#include <fstream>

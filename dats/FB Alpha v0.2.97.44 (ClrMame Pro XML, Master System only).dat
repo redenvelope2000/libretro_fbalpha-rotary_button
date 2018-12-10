@@ -1044,6 +1044,12 @@
 		<manufacturer>Zemina</manufacturer>
 		<rom name="flashpoint (kr).bin" size="32768" crc="61e8806f"/>
 	</game>
+	<game name="fpigarus">
+		<description>Flight of Pigarus (Version 1.0)</description>
+		<year>2018</year>
+		<manufacturer>Kagesan</manufacturer>
+		<rom name="FlightOfPigarus-SMS-1.00.sms" size="262144" crc="838574d1"/>
+	</game>
 	<game name="forgottn">
 		<description>Forgotten Worlds (Euro, Bra, Aus)</description>
 		<year>1991</year>
