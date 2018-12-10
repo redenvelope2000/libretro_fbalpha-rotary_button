@@ -1,5 +1,5 @@
-#ifndef MIDWUNIT_H
-#define MIDWUNIT_H
+#pragma once
+
 
 extern UINT8 nWolfUnitJoy1[32];
 extern UINT8 nWolfUnitJoy2[32];
@@ -17,5 +17,3 @@ INT32 WolfUnitFrame();
 INT32 WolfUnitExit();
 INT32 WolfUnitDraw();
 INT32 WolfUnitScan(INT32 nAction, INT32 *pnMin);
-
-#endif

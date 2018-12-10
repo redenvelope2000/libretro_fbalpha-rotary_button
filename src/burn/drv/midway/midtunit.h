@@ -1,5 +1,4 @@
-#ifndef MIDTUNIT_H
-#define MIDTUNIT_H
+#pragma once
 
 
 extern UINT8 nTUnitJoy1[32];
@@ -21,5 +20,3 @@ INT32 TUnitScan(INT32 nAction, INT32 *pnMin);
 
 extern UINT8 TUnitIsMK;
 extern UINT8 TUnitIsMK2;
-
-#endif

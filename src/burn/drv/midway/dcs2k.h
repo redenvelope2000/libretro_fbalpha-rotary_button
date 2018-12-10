@@ -1,5 +1,4 @@
-#ifndef DCS2K_H
-#define DCS2K_H
+#pragma once
 
 enum {
 	DCS_2K = 0,
@@ -26,5 +25,3 @@ void Dcs2kReset();
 void Dcs2kNewFrame();
 UINT32 Dcs2kTotalCycles();
 void DcsIRQ();
-
-#endif
