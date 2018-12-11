@@ -13,6 +13,9 @@ int StateGetMainRamAcb(BurnArea *pba)
 {
 	int nHardwareCode = BurnDrvGetHardwareCode();
 
+	if(!pba->szName)
+		return 0;
+
 	// Neogeo / PGM
 	if ((nHardwareCode & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO
 	 || (nHardwareCode & HARDWARE_PUBLIC_MASK) & HARDWARE_PREFIX_IGS_PGM) {
