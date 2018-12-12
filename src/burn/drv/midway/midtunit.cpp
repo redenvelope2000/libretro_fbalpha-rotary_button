@@ -1,3 +1,7 @@
+// todo:
+//   NBAJAM & NBA JAM TE: resets in intro - CPU core?
+//   JDREDDP - sound
+
 #include "tiles_generic.h"
 #include "midtunit.h"
 #include "tms34010_intf.h"
@@ -42,10 +46,24 @@ static UINT16 nTUnitCtrl = 0;
 static UINT8 DrvFakeSound = 0;
 
 static UINT8 MKProtIndex = 0;
-static UINT16 MK2ProtData = 0;
+static UINT16 MK2ProtData = 0xffff;
+
+static UINT16 NbajamProtQueue[5] = { 0, 0, 0, 0, 0 };
+static UINT8 NbajamProtIndex = 0;
+
+static UINT8 JdreddpProtIndex = 0;
+static UINT8 JdreddpProtMax = 0;
+static const UINT8 *JdreddpProtTable = NULL;
+
+static UINT16 SoundProtAddressStart = 0;
+static UINT16 SoundProtAddressEnd = 0;
 
 UINT8 TUnitIsMK = 0;
+UINT8 TUnitIsMKTurbo = 0;
 UINT8 TUnitIsMK2 = 0;
+UINT8 TUnitIsNbajam = 0;
+UINT8 TUnitIsNbajamTe = 0;
+UINT8 TUnitIsJdreddp = 0;
 
 static INT32 nSoundType = 0;
 
@@ -96,14 +114,211 @@ static INT32 MemIndex()
     return 0;
 }
 
-// forwards
-static void MKsound_bankswitch(INT32 bank);
-static void MKsound_reset(INT32 local);
-static void MKsound_reset_write(INT32 val);
-static void MKsound_main2soundwrite(INT32 data);
-static void MKsound_msm6295bankswitch(INT32 bank);
+// dcs sound helpers
+static void dcs_sound_sync()
+{
+	INT32 cyc = ((double)TMS34010TotalCycles() / 63 * 100) - Dcs2kTotalCycles();
+	if (cyc > 0) {
+		Dcs2kRun(cyc);
+	}
+}
+
+static void dcs_sound_sync_end()
+{
+	INT32 cyc = ((double)10000000 * 100 / nBurnFPS) - Dcs2kTotalCycles();
+	if (cyc > 0) {
+		Dcs2kRun(cyc);
+	}
+}
+
+// williams adpcm-compat. sound section (MK)
+static INT32 sound_latch;
+static INT32 sound_talkback;
+static INT32 sound_irqstate;
+static INT32 sound_bank;
+static INT32 sound_msm6295bank;
+static INT32 sound_inreset;
+
+static void MKsound_bankswitch(INT32 bank)
+{
+	sound_bank = bank & 7;
+}
+
+static void MKsound_msm6295bankswitch(INT32 bank)
+{
+	bank &= 7;
+	sound_msm6295bank = bank;
+
+	INT32 bank_offs = 0;
+	switch (bank) {
+		case 0:
+		case 1: bank_offs = 0x40000; break;
+		case 2: bank_offs = 0x20000; break;
+		case 3: bank_offs = 0x00000; break;
+		case 4: bank_offs = 0xe0000; break;
+		case 5: bank_offs = 0xc0000; break;
+		case 6: bank_offs = 0xa0000; break;
+		case 7: bank_offs = 0x80000; break;
+	}
+
+	MSM6295SetBank(0, DrvSoundROM + 0x60000, 0x20000, 0x3ffff); // static bank
+	MSM6295SetBank(0, DrvSoundROM + bank_offs, 0x00000, 0x1ffff); // dynamic bank
+}
+
+static void MKsound_reset(INT32 local)
+{
+	sound_latch = 0;
+	sound_irqstate = 0;
+	sound_talkback = 0;
+	sound_inreset = 0;
+
+	if (!local) M6809Open(0);
+	MKsound_bankswitch(0);
+	MKsound_msm6295bankswitch(0);
+	M6809Reset();
+	BurnYM2151Reset();
+	if (!local) M6809Close();
+
+	DACReset();
+	MSM6295Reset();
+}
+
+static void MKsound_reset_write(INT32 val)
+{
+	if (val) {
+		MKsound_reset(1);
+		sound_inreset = 1;
+	} else {
+		sound_inreset = 0;
+	}
+}
+
+static void MKsound_main2soundwrite(INT32 data)
+{
+	sound_latch = data & 0xff;
+	if (~data & 0x200) {
+		M6809SetIRQLine(M6809_IRQ_LINE, CPU_IRQSTATUS_ACK);
+		sound_irqstate = 1;
+	}
+}
+
+static void MKsound_statescan(INT32 nAction, INT32 *pnMin)
+{
+	if (nAction & ACB_DRIVER_DATA) {
+		M6809Scan(nAction);
+
+		BurnYM2151Scan(nAction, pnMin);
+		MSM6295Scan(nAction, pnMin);
+		DACScan(nAction, pnMin);
+
+		SCAN_VAR(sound_latch);
+		SCAN_VAR(sound_talkback);
+		SCAN_VAR(sound_irqstate);
+		SCAN_VAR(sound_bank);
+		SCAN_VAR(sound_msm6295bank);
+	}
+
+	if (nAction & ACB_WRITE) {
+		M6809Open(0);
+		MKsound_bankswitch(sound_bank);
+		M6809Close();
+		MKsound_msm6295bankswitch(sound_msm6295bank);
+	}
+}
+
+static void MKYM2151IrqHandler(INT32 Irq)
+{
+	M6809SetIRQLine(M6809_FIRQ_LINE, (Irq) ? CPU_IRQSTATUS_ACK : CPU_IRQSTATUS_NONE);
+}
+
+static UINT8 MKSoundRead(UINT16 address)
+{
+	if (address >= 0x4000 && address <= 0xbfff) {
+		return DrvSoundProgROM[(sound_bank * 0x8000) + (address - 0x4000)];
+	}
+
+	if (address >= 0xc000 && address <= 0xffff) {
+		if (address >= SoundProtAddressStart && address <= SoundProtAddressEnd) { // MK sound protection ram.
+			return DrvSoundProgRAMProt[address - SoundProtAddressStart];
+		}
+		return DrvSoundProgROM[(0x4000 + 7 * 0x8000) + (address - 0xc000)];
+	}
+
+	address &= ~0x3ff; // mirroring
+
+	switch (address) {
+		case 0x2000: {
+			return 0; // NOP?
+		}
+		case 0x2400: {
+			return BurnYM2151Read();
+		}
+		case 0x2c00: {
+			return MSM6295Read(0);
+		}
+		case 0x3000: {
+			M6809SetIRQLine(M6809_IRQ_LINE, CPU_IRQSTATUS_NONE);
+			sound_irqstate = 0; // if self-test fails, delay this! (not on this hw, though)
+			return sound_latch;
+		}
+	}
+
+	bprintf(PRINT_NORMAL, _T("M6809 Read Byte -> %04X\n"), address);
+
+	return 0;
+}
+
+static void MKSoundWrite(UINT16 address, UINT8 value)
+{
+	if (address >= SoundProtAddressStart && address <= SoundProtAddressEnd) { // MK sound protection ram.
+		DrvSoundProgRAMProt[address - SoundProtAddressStart] = value;
+	}
+	
+	if (address >= 0x4000) return; // ROM
+
+	if ((address & ~0x3ff) == 0x2400) // mirroring
+		address &= ~0x3fe; // ym
+	else
+		address &= ~0x3ff; // everything else
 
 
+	switch (address) {
+		case 0x2000: {
+			MKsound_bankswitch(value);
+			return;
+		}
+
+		case 0x2400:
+		case 0x2401: {
+			BurnYM2151Write(address&1, value);
+			return;
+		}
+
+		case 0x2800: {
+			DACSignedWrite(0, value);
+			return;
+		}
+
+		case 0x2c00: {
+			MSM6295Write(0, value);
+			return;
+		}
+
+		case 0x3400: {
+			MKsound_msm6295bankswitch(value);
+			return;
+		}
+
+		case 0x3c00: {
+			sound_talkback = value;
+			return;
+		}
+	}
+
+	bprintf(PRINT_NORMAL, _T("M6809 Write Byte -> %04X, %02X\n"), address, value);
+}
+
+// general emulation helpers, etc.
 static INT32 LoadGfxBanks()
 {
     char *pRomName;
@@ -127,43 +342,53 @@ static INT32 LoadGfxBanks()
 
 static INT32 LoadSoundProgRom()
 {
-    char *pRomName;
-    struct BurnRomInfo pri;
+	if (BurnLoadRom(DrvSoundProgROM, 2, 1)) return 1;
+	
+	return 0;
+}
 
-    for (INT32 i = 0; !BurnDrvGetRomName(&pRomName, i, 0); i++) {
-        BurnDrvGetRomInfo(&pri, i);
-        if ((pri.nType & 7) == 4) {
-            if (BurnLoadRom(DrvSoundProgROM, i, 1) != 0) {
-                return 1;
-            }
-        }
-    }
-    return 0;
+static INT32 LoadSoundProgNbajamRom()
+{
+	if (BurnLoadRom(DrvSoundProgROM, 2, 1)) return 1;
+	if (BurnLoadRom(DrvSoundProgROM + 0x20000, 2, 1)) return 1;
+	
+	return 0;
 }
 
 static INT32 LoadSoundBanksMK()
 {
-    char *pRomName;
-    struct BurnRomInfo pri;
-	INT32 offs = 0;
-	INT32 bank = 0;
+	if (BurnLoadRom(DrvSoundROM + 0x000000, 3, 1)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x040000, 3, 1)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x080000, 4, 1)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x0c0000, 4, 1)) return 1;
+	
+    return 0;
+}
 
-    for (INT32 i = 0; !BurnDrvGetRomName(&pRomName, i, 0); i++) {
-        BurnDrvGetRomInfo(&pri, i);
-		if ((pri.nType & 7) == 2) {
-			bprintf(0, _T("MKsound: loading soundbank %d @ %x\n"), bank, offs);
-            if (BurnLoadRom(DrvSoundROM + offs, i, 1) != 0) {
-                return 1;
-			}
-			offs += pri.nLen;
-			bprintf(0, _T("MKsound: loading soundbank %d @ %x\n"), bank, offs);
-            if (BurnLoadRom(DrvSoundROM + offs, i, 1) != 0) {
-                return 1;
-            }
-			offs += pri.nLen;
-			bank++;
-        }
-    }
+static INT32 LoadSoundBanksMk2()
+{
+   memset(DrvSoundROM, 0xFF, 0x1000000);
+    if (BurnLoadRom(DrvSoundROM + 0x000000, 2, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x100000, 2, 2)) return 1;
+    if (BurnLoadRom(DrvSoundROM + 0x200000, 3, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x300000, 3, 2)) return 1;
+    if (BurnLoadRom(DrvSoundROM + 0x400000, 4, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x500000, 4, 2)) return 1;
+    if (BurnLoadRom(DrvSoundROM + 0x600000, 5, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x700000, 5, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x800000, 6, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x900000, 6, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0xa00000, 7, 2)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0xb00000, 7, 2)) return 1;
+	
+	return 0;
+}
+
+static INT32 LoadSoundBanksNbajam()
+{
+	if (BurnLoadRom(DrvSoundROM + 0x000000, 3, 1)) return 1;
+	if (BurnLoadRom(DrvSoundROM + 0x080000, 4, 1)) return 1;
+	
     return 0;
 }
 
@@ -182,18 +407,27 @@ static void TUnitDoReset()
 	TMS34010Reset();
 	
 	switch (nSoundType)	{
-		case SOUND_ADPCM:
+		case SOUND_ADPCM: {
 			MKsound_reset(0);
 			break;
+		}
 
-		case SOUND_DCS:
+		case SOUND_DCS: {
+			Dcs2kReset();
 			Dcs2kResetWrite(1);
 			Dcs2kResetWrite(0);
 			break;
+		}
 	}
 	
 	MKProtIndex = 0;
-	MK2ProtData = 0;
+	MK2ProtData = 0xffff;
+	NbajamProtIndex = 0;
+	memset(NbajamProtQueue, 0, 5 * sizeof(UINT8));
+	JdreddpProtIndex = 0;
+	JdreddpProtMax = 0;
+	JdreddpProtTable = NULL;
+	
 	DrvFakeSound = 0;
 }
 
@@ -271,7 +505,9 @@ static UINT16 TUnitRead(UINT32 address)
 	if (address == 0x01600040) return 0xff; // ???
 	if (address == 0x01d81070) return 0xff; // watchdog
 
-	if (address == 0x01f00000) return 0; // ?
+	if (address == 0x01b00000) return 0xff; // ?
+	if (address == 0x01c00060) return 0xff; // ?
+	if (address == 0x01f00000) return 0xff; // ?
 
 	bprintf(PRINT_NORMAL, _T("Read %x\n"), address);
 
@@ -281,6 +517,7 @@ static UINT16 TUnitRead(UINT32 address)
 static void TUnitWrite(UINT32 address, UINT16 value)
 {
 	if (address == 0x01d81070) return; // watchdog
+	if (address == 0x01c00060) return; // ?
 	
 	bprintf(PRINT_NORMAL, _T("Write %x, %x\n"), address, value);
 }
@@ -311,8 +548,10 @@ static UINT16 TUnitSoundStateRead(UINT32 address)
 {
 	//bprintf(PRINT_NORMAL, _T("Sound State Read %x\n"), address);
 	if (address >= 0x1d00000 && address <= 0x1d0001f) {
-		if (nSoundType == SOUND_DCS)
+		if (nSoundType == SOUND_DCS) {
+			dcs_sound_sync();
 			return Dcs2kControlRead() >> 4;
+		}
 
 		if (DrvFakeSound) {
 			DrvFakeSound--;
@@ -326,8 +565,12 @@ static UINT16 TUnitSoundStateRead(UINT32 address)
 static UINT16 TUnitSoundRead(UINT32 address)
 {
 	if (address >= 0x01d01020 && address <= 0x01d0103f) {
-		if (nSoundType == SOUND_DCS)
-			return Dcs2kDataRead() & 0xff;
+		if (nSoundType == SOUND_DCS) {
+			dcs_sound_sync();
+			UINT16 dr = Dcs2kDataRead();
+			Dcs2kRun(20); // "sync" in frame will even things out.
+			return dr & 0xff;
+		}
 	}
 	//bprintf(PRINT_NORMAL, _T("Sound Read %x\n"), address);
 
@@ -338,20 +581,27 @@ static void TUnitSoundWrite(UINT32 address, UINT16 value)
 {
 	//bprintf(PRINT_NORMAL, _T("Sound Write %x, %x\n"), address, value);
 	if (address >= 0x01d01020 && address <= 0x01d0103f) {
+		// this should check the mem mask for a full 16-bit write. and ignore byte-writes.
+		if (value == 0 || value == 1) return; // spurious bad-writes
+		
 		switch (nSoundType)	{
-			case SOUND_ADPCM:
+			case SOUND_ADPCM: {
 				MKsound_reset_write(~value & 0x100);
 				MKsound_main2soundwrite(value & 0xff);
 
 				DrvFakeSound = 128;
 				break;
+			}
 
-			case SOUND_DCS:
+			case SOUND_DCS: {
 				Dcs2kResetWrite(~value & 0x100);
+				dcs_sound_sync();
 				Dcs2kDataWrite(value & 0xff);
+				Dcs2kRun(20);
 
 				DrvFakeSound = 128;
 				break;
+			}
 		}
 	}
 }
@@ -389,6 +639,7 @@ static void TUnitCMOSWrite(UINT32 address, UINT16 value)
 	wn[offset] = value;
 }
 
+// mortal kombat protection
 static const UINT8 mk_prot_values[] =
 {
 	0x13, 0x27, 0x0f, 0x1f, 0x3e, 0x3d, 0x3b, 0x37,
@@ -410,7 +661,6 @@ static UINT16 MKProtRead(UINT32 /*address*/)
 	return mk_prot_values[MKProtIndex++] << 9;
 }
 
-
 static void MKProtWrite(UINT32 /*address*/, UINT16 value)
 {
 	INT32 first_val = (value >> 9) & 0x3f;
@@ -428,214 +678,257 @@ static void MKProtWrite(UINT32 /*address*/, UINT16 value)
 	}
 }
 
-
-// williams adpcm-compat. sound section (MK)
-static INT32 sound_latch;
-static INT32 sound_talkback;
-static INT32 sound_irqstate;
-static INT32 sound_bank;
-static INT32 sound_msm6295bank;
-static INT32 sound_inreset;
-
-static void MKsound_reset_write(INT32 val)
+// mortal kombat turbo protection
+static UINT16 MKTurboProtRead(UINT32 address)
 {
-	if (val) {
-		MKsound_reset(1);
-		sound_inreset = 1;
-	} else {
-		sound_inreset = 0;
+	if (address >= 0xfffff400 && address <= 0xfffff40f) {
+		return BurnRandom();
+	}
+	
+    UINT32 offset = TOBYTE(address & 0x7fffff);
+    return DrvBootROM[offset] | (DrvBootROM[offset + 1] << 8);
+}
+
+// mortal kombat 2 protection
+static UINT16 MK2ProtRead(UINT32 address)
+{
+	if (address >= 0x01a190e0 && address <= 0x01a190ff) {
+		return MK2ProtData;
+	}
+	
+	if (address >= 0x01a191c0 && address <= 0x01a191df) {
+		return MK2ProtData >> 1;
+	}
+	
+	if (address >= 0x01a3d0c0 && address <= 0x01a3d0ff) {
+		return MK2ProtData;
+	}
+	
+	if (address >= 0x01d9d1e0 && address <= 0x01d9d1ff) {
+		return 2;
+	}
+	
+	if (address >= 0x01def920 && address <= 0x01def93f) {
+		return 2;
+	}
+	
+	return ~0;
+}
+
+static void MK2ProtWrite(UINT32 address, UINT16 value)
+{
+	if (address >= 0x00f20c60 && address <= 0x00f20c7f) {
+		MK2ProtData = value;
+	}
+	
+	if (address >= 0x00f42820 && address <= 0x00f4283f) {
+		MK2ProtData = value;
 	}
 }
 
-static void MKsound_reset(INT32 local)
+// nba jam protection
+static const UINT32 nbajam_prot_values[128] =
 {
-	sound_latch = 0;
-	sound_irqstate = 0;
-	sound_talkback = 0;
-	sound_inreset = 0;
+	0x21283b3b, 0x2439383b, 0x31283b3b, 0x302b3938, 0x31283b3b, 0x302b3938, 0x232f2f2f, 0x26383b3b,
+	0x21283b3b, 0x2439383b, 0x312a1224, 0x302b1120, 0x312a1224, 0x302b1120, 0x232d283b, 0x26383b3b,
+	0x2b3b3b3b, 0x2e2e2e2e, 0x39383b1b, 0x383b3b1b, 0x3b3b3b1b, 0x3a3a3a1a, 0x2b3b3b3b, 0x2e2e2e2e,
+	0x2b39383b, 0x2e2e2e2e, 0x393a1a18, 0x383b1b1b, 0x3b3b1b1b, 0x3a3a1a18, 0x2b39383b, 0x2e2e2e2e,
+	0x01202b3b, 0x0431283b, 0x11202b3b, 0x1021283b, 0x11202b3b, 0x1021283b, 0x03273b3b, 0x06302b39,
+	0x09302b39, 0x0c232f2f, 0x19322e06, 0x18312a12, 0x19322e06, 0x18312a12, 0x0b31283b, 0x0e26383b,
+	0x03273b3b, 0x06302b39, 0x11202b3b, 0x1021283b, 0x13273938, 0x12243938, 0x03273b3b, 0x06302b39,
+	0x0b31283b, 0x0e26383b, 0x19322e06, 0x18312a12, 0x1b332f05, 0x1a302b11, 0x0b31283b, 0x0e26383b,
+	0x21283b3b, 0x2439383b, 0x31283b3b, 0x302b3938, 0x31283b3b, 0x302b3938, 0x232f2f2f, 0x26383b3b,
+	0x21283b3b, 0x2439383b, 0x312a1224, 0x302b1120, 0x312a1224, 0x302b1120, 0x232d283b, 0x26383b3b,
+	0x2b3b3b3b, 0x2e2e2e2e, 0x39383b1b, 0x383b3b1b, 0x3b3b3b1b, 0x3a3a3a1a, 0x2b3b3b3b, 0x2e2e2e2e,
+	0x2b39383b, 0x2e2e2e2e, 0x393a1a18, 0x383b1b1b, 0x3b3b1b1b, 0x3a3a1a18, 0x2b39383b, 0x2e2e2e2e,
+	0x01202b3b, 0x0431283b, 0x11202b3b, 0x1021283b, 0x11202b3b, 0x1021283b, 0x03273b3b, 0x06302b39,
+	0x09302b39, 0x0c232f2f, 0x19322e06, 0x18312a12, 0x19322e06, 0x18312a12, 0x0b31283b, 0x0e26383b,
+	0x03273b3b, 0x06302b39, 0x11202b3b, 0x1021283b, 0x13273938, 0x12243938, 0x03273b3b, 0x06302b39,
+	0x0b31283b, 0x0e26383b, 0x19322e06, 0x18312a12, 0x1b332f05, 0x1a302b11, 0x0b31283b, 0x0e26383b
+};
 
-	if (!local) M6809Open(0);
-	MKsound_bankswitch(0);
-	MKsound_msm6295bankswitch(0);
-	M6809Reset();
-	if (!local) M6809Close();
-
-	BurnYM2151Reset();
-	DACReset();
-	MSM6295Reset();
+static UINT16 NbajamProtRead(UINT32 address)
+{
+	if (address >= 0x1b14020 && address <= 0x1b2503f) {
+		UINT16 result = NbajamProtQueue[NbajamProtIndex];
+		if (NbajamProtIndex < 4) NbajamProtIndex++;
+		return result;
+	}
+	
+	return ~0;
 }
 
-static void MKsound_main2soundwrite(INT32 data)
+static void NbajamProtWrite(UINT32 address, UINT16 value)
 {
-	sound_latch = data & 0xff;
-	if (~data & 0x200) {
-		M6809SetIRQLine(M6809_IRQ_LINE, CPU_IRQSTATUS_ACK);
-		sound_irqstate = 1;
+	if (address >= 0x1b14020 && address <= 0x1b2503f) {
+		UINT32 offset = (address - 0x1b14020) >> 4;
+		INT32 table_index = (offset >> 6) & 0x7f;
+		UINT32 protval = nbajam_prot_values[table_index];
+		
+		NbajamProtQueue[0] = value;
+		NbajamProtQueue[1] = ((protval >> 24) & 0xff) << 9;
+		NbajamProtQueue[2] = ((protval >> 16) & 0xff) << 9;
+		NbajamProtQueue[3] = ((protval >> 8) & 0xff) << 9;
+		NbajamProtQueue[4] = ((protval >> 0) & 0xff) << 9;
+		NbajamProtIndex = 0;
 	}
 }
 
-static void MKsound_msm6295bankswitch(INT32 bank)
+// nba jam te protection
+static const UINT32 nbajamte_prot_values[128] =
 {
-	bank &= 7;
-	sound_msm6295bank = bank;
+	0x00000000, 0x04081020, 0x08102000, 0x0c183122, 0x10200000, 0x14281020, 0x18312204, 0x1c393326,
+	0x20000001, 0x24081021, 0x28102000, 0x2c183122, 0x30200001, 0x34281021, 0x38312204, 0x3c393326,
+	0x00000102, 0x04081122, 0x08102102, 0x0c183122, 0x10200000, 0x14281020, 0x18312204, 0x1c393326,
+	0x20000103, 0x24081123, 0x28102102, 0x2c183122, 0x30200001, 0x34281021, 0x38312204, 0x3c393326,
+	0x00010204, 0x04091224, 0x08112204, 0x0c193326, 0x10210204, 0x14291224, 0x18312204, 0x1c393326,
+	0x20000001, 0x24081021, 0x28102000, 0x2c183122, 0x30200001, 0x34281021, 0x38312204, 0x3c393326,
+	0x00010306, 0x04091326, 0x08112306, 0x0c193326, 0x10210204, 0x14291224, 0x18312204, 0x1c393326,
+	0x20000103, 0x24081123, 0x28102102, 0x2c183122, 0x30200001, 0x34281021, 0x38312204, 0x3c393326,
+	0x00000000, 0x01201028, 0x02213018, 0x03012030, 0x04223138, 0x05022110, 0x06030120, 0x07231108,
+	0x08042231, 0x09243219, 0x0a251229, 0x0b050201, 0x0c261309, 0x0d060321, 0x0e072311, 0x0f273339,
+	0x10080422, 0x1128140a, 0x1229343a, 0x13092412, 0x142a351a, 0x150a2532, 0x160b0502, 0x172b152a,
+	0x180c2613, 0x192c363b, 0x1a2d160b, 0x1b0d0623, 0x1c2e172b, 0x1d0e0703, 0x1e0f2733, 0x1f2f371b,
+	0x20100804, 0x2130182c, 0x2231381c, 0x23112834, 0x2432393c, 0x25122914, 0x26130924, 0x2733190c,
+	0x28142a35, 0x29343a1d, 0x2a351a2d, 0x2b150a05, 0x2c361b0d, 0x2d160b25, 0x2e172b15, 0x2f373b3d,
+	0x30180c26, 0x31381c0e, 0x32393c3e, 0x33192c16, 0x343a3d1e, 0x351a2d36, 0x361b0d06, 0x373b1d2e,
+	0x381c2e17, 0x393c3e3f, 0x3a3d1e0f, 0x3b1d0e27, 0x3c3e1f2f, 0x3d1e0f07, 0x3e1f2f37, 0x3f3f3f1f
+};
 
-	INT32 bank_offs = 0;
-	switch (bank) {
-		case 0:
-		case 1: bank_offs = 0x40000; break;
-		case 2: bank_offs = 0x20000; break;
-		case 3: bank_offs = 0x00000; break;
-		case 4: bank_offs = 0xe0000; break;
-		case 5: bank_offs = 0xc0000; break;
-		case 6: bank_offs = 0xa0000; break;
-		case 7: bank_offs = 0x80000; break;
+static UINT16 NbajamteProtRead(UINT32 address)
+{
+	if ((address >= 0x1b15f40 && address <= 0x1b37f5f) || (address >= 0x1b95f40 && address <= 0x1bb7f5f)) {
+		UINT16 result = NbajamProtQueue[NbajamProtIndex];
+		if (NbajamProtIndex < 4) NbajamProtIndex++;
+		return result;
+	}
+	
+	return ~0;
+}
+
+static void NbajamteProtWrite(UINT32 address, UINT16 value)
+{
+	UINT32 offset = 0;
+	
+	if (address >= 0x1b15f40 && address <= 0x1b37f5f) offset = address - 0x1b15f40;
+	if (address >= 0x1b95f40 && address <= 0x1bb7f5f) offset = address - 0x1b95f40;
+	
+	if (offset > 0) {
+		offset = offset >> 4;
+		INT32 table_index = (offset >> 6) & 0x7f;
+		UINT32 protval = nbajamte_prot_values[table_index];
+		
+		NbajamProtQueue[0] = value;
+		NbajamProtQueue[1] = ((protval >> 24) & 0xff) << 9;
+		NbajamProtQueue[2] = ((protval >> 16) & 0xff) << 9;
+		NbajamProtQueue[3] = ((protval >> 8) & 0xff) << 9;
+		NbajamProtQueue[4] = ((protval >> 0) & 0xff) << 9;
+		NbajamProtIndex = 0;
+	}
+}
+
+// judge dredd protection
+static const UINT8 jdredd_prot_values_10740[] =
+{
+	0x14,0x2A,0x15,0x0A,0x25,0x32,0x39,0x1C,
+	0x2E,0x37,0x3B,0x1D,0x2E,0x37,0x1B,0x0D,
+	0x26,0x33,0x39,0x3C,0x1E,0x2F,0x37,0x3B,
+	0x3D,0x3E,0x3F,0x1F,0x2F,0x17,0x0B,0x25,
+	0x32,0x19,0x0C,0x26,0x33,0x19,0x2C,0x16,
+	0x2B,0x15,0x0A,0x05,0x22,0x00
+};
+
+static const UINT8 jdredd_prot_values_13240[] =
+{
+	0x28
+};
+
+static const UINT8 jdredd_prot_values_76540[] =
+{
+	0x04,0x08
+};
+
+static const UINT8 jdredd_prot_values_77760[] =
+{
+	0x14,0x2A,0x14,0x2A,0x35,0x2A,0x35,0x1A,
+	0x35,0x1A,0x2D,0x1A,0x2D,0x36,0x2D,0x36,
+	0x1B,0x36,0x1B,0x36,0x2C,0x36,0x2C,0x18,
+	0x2C,0x18,0x31,0x18,0x31,0x22,0x31,0x22,
+	0x04,0x22,0x04,0x08,0x04,0x08,0x10,0x08,
+	0x10,0x20,0x10,0x20,0x00,0x20,0x00,0x00,
+	0x00,0x00,0x01,0x00,0x01,0x02,0x01,0x02,
+	0x05,0x02,0x05,0x0B,0x05,0x0B,0x16,0x0B,
+	0x16,0x2C,0x16,0x2C,0x18,0x2C,0x18,0x31,
+	0x18,0x31,0x22,0x31,0x22,0x04,0x22,0x04,
+	0x08,0x04,0x08,0x10,0x08,0x10,0x20,0x10,
+	0x20,0x00,0x00
+};
+
+static const UINT8 jdredd_prot_values_80020[] =
+{
+	0x3A,0x1D,0x2E,0x37,0x00,0x00,0x2C,0x1C,
+	0x39,0x33,0x00,0x00,0x00,0x00,0x00,0x00
+};
+
+static UINT16 JdreddpProtRead(UINT32 address)
+{
+	UINT16 result = 0xffff;
+
+	if (JdreddpProtTable && JdreddpProtIndex < JdreddpProtMax) {
+		result = JdreddpProtTable[JdreddpProtIndex++] << 9;
 	}
 
-	MSM6295SetBank(0, DrvSoundROM + 0x60000, 0x20000, 0x3ffff); // static bank
-	MSM6295SetBank(0, DrvSoundROM + bank_offs, 0x00000, 0x1ffff); // dynamic bank
+	return result;
 }
 
-static void MKsound_bankswitch(INT32 bank)
+static void JdreddpProtWrite(UINT32 address, UINT16 value)
 {
-	sound_bank = bank & 7;
-}
-
-static void MKsound_statescan(INT32 nAction)
-{
-	if (nAction & ACB_DRIVER_DATA) {
-		M6809Scan(nAction);
-		SCAN_VAR(sound_latch);
-		SCAN_VAR(sound_talkback);
-		SCAN_VAR(sound_irqstate);
-		SCAN_VAR(sound_bank);
-		SCAN_VAR(sound_msm6295bank);
-	}
-
-	if (nAction & ACB_WRITE) {
-		M6809Open(0);
-		MKsound_bankswitch(sound_bank);
-		M6809Close();
-		MKsound_msm6295bankswitch(sound_msm6295bank);
-	}
-}
-
-static void MKYM2151IrqHandler(INT32 Irq)
-{
-	M6809SetIRQLine(M6809_FIRQ_LINE, (Irq) ? CPU_IRQSTATUS_ACK : CPU_IRQSTATUS_NONE);
-}
-
-static UINT8 MKSoundRead(UINT16 address)
-{
-
-	if (address >= 0x4000 && address <= 0xbfff) {
-		return DrvSoundProgROM[(sound_bank * 0x8000) + (address - 0x4000)];
-	}
-
-	if (address >= 0xc000 && address <= 0xffff) {
-		if (address >= 0xfb9c && address <= 0xfbc6) { // MK sound protection ram.
-			return DrvSoundProgRAMProt[address - 0xfb9c];
+	UINT32 offset = (address - 0x1b00000) >> 4;
+	
+	switch (offset) {
+		case 0x1074: {
+			JdreddpProtIndex = 0;
+			JdreddpProtTable = jdredd_prot_values_10740;
+			JdreddpProtMax = sizeof(jdredd_prot_values_10740);
+			break;
 		}
-		return DrvSoundProgROM[(0x4000 + 7 * 0x8000) + (address - 0xc000)];
-	}
 
-	address &= ~0x3ff; // mirroring
+		case 0x1324: {
+			JdreddpProtIndex = 0;
+			JdreddpProtTable = jdredd_prot_values_13240;
+			JdreddpProtMax = sizeof(jdredd_prot_values_13240);
+			break;
+		}
 
-	switch (address) {
-		case 0x2000: {
-			return 0; // NOP?
+		case 0x7654: {
+			JdreddpProtIndex = 0;
+			JdreddpProtTable = jdredd_prot_values_76540;
+			JdreddpProtMax = sizeof(jdredd_prot_values_76540);
+			break;
 		}
-		case 0x2400: {
-			return BurnYM2151Read();
+
+		case 0x7776: {
+			JdreddpProtIndex = 0;
+			JdreddpProtTable = jdredd_prot_values_77760;
+			JdreddpProtMax = sizeof(jdredd_prot_values_77760);
+			break;
 		}
-		case 0x2c00: {
-			return MSM6295Read(0);
-		}
-		case 0x3000: {
-			M6809SetIRQLine(M6809_IRQ_LINE, CPU_IRQSTATUS_NONE);
-			sound_irqstate = 0; // if self-test fails, delay this! (not on this hw, though)
-			return sound_latch;
+
+		case 0x8002: {
+			JdreddpProtIndex = 0;
+			JdreddpProtTable = jdredd_prot_values_80020;
+			JdreddpProtMax = sizeof(jdredd_prot_values_80020);
+			break;
 		}
 	}
-
-	bprintf(PRINT_NORMAL, _T("M6809 Read Byte -> %04X\n"), address);
-
-	return 0;
 }
 
-
-static void MKSoundWrite(UINT16 address, UINT8 value)
-{
-	if (address >= 0xfb9c && address <= 0xfbc6) { // MK sound protection ram.
-		DrvSoundProgRAMProt[address - 0xfb9c] = value;
-	}
-
-	if (address >= 0x4000) return; // ROM
-
-	if ((address & ~0x3ff) == 0x2400) // mirroring
-		address &= ~0x3fe; // ym
-	else
-		address &= ~0x3ff; // everything else
-
-
-	switch (address) {
-		case 0x2000: {
-			MKsound_bankswitch(value);
-			return;
-		}
-
-		case 0x2400:
-		case 0x2401: {
-			BurnYM2151Write(address&1, value);
-			return;
-		}
-
-		case 0x2800: {
-			DACSignedWrite(0, value);
-			return;
-		}
-
-		case 0x2c00: {
-			MSM6295Write(0, value);
-			return;
-		}
-
-		case 0x3400: {
-			MKsound_msm6295bankswitch(value);
-			return;
-		}
-
-		case 0x3c00: {
-			sound_talkback = value;
-			return;
-		}
-	}
-
-	bprintf(PRINT_NORMAL, _T("M6809 Write Byte -> %04X, %02X\n"), address, value);
-}
-
-static UINT16 MK2ProtConstRead(UINT32 /*address*/)
-{
-	return 2;
-}
-
-static UINT16 MK2ProtRead(UINT32 /*address*/)
-{
-	return MK2ProtData;
-}
-
-static UINT16 MK2ProtShiftRead(UINT32 /*address*/)
-{
-	return MK2ProtData >> 1;
-}
-
-static void MK2ProtWrite(UINT32 /*address*/, UINT16 value)
-{
-	MK2ProtData = value;
-}
-
+// init, exit, etc.
 INT32 TUnitInit()
 {
-    MemIndex();
+    nSoundType = SOUND_ADPCM;
+	
+	MemIndex();
     INT32 nLen = MemEnd - (UINT8 *)0;
 
     if ((AllMem = (UINT8 *)BurnMalloc(nLen)) == NULL)
@@ -657,10 +950,19 @@ INT32 TUnitInit()
 		nRet = LoadSoundBanksMK();
 		if (nRet != 0) return 1;
 	}
+	
+	if (TUnitIsMK2) {
+		nRet = LoadSoundBanksMk2();
+		if (nRet != 0) return 1;
+	}
+	
+	if (TUnitIsNbajam || TUnitIsNbajamTe || TUnitIsJdreddp) {
+		nRet = LoadSoundProgNbajamRom();
+		if (nRet != 0) return 1;
 
-/*    nRet = LoadSoundBanks();
-    if (nRet != 0)
-        return 1;*/
+		nRet = LoadSoundBanksNbajam();
+		if (nRet != 0) return 1;
+	}
 
     nRet = LoadGfxBanks();
     if (nRet != 0) return 1;
@@ -720,33 +1022,40 @@ INT32 TUnitInit()
 	TMS34010SetReadHandler(12, TUnitGfxRead);
     TMS34010MapHandler(12, 0x02000000, 0x07ffffff, MAP_READ);
 	
+	if (TUnitIsMKTurbo) {
+		TMS34010SetReadHandler(13, MKTurboProtRead);
+		TMS34010MapHandler(13, 0xFF800000, 0xffffffff, MAP_READ);
+	}
+	
 	if (TUnitIsMK2) {
 		TMS34010SetWriteHandler(13, MK2ProtWrite);
-		TMS34010MapHandler(13, 0x00f20c60, 0x00f20c7f, MAP_WRITE);
+		TMS34010MapHandler(13, 0x00f20000, 0x00f4ffff, MAP_WRITE);
 		
-		TMS34010SetWriteHandler(14, MK2ProtWrite);
-		TMS34010MapHandler(14, 0x00f42820, 0x00f4283f, MAP_WRITE);
+		TMS34010SetReadHandler(14, MK2ProtRead);
+		TMS34010MapHandler(14, 0x01a10000, 0x01a3ffff, MAP_READ);
 		
 		TMS34010SetReadHandler(15, MK2ProtRead);
-		TMS34010MapHandler(15, 0x01a190e0, 0x01a190ff, MAP_READ);
-		
-		TMS34010SetReadHandler(16, MK2ProtShiftRead);
-		TMS34010MapHandler(16, 0x01a191c0, 0x01a191df, MAP_READ);
-		
-		TMS34010SetReadHandler(17, MK2ProtRead);
-		TMS34010MapHandler(17, 0x01a3d0c0, 0x01a3d0ff, MAP_READ);
-		
-		TMS34010SetReadHandler(18, MK2ProtConstRead);
-		TMS34010MapHandler(18, 0x01d9d1e0, 0x01d9d1ff, MAP_READ);
-		
-		TMS34010SetReadHandler(19, MK2ProtConstRead);
-		TMS34010MapHandler(19, 0x01def920, 0x01def93f, MAP_READ);
+		TMS34010MapHandler(15, 0x01d90000, 0x01dfffff, MAP_READ);
+	}
+	
+	if (TUnitIsNbajam) {
+		TMS34010SetHandlers(13, NbajamProtRead, NbajamProtWrite);
+		TMS34010MapHandler(13, 0x1b14000, 0x1b25fff, MAP_READ | MAP_WRITE);
+	}
+	
+	if (TUnitIsNbajamTe) {
+		TMS34010SetHandlers(13, NbajamteProtRead, NbajamteProtWrite);
+		TMS34010MapHandler(13, 0x1b15000, 0x1bbffff, MAP_READ | MAP_WRITE);
+	}
+	
+	if (TUnitIsJdreddp) {
+		TMS34010SetHandlers(13, JdreddpProtRead, JdreddpProtWrite);
+		TMS34010MapHandler(13, 0x1b00000, 0x1bfffff, MAP_READ | MAP_WRITE);
 	}
 
     memset(DrvVRAM, 0, 0x400000);
 	
-	if (TUnitIsMK) {
-		nSoundType = SOUND_ADPCM;
+	if (TUnitIsMK || TUnitIsNbajam || TUnitIsNbajamTe || TUnitIsJdreddp) {
 		M6809Init(0);
 		M6809Open(0);
 		M6809MapMemory(DrvSoundProgRAM, 0x0000, 0x1fff, MAP_RAM);
@@ -758,17 +1067,44 @@ INT32 TUnitInit()
 		M6809SetReadOpArgHandler(MKSoundRead);
 		M6809SetWriteHandler(MKSoundWrite);
 		M6809Close();
-		
-		BurnYM2151Init(3579545);
+
+		BurnYM2151Init(3579545, 1);
+		BurnTimerAttachM6809(2000000);
 		BurnYM2151SetIrqHandler(&MKYM2151IrqHandler);
 		BurnYM2151SetRoute(BURN_SND_YM2151_YM2151_ROUTE_1, 1.00, BURN_SND_ROUTE_LEFT);
 		BurnYM2151SetRoute(BURN_SND_YM2151_YM2151_ROUTE_2, 1.00, BURN_SND_ROUTE_RIGHT);
 
 		DACInit(0, 0, 1, M6809TotalCycles, 2000000);
-		DACSetRoute(0, 0.35, BURN_SND_ROUTE_BOTH);
+		DACSetRoute(0, 0.25, BURN_SND_ROUTE_BOTH);
 
-		MSM6295Init(0, 1000000 / MSM6295_PIN7_HIGH, 1);
+		MSM6295Init(0, /*1000000 / MSM6295_PIN7_HIGH*/8000, 1);
 		MSM6295SetRoute(0, 0.50, BURN_SND_ROUTE_BOTH);
+		
+		SoundProtAddressStart = 0xfb9c;
+		SoundProtAddressEnd = 0xfbc6;
+		
+		if (TUnitIsNbajam) {
+			SoundProtAddressStart = 0xfbaa;
+			SoundProtAddressEnd = 0xfbd4;
+		}
+		
+		if (TUnitIsNbajamTe) {
+			SoundProtAddressStart = 0xfbec;
+			SoundProtAddressEnd = 0xfc16;
+		}
+	}
+	
+	if (TUnitIsMK2) {
+		nSoundType = SOUND_DCS;
+		
+		Dcs2kInit(DCS_8K, MHz(10));
+		Dcs2kMapSoundROM(DrvSoundROM, 0x1000000);
+		Dcs2kSetVolume(10.00);
+		
+		Dcs2kBoot();
+
+		Dcs2kResetWrite(1);
+		Dcs2kResetWrite(0);
 	}
 	
 	GenericTilesInit();
@@ -811,6 +1147,13 @@ INT32 TUnitExit()
 	
 	TUnitIsMK = 0;
 	TUnitIsMK2 = 0;
+	TUnitIsMKTurbo = 0;
+	TUnitIsNbajam = 0;
+	TUnitIsNbajamTe = 0;
+	TUnitIsJdreddp = 0;
+	
+	SoundProtAddressStart = 0;
+	SoundProtAddressEnd = 0;
 
     return 0;
 }
@@ -828,6 +1171,21 @@ INT32 TUnitDraw()
 	return 0;
 }
 
+static void HandleDCSIRQ(INT32 line)
+{
+	if (nBurnFPS == 6000) {
+		// 60hz needs 2 irq's/frame (this is here for "force 60hz"/etc)
+		if (line == 0 || line == 144) DcsIRQ(); // 2x per frame
+	} else {
+		// 54.71hz needs 5 irq's every 2 frames
+		if (nCurrentFrame & 1) {
+			if (line == 0 || line == 144) DcsIRQ(); // 2x per frame
+		} else {
+			if (line == 0 || line == 96 || line == 192) DcsIRQ(); // 3x
+		}
+	}
+}
+
 INT32 TUnitFrame()
 {
 	if (nTUnitReset) TUnitDoReset();
@@ -836,24 +1194,39 @@ INT32 TUnitFrame()
 
 	TMS34010NewFrame();
 
-	if (TUnitIsMK) M6809NewFrame();
+	if (nSoundType == SOUND_ADPCM) M6809NewFrame();
 
 	INT32 nInterleave = 288;
 	INT32 nCyclesTotal[2] = { (INT32)(50000000/8/54.71), (INT32)(2000000 / 54.71) };
 	INT32 nCyclesDone[2] = { 0, 0 };
 	INT32 nSoundBufferPos = 0;
 	
-	if (TUnitIsMK) M6809Open(0);
+	if (nSoundType == SOUND_DCS) {
+		nCyclesTotal[1] = (INT32)(10000000 / 54.71);
+		Dcs2kNewFrame();
+	}
+	
+	if (nSoundType == SOUND_ADPCM) M6809Open(0);
 
 	for (INT32 i = 0; i < nInterleave; i++) {
 		nCyclesDone[0] += TMS34010Run((nCyclesTotal[0] * (i + 1) / nInterleave) - nCyclesDone[0]);
-		
-		if (TUnitIsMK && !sound_inreset) nCyclesDone[1] += M6809Run((nCyclesTotal[1] * (i + 1) / nInterleave) - nCyclesDone[1]);
 
 		TMS34010GenerateScanline(i);
-		
+
+		if (nSoundType == SOUND_DCS) {
+			HandleDCSIRQ(i);
+
+			dcs_sound_sync(); // sync to main cpu
+			if (i == nInterleave - 1) dcs_sound_sync_end();
+		}
+
+		if (nSoundType == SOUND_ADPCM && !sound_inreset) {
+			BurnTimerUpdate((i + 1) * nCyclesTotal[1] / nInterleave);
+			if (i == nInterleave - 1) BurnTimerEndFrame(nCyclesTotal[1]);
+		}
+
 		if (pBurnSoundOut) {
-			if (TUnitIsMK && i&1) {
+			if (nSoundType == SOUND_ADPCM && i&1) {
 				INT32 nSegmentLength = nBurnSoundLen / (nInterleave / 2);
 				INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
 				BurnYM2151Render(pSoundBuf, nSegmentLength);
@@ -861,10 +1234,10 @@ INT32 TUnitFrame()
 			}
 		}
     }
-	
+
 	// Make sure the buffer is entirely filled.
 	if (pBurnSoundOut) {
-		if (TUnitIsMK) {
+		if (nSoundType == SOUND_ADPCM) {
 			INT32 nSegmentLength = nBurnSoundLen - nSoundBufferPos;
 			INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
 
@@ -874,9 +1247,13 @@ INT32 TUnitFrame()
 			DACUpdate(pBurnSoundOut, nBurnSoundLen);
 			MSM6295Render(pBurnSoundOut, nBurnSoundLen);
 		}
+		
+		if (nSoundType == SOUND_DCS) {
+			Dcs2kRender(pBurnSoundOut, nBurnSoundLen);
+		}
 	}
 	
-	if (TUnitIsMK) M6809Close();
+	if (nSoundType == SOUND_ADPCM) M6809Close();
 
 	if (pBurnDraw) {
 		TUnitDraw();
@@ -905,7 +1282,7 @@ INT32 TUnitScan(INT32 nAction, INT32 *pnMin)
 		TMS34010Scan(nAction);
 
 		if (nSoundType == SOUND_ADPCM) {
-			MKsound_statescan(nAction);
+			MKsound_statescan(nAction, pnMin);
 		}
 
 		if (nSoundType == SOUND_DCS) {
@@ -916,6 +1293,15 @@ INT32 TUnitScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(nDMA);
 		SCAN_VAR(nTUnitCtrl);
 		SCAN_VAR(bCMOSWriteEnable);
+		
+		SCAN_VAR(MKProtIndex);
+		SCAN_VAR(MK2ProtData);
+		SCAN_VAR(NbajamProtQueue);
+		SCAN_VAR(NbajamProtIndex);
+		SCAN_VAR(JdreddpProtIndex);
+		SCAN_VAR(JdreddpProtMax);
+		SCAN_VAR(JdreddpProtTable);
+		
 		// Might need to scan the dma_state struct in midtunit_dma.h
 	}
 
