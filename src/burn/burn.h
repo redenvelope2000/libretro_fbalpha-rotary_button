@@ -150,6 +150,12 @@ struct BurnSampleInfo {
 	UINT32 nFlags;
 };
 
+struct BurnHDDInfo {
+	char szName[100];
+	UINT32 nLen;
+	UINT32 nCrc;
+};
+
 // Inputs
 
 #define BIT_DIGITAL			(1)
@@ -338,6 +344,8 @@ INT32 BurnDrvGetGenreFlags();
 INT32 BurnDrvGetFamilyFlags();
 INT32 BurnDrvGetSampleInfo(struct BurnSampleInfo *pri, UINT32 i);
 INT32 BurnDrvGetSampleName(char** pszName, UINT32 i, INT32 nAka);
+INT32 BurnDrvGetHDDInfo(struct BurnHDDInfo *pri, UINT32 i);
+INT32 BurnDrvGetHDDName(char** pszName, UINT32 i, INT32 nAka);
 
 void Reinitialise();
 
