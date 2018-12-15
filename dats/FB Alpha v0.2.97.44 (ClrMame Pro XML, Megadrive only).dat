@@ -783,9 +783,15 @@
 	</game>
 	<game name="barver">
 		<description>Barver Battle Saga - Tai Kong Zhan Shi (Chi)</description>
-		<year>199?</year>
+		<year>1996</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="barver battle saga - tai kong zhan shi (chi) (unl).bin" size="2097152" crc="d37a37c6"/>
+	</game>
+	<game name="barvere" cloneof="barver" romof="barver">
+		<description>Barver Battle Saga - Tai Kong Zhan Shi (Hack, English)</description>
+		<year>2010</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="barver battle saga - tai kong zhan shi (english translation).md" size="2097152" crc="34e5445f"/>
 	</game>
 	<game name="bassmc">
 		<description>BASS Masters Classic (USA)</description>
@@ -9686,6 +9692,12 @@
 		<year>199?</year>
 		<manufacturer>&lt;unknown&gt;</manufacturer>
 		<rom name="sonic crackers (jpn) (prototype).bin" size="1048576" crc="7fada88d"/>
+	</game>
+	<game name="sonicere" cloneof="sonicer" romof="sonicer">
+		<description>Sonic Eraser (Hack, English)</description>
+		<year>2004</year>
+		<manufacturer>Sega</manufacturer>
+		<rom name="sonic eraser (english translation).md" size="262144" crc="26d9bc32"/>
 	</game>
 	<game name="sonicer">
 		<description>Sonic Eraser (Jpn, SegaNet)</description>
