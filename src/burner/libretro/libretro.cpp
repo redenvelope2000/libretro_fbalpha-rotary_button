@@ -712,7 +712,7 @@ static void set_controller_infos()
 	static const struct retro_controller_description controller_description[] = {
 		{ "Classic", RETROPAD_CLASSIC },
 		{ "Modern", RETROPAD_MODERN },
-		{ "Mouse", RETRO_DEVICE_MOUSE }
+		{ "Trackball + Pad buttons", RETRO_DEVICE_MOUSE }
 	};
 
 	std::vector<retro_controller_info> controller_infos(nMaxPlayers+1);
