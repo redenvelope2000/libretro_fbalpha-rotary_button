@@ -3657,6 +3657,22 @@ INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis
 			normal_input_descriptors.push_back(descriptor);
 			break;
 		}
+		case GIT_MOUSEAXIS:
+		{
+			pgi->nInput = GIT_MOUSEAXIS;
+			pgi->Input.MouseAxis.nAxis = nAxis;
+			pgi->Input.MouseAxis.nMouse = (UINT8)nJoy;
+			axibinds[nJoy][nAxis][0] = nIndex;
+			axibinds[nJoy][nAxis][1] = nKey;
+			retro_input_descriptor descriptor;
+			descriptor.port = nJoy;
+			descriptor.device = RETRO_DEVICE_MOUSE;
+			descriptor.index = nIndex;
+			descriptor.id = nKey;
+			descriptor.description = szn;
+			normal_input_descriptors.push_back(descriptor);
+			break;
+		}
 		// I'm not sure the 2 following settings are needed in the libretro port
 		case GIT_JOYAXIS_NEG:
 		{
@@ -3785,7 +3801,19 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 	const char * systemname = BurnDrvGetTextA(DRV_SYSTEM);
 
 	if (fba_devices[nPlayer] == RETRO_DEVICE_MOUSE) {
-		// Add some custom logic here when mouse is selected
+		if (strcmp("x-axis", szi + 3) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_MOUSE_X, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+		}
+		if (strcmp("y-axis", szi + 3) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_MOUSE_Y, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+		}
+		if (strcmp("mouse x-axis", szi) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_MOUSE_X, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+		}
+		if (strcmp("mouse y-axis", szi) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_MOUSE_Y, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+		}
+		// Should i map button to the mouse too ?
 	}
 
 	// Fix part of issue #102 (Crazy Fight)
