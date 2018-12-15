@@ -160,7 +160,7 @@ struct GameInp* GameInp = NULL;
 UINT32 nGameInpCount = 0;
 UINT32 nMacroCount = 0;
 UINT32 nMaxMacro = 0;
-INT32 nAnalogSpeed;
+INT32 nAnalogSpeed = 0x0100;
 INT32 nFireButtons = 0;
 bool bStreetFighterLayout = false;
 bool bButtonMapped = false;
@@ -184,6 +184,7 @@ static const struct retro_variable var_fba_hiscores = { "fba-hiscores", "Hiscore
 static const struct retro_variable var_fba_samplerate = { "fba-samplerate", "Samplerate (need to quit retroarch); 48000|44100|22050|11025" };
 static const struct retro_variable var_fba_sample_interpolation = { "fba-sample-interpolation", "Sample Interpolation; 4-point 3rd order|2-point 1st order|disabled" };
 static const struct retro_variable var_fba_fm_interpolation = { "fba-fm-interpolation", "FM Interpolation; 4-point 3rd order|disabled" };
+static const struct retro_variable var_fba_analog_speed = { "fba-analog-speed", "Analog Speed; 10|9|8|7|6|5|4|3|2|1" };
 #ifdef USE_CYCLONE
 static const struct retro_variable var_fba_cyclone = { "fba-cyclone", "Cyclone (need to quit retroarch, change savestate format, use at your own risk); disabled|enabled" };
 #endif
@@ -710,7 +711,8 @@ static void set_controller_infos()
 {
 	static const struct retro_controller_description controller_description[] = {
 		{ "Classic", RETROPAD_CLASSIC },
-		{ "Modern", RETROPAD_MODERN }
+		{ "Modern", RETROPAD_MODERN },
+		{ "Mouse", RETRO_DEVICE_MOUSE }
 	};
 
 	std::vector<retro_controller_info> controller_infos(nMaxPlayers+1);
@@ -744,6 +746,7 @@ static void set_environment()
 	vars_systems.push_back(&var_fba_samplerate);
 	vars_systems.push_back(&var_fba_sample_interpolation);
 	vars_systems.push_back(&var_fba_fm_interpolation);
+	vars_systems.push_back(&var_fba_analog_speed);
 #ifdef USE_CYCLONE
 	vars_systems.push_back(&var_fba_cyclone);
 #endif
@@ -1295,175 +1298,175 @@ void retro_reset()
 
 static void check_variables(void)
 {
-   struct retro_variable var = {0};
+	struct retro_variable var = {0};
 
-   var.key = var_fba_cpu_speed_adjust.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
-      if (strcmp(var.value, "110") == 0)
-         nBurnCPUSpeedAdjust = 0x0110;
-      else if (strcmp(var.value, "120") == 0)
-         nBurnCPUSpeedAdjust = 0x0120;
-      else if (strcmp(var.value, "130") == 0)
-         nBurnCPUSpeedAdjust = 0x0130;
-      else if (strcmp(var.value, "140") == 0)
-         nBurnCPUSpeedAdjust = 0x0140;
-      else if (strcmp(var.value, "150") == 0)
-         nBurnCPUSpeedAdjust = 0x0150;
-      else if (strcmp(var.value, "160") == 0)
-         nBurnCPUSpeedAdjust = 0x0160;
-      else if (strcmp(var.value, "170") == 0)
-         nBurnCPUSpeedAdjust = 0x0170;
-      else if (strcmp(var.value, "180") == 0)
-         nBurnCPUSpeedAdjust = 0x0180;
-      else if (strcmp(var.value, "190") == 0)
-         nBurnCPUSpeedAdjust = 0x0190;
-      else if (strcmp(var.value, "200") == 0)
-         nBurnCPUSpeedAdjust = 0x0200;
-      else
-         nBurnCPUSpeedAdjust = 0x0100;
-   }
+	var.key = var_fba_cpu_speed_adjust.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "110") == 0)
+			nBurnCPUSpeedAdjust = 0x0110;
+		else if (strcmp(var.value, "120") == 0)
+			nBurnCPUSpeedAdjust = 0x0120;
+		else if (strcmp(var.value, "130") == 0)
+			nBurnCPUSpeedAdjust = 0x0130;
+		else if (strcmp(var.value, "140") == 0)
+			nBurnCPUSpeedAdjust = 0x0140;
+		else if (strcmp(var.value, "150") == 0)
+			nBurnCPUSpeedAdjust = 0x0150;
+		else if (strcmp(var.value, "160") == 0)
+			nBurnCPUSpeedAdjust = 0x0160;
+		else if (strcmp(var.value, "170") == 0)
+			nBurnCPUSpeedAdjust = 0x0170;
+		else if (strcmp(var.value, "180") == 0)
+			nBurnCPUSpeedAdjust = 0x0180;
+		else if (strcmp(var.value, "190") == 0)
+			nBurnCPUSpeedAdjust = 0x0190;
+		else if (strcmp(var.value, "200") == 0)
+			nBurnCPUSpeedAdjust = 0x0200;
+		else
+			nBurnCPUSpeedAdjust = 0x0100;
+	}
 
-   var.key = var_fba_aspect.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
-      if (strcmp(var.value, "PAR") == 0)
-         core_aspect_par = true;
-      else
-         core_aspect_par = false;
-   }
+	var.key = var_fba_aspect.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "PAR") == 0)
+			core_aspect_par = true;
+		else
+			core_aspect_par = false;
+	}
 
-   var.key = var_fba_frameskip.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
-      if (strcmp(var.value, "0") == 0)
-         nFrameskip = 1;
-      else if (strcmp(var.value, "1") == 0)
-         nFrameskip = 2;
-      else if (strcmp(var.value, "2") == 0)
-         nFrameskip = 3;
-      else if (strcmp(var.value, "3") == 0)
-         nFrameskip = 4;
-      else if (strcmp(var.value, "4") == 0)
-         nFrameskip = 5;
-      else if (strcmp(var.value, "5") == 0)
-         nFrameskip = 6;
-   }
+	var.key = var_fba_frameskip.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "0") == 0)
+			nFrameskip = 1;
+		else if (strcmp(var.value, "1") == 0)
+			nFrameskip = 2;
+		else if (strcmp(var.value, "2") == 0)
+			nFrameskip = 3;
+		else if (strcmp(var.value, "3") == 0)
+			nFrameskip = 4;
+		else if (strcmp(var.value, "4") == 0)
+			nFrameskip = 5;
+		else if (strcmp(var.value, "5") == 0)
+			nFrameskip = 6;
+	}
 
-   if (pgi_diag)
-   {
-      var.key = var_fba_diagnostic_input.key;
-      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-      {
-         diag_input = NULL;
-         diag_input_hold_frame_delay = 0;
-         if (strcmp(var.value, "Hold Start") == 0)
-         {
-            diag_input = diag_input_start;
-            diag_input_hold_frame_delay = 60;
-         }
-         else if(strcmp(var.value, "Start + A + B") == 0)
-         {
-            diag_input = diag_input_start_a_b;
-            diag_input_hold_frame_delay = 0;
-         }
-         else if(strcmp(var.value, "Hold Start + A + B") == 0)
-         {
-            diag_input = diag_input_start_a_b;
-            diag_input_hold_frame_delay = 60;
-         }
-         else if(strcmp(var.value, "Start + L + R") == 0)
-         {
-            diag_input = diag_input_start_l_r;
-            diag_input_hold_frame_delay = 0;
-         }
-         else if(strcmp(var.value, "Hold Start + L + R") == 0)
-         {
-            diag_input = diag_input_start_l_r;
-            diag_input_hold_frame_delay = 60;
-         }
-         else if(strcmp(var.value, "Hold Select") == 0)
-         {
-            diag_input = diag_input_select;
-            diag_input_hold_frame_delay = 60;
-         }
-         else if(strcmp(var.value, "Select + A + B") == 0)
-         {
-            diag_input = diag_input_select_a_b;
-            diag_input_hold_frame_delay = 0;
-         }
-         else if(strcmp(var.value, "Hold Select + A + B") == 0)
-         {
-            diag_input = diag_input_select_a_b;
-            diag_input_hold_frame_delay = 60;
-         }
-         else if(strcmp(var.value, "Select + L + R") == 0)
-         {
-            diag_input = diag_input_select_l_r;
-            diag_input_hold_frame_delay = 0;
-         }
-         else if(strcmp(var.value, "Hold Select + L + R") == 0)
-         {
-            diag_input = diag_input_select_l_r;
-            diag_input_hold_frame_delay = 60;
-         }
-      }
-   }
+	if (pgi_diag)
+	{
+		var.key = var_fba_diagnostic_input.key;
+		if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+		{
+			diag_input = NULL;
+			diag_input_hold_frame_delay = 0;
+			if (strcmp(var.value, "Hold Start") == 0)
+			{
+				diag_input = diag_input_start;
+				diag_input_hold_frame_delay = 60;
+			}
+			else if(strcmp(var.value, "Start + A + B") == 0)
+			{
+				diag_input = diag_input_start_a_b;
+				diag_input_hold_frame_delay = 0;
+			}
+			else if(strcmp(var.value, "Hold Start + A + B") == 0)
+			{
+				diag_input = diag_input_start_a_b;
+				diag_input_hold_frame_delay = 60;
+			}
+			else if(strcmp(var.value, "Start + L + R") == 0)
+			{
+				diag_input = diag_input_start_l_r;
+				diag_input_hold_frame_delay = 0;
+			}
+			else if(strcmp(var.value, "Hold Start + L + R") == 0)
+			{
+				diag_input = diag_input_start_l_r;
+				diag_input_hold_frame_delay = 60;
+			}
+			else if(strcmp(var.value, "Hold Select") == 0)
+			{
+				diag_input = diag_input_select;
+				diag_input_hold_frame_delay = 60;
+			}
+			else if(strcmp(var.value, "Select + A + B") == 0)
+			{
+				diag_input = diag_input_select_a_b;
+				diag_input_hold_frame_delay = 0;
+			}
+			else if(strcmp(var.value, "Hold Select + A + B") == 0)
+			{
+				diag_input = diag_input_select_a_b;
+				diag_input_hold_frame_delay = 60;
+			}
+			else if(strcmp(var.value, "Select + L + R") == 0)
+			{
+				diag_input = diag_input_select_l_r;
+				diag_input_hold_frame_delay = 0;
+			}
+			else if(strcmp(var.value, "Hold Select + L + R") == 0)
+			{
+				diag_input = diag_input_select_l_r;
+				diag_input_hold_frame_delay = 60;
+			}
+		}
+	}
 
-   if (is_neogeo_game)
-   {
-      if (allow_neogeo_mode)
-      {
-         var.key = var_fba_neogeo_mode.key;
-         if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-         {
-            if (strcmp(var.value, "MVS") == 0)
-               g_opt_neo_geo_mode = NEO_GEO_MODE_MVS;
-            else if (strcmp(var.value, "AES") == 0)
-               g_opt_neo_geo_mode = NEO_GEO_MODE_AES;
-            else if (strcmp(var.value, "UNIBIOS") == 0)
-               g_opt_neo_geo_mode = NEO_GEO_MODE_UNIBIOS;
-            else if (strcmp(var.value, "DIPSWITCH") == 0)
-               g_opt_neo_geo_mode = NEO_GEO_MODE_DIPSWITCH;
-         }
-      }
-   }
-    
-   var.key = var_fba_hiscores.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
-      if (strcmp(var.value, "enabled") == 0)
-         EnableHiscores = true;
-      else
-         EnableHiscores = false;
-   }
+	if (is_neogeo_game)
+	{
+		if (allow_neogeo_mode)
+		{
+			var.key = var_fba_neogeo_mode.key;
+			if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+			{
+				if (strcmp(var.value, "MVS") == 0)
+					g_opt_neo_geo_mode = NEO_GEO_MODE_MVS;
+				else if (strcmp(var.value, "AES") == 0)
+					g_opt_neo_geo_mode = NEO_GEO_MODE_AES;
+				else if (strcmp(var.value, "UNIBIOS") == 0)
+					g_opt_neo_geo_mode = NEO_GEO_MODE_UNIBIOS;
+				else if (strcmp(var.value, "DIPSWITCH") == 0)
+					g_opt_neo_geo_mode = NEO_GEO_MODE_DIPSWITCH;
+			}
+		}
+	}
 
-   var.key = var_fba_samplerate.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-   {
-      if (strcmp(var.value, "48000") == 0)
-         g_audio_samplerate = 48000;
-      else if (strcmp(var.value, "44100") == 0)
-         g_audio_samplerate = 44100;
-      else if (strcmp(var.value, "22050") == 0)
-         g_audio_samplerate = 22050;
-      else if (strcmp(var.value, "11025") == 0)
-         g_audio_samplerate = 11025;
-      else
-         g_audio_samplerate = 48000;
-   }
+	var.key = var_fba_hiscores.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "enabled") == 0)
+			EnableHiscores = true;
+		else
+			EnableHiscores = false;
+	}
+
+	var.key = var_fba_samplerate.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "48000") == 0)
+			g_audio_samplerate = 48000;
+		else if (strcmp(var.value, "44100") == 0)
+			g_audio_samplerate = 44100;
+		else if (strcmp(var.value, "22050") == 0)
+			g_audio_samplerate = 22050;
+		else if (strcmp(var.value, "11025") == 0)
+			g_audio_samplerate = 11025;
+		else
+			g_audio_samplerate = 48000;
+	}
 
 	var.key = var_fba_sample_interpolation.key;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
-	   if (strcmp(var.value, "4-point 3rd order") == 0)
-		  nInterpolation = 3;
-	   else if (strcmp(var.value, "2-point 1st order") == 0)
-		  nInterpolation = 1;
-	   else if (strcmp(var.value, "disabled") == 0)
-		  nInterpolation = 0;
-	   else
-		  nInterpolation = 3;
+		if (strcmp(var.value, "4-point 3rd order") == 0)
+			nInterpolation = 3;
+		else if (strcmp(var.value, "2-point 1st order") == 0)
+			nInterpolation = 1;
+		else if (strcmp(var.value, "disabled") == 0)
+			nInterpolation = 0;
+		else
+			nInterpolation = 3;
 	}
 
 	var.key = var_fba_fm_interpolation.key;
@@ -1475,6 +1478,33 @@ static void check_variables(void)
 			nFMInterpolation = 0;
 		else
 			nFMInterpolation = 3;
+	}
+
+	var.key = var_fba_analog_speed.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "10") == 0)
+			nAnalogSpeed = 0x0100;
+		else if (strcmp(var.value, "9") == 0)
+			nAnalogSpeed = 0x00F0;
+		else if (strcmp(var.value, "8") == 0)
+			nAnalogSpeed = 0x00E0;
+		else if (strcmp(var.value, "7") == 0)
+			nAnalogSpeed = 0x00C0;
+		else if (strcmp(var.value, "6") == 0)
+			nAnalogSpeed = 0x00B0;
+		else if (strcmp(var.value, "5") == 0)
+			nAnalogSpeed = 0x00A0;
+		else if (strcmp(var.value, "4") == 0)
+			nAnalogSpeed = 0x0090;
+		else if (strcmp(var.value, "3") == 0)
+			nAnalogSpeed = 0x0080;
+		else if (strcmp(var.value, "2") == 0)
+			nAnalogSpeed = 0x0070;
+		else if (strcmp(var.value, "1") == 0)
+			nAnalogSpeed = 0x0060;
+		else
+			nAnalogSpeed = 0x0100;
 	}
 
 #ifdef USE_CYCLONE
@@ -3583,8 +3613,6 @@ INT32 GameInpInit()
 
 	GameInpInitMacros();
 
-	nAnalogSpeed = 0x0100;
-
 	return 0;
 }
 
@@ -3754,12 +3782,12 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 {
 	const char * parentrom	= BurnDrvGetTextA(DRV_PARENT);
 	const char * drvname	= BurnDrvGetTextA(DRV_NAME);
-	//const char * boardrom   = BurnDrvGetTextA(DRV_BOARDROM);
 	const char * systemname = BurnDrvGetTextA(DRV_SYSTEM);
-	//INT32        genre      = BurnDrvGetGenreFlags();
-	//INT32        family     = BurnDrvGetFamilyFlags();
-	//INT32        hardware   = BurnDrvGetHardwareCode();
-	
+
+	if (fba_devices[nPlayer] == RETRO_DEVICE_MOUSE) {
+		// Add some custom logic here when mouse is selected
+	}
+
 	// Fix part of issue #102 (Crazy Fight)
 	// Can't really manage to have a decent mapping on this one if you don't have a stick/pad with the following 2 rows of 3 buttons :
 	// Y X R1
