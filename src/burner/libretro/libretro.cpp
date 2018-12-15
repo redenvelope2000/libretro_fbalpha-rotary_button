@@ -2156,7 +2156,9 @@ static inline int CinpJoyAxis(int i, int axis)
 
 static inline int CinpMouseAxis(int i, int axis)
 {
-   return 0;
+	// Hooking this won't hurt, however i don't know yet how i'll be including it in current logic
+	INT32 id = axibinds[i][axis][1];
+	return input_cb(i, RETRO_DEVICE_MOUSE, 0, id);
 }
 
 static bool poll_diag_input()
