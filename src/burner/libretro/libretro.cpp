@@ -16,6 +16,8 @@
 
 #define RETROPAD_CLASSIC	RETRO_DEVICE_ANALOG
 #define RETROPAD_MODERN		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_ANALOG, 1)
+#define RETROMOUSE_BALL		RETRO_DEVICE_MOUSE
+#define RETROMOUSE_FULL		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 1)
 
 static void log_dummy(enum retro_log_level level, const char *fmt, ...) { }
 static const char *print_label(unsigned i);
@@ -96,7 +98,7 @@ enum neo_geo_modes
 };
 
 #define MAX_KEYBINDS 0x5000
-static uint8_t keybinds[MAX_KEYBINDS][4];
+static uint8_t keybinds[MAX_KEYBINDS][5];
 static uint8_t axibinds[5][8][3];
 bool bAnalogRightMappingDone[5][2][2];
 
@@ -712,7 +714,8 @@ static void set_controller_infos()
 	static const struct retro_controller_description controller_description[] = {
 		{ "Classic", RETROPAD_CLASSIC },
 		{ "Modern", RETROPAD_MODERN },
-		{ "Trackball + Pad buttons", RETRO_DEVICE_MOUSE }
+		{ "Mouse (ball only)", RETROMOUSE_BALL },
+		{ "Mouse (full)", RETROMOUSE_FULL }
 	};
 
 	std::vector<retro_controller_info> controller_infos(nMaxPlayers+1);
@@ -2108,6 +2111,7 @@ static bool init_input()
 	for (unsigned i = 0; i < MAX_KEYBINDS; i++) {
 		keybinds[i][0] = 0xff;
 		keybinds[i][2] = 0;
+		keybinds[i][4] = RETRO_DEVICE_JOYPAD;
 	}
 	for (unsigned i = 0; i < 5; i++) {
 		for (unsigned j = 0; j < 8; j++) {
@@ -2151,11 +2155,11 @@ static inline INT32 CinpState(INT32 nCode)
 	INT32 idx = keybinds[nCode][2];
 	if(idx == 0)
 	{
-		return input_cb(port, RETRO_DEVICE_JOYPAD, 0, id);
+		return input_cb(port, keybinds[nCode][4], 0, id);
 	}
 	else
 	{
-		INT32 s = input_cb(port, RETRO_DEVICE_ANALOG, idx, id);
+		INT32 s = input_cb(port, keybinds[nCode][4], idx, id);
 		INT32 position = keybinds[nCode][3];
 		if(s < -1000 && position == JOY_NEG)
 			return 1;
@@ -3712,7 +3716,7 @@ INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis
 }
 
 // Digital to digital mapping
-INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, char *szn)
+INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, char *szn, unsigned device = RETRO_DEVICE_JOYPAD)
 {
 	if(bButtonMapped) return 0;
 	pgi->nInput = GIT_SWITCH;
@@ -3720,9 +3724,10 @@ INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, 
 		pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
 	keybinds[pgi->Input.Switch.nCode][0] = nKey;
 	keybinds[pgi->Input.Switch.nCode][1] = nJoy;
+	keybinds[pgi->Input.Switch.nCode][4] = device;
 	retro_input_descriptor descriptor;
 	descriptor.port = nJoy;
-	descriptor.device = RETRO_DEVICE_JOYPAD;
+	descriptor.device = device;
 	descriptor.index = 0;
 	descriptor.id = nKey;
 	descriptor.description = szn;
@@ -3746,6 +3751,7 @@ INT32 GameInpDigital2RetroInpAnalogRight(struct GameInp* pgi, UINT32 nJoy, UINT3
 	keybinds[pgi->Input.Switch.nCode][1] = nJoy;
 	keybinds[pgi->Input.Switch.nCode][2] = RETRO_DEVICE_INDEX_ANALOG_RIGHT;
 	keybinds[pgi->Input.Switch.nCode][3] = position;
+	keybinds[pgi->Input.Switch.nCode][4] = RETRO_DEVICE_ANALOG;
 	bAnalogRightMappingDone[nJoy][nKey][position] = true;
 	if(bAnalogRightMappingDone[nJoy][nKey][JOY_POS] && bAnalogRightMappingDone[nJoy][nKey][JOY_NEG]) {
 		retro_input_descriptor descriptor;
@@ -3800,7 +3806,7 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 	const char * drvname	= BurnDrvGetTextA(DRV_NAME);
 	const char * systemname = BurnDrvGetTextA(DRV_SYSTEM);
 
-	if (fba_devices[nPlayer] == RETRO_DEVICE_MOUSE) {
+	if (fba_devices[nPlayer] == RETROMOUSE_BALL || fba_devices[nPlayer] == RETROMOUSE_FULL) {
 		if (strcmp("x-axis", szi + 3) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_MOUSE_X, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
 		}
@@ -3813,7 +3819,30 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 		if (strcmp("mouse y-axis", szi) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_MOUSE_Y, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
 		}
-		// Should i map button to the mouse too ?
+		if (fba_devices[nPlayer] == RETROMOUSE_FULL) {
+			// Handle mouse button mapping (i will keep it simple...)
+			if (strcmp("fire 1", szi + 3) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_LEFT, description, RETRO_DEVICE_MOUSE);
+			}
+			if (strcmp("mouse button 1", szi) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_LEFT, description, RETRO_DEVICE_MOUSE);
+			}
+			if (strcmp("fire 2", szi + 3) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_RIGHT, description, RETRO_DEVICE_MOUSE);
+			}
+			if (strcmp("mouse button 2", szi) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_RIGHT, description, RETRO_DEVICE_MOUSE);
+			}
+			if (strcmp("fire 3", szi + 3) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_MIDDLE, description, RETRO_DEVICE_MOUSE);
+			}
+			if (strcmp("fire 4", szi + 3) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_BUTTON_4, description, RETRO_DEVICE_MOUSE);
+			}
+			if (strcmp("fire 5", szi + 3) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_BUTTON_5, description, RETRO_DEVICE_MOUSE);
+			}
+		}
 	}
 
 	// Fix part of issue #102 (Crazy Fight)
