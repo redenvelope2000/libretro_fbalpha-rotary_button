@@ -3800,6 +3800,7 @@ INT32 GameInpAnalog2RetroInpDualKeys(struct GameInp* pgi, UINT32 nJoy, UINT8 nAx
 
 // [WIP]
 // All inputs which needs special handling need to go in the next function
+// TODO : move analog accelerators to R2
 INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn, char *description)
 {
 	const char * parentrom	= BurnDrvGetTextA(DRV_PARENT);
@@ -4382,7 +4383,6 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 	}
 	
 	// Thunder Ceptor & Thunder Ceptor II (#33)
-	// Accelerator is not working (?)
 	if ((parentrom && strcmp(parentrom, "tceptor") == 0) ||
 		(drvname && strcmp(drvname, "tceptor") == 0)
 	) {
@@ -4393,7 +4393,33 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_LEFT, description);
 		}
 		if (strcmp("Accelerator", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 2, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
+			// It would be nice to have this control working as analog on R2
+			//GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 2, RETRO_DEVICE_ID_JOYPAD_R2, RETRO_DEVICE_INDEX_ANALOG_BUTTON, description);
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
+		}
+	}
+	
+	// Hydra (reported on discord, layout suggestion by alfrix#8029)
+	if ((parentrom && strcmp(parentrom, "hydra") == 0) ||
+		(drvname && strcmp(drvname, "hydra") == 0)
+	) {
+		if (strcmp("Accelerator", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
+		}
+		if (strcmp("Boost", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L2, description);
+		}
+		if (strcmp("Right Trigger", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
+		}
+		if (strcmp("Left Trigger", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
+		}
+		if (strcmp("Right Thumb", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_X, description);
+		}
+		if (strcmp("Left Thumb", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
 		}
 	}
 	
