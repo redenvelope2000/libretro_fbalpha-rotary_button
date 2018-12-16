@@ -11103,6 +11103,18 @@
 		<manufacturer>Namco</manufacturer>
 		<rom name="lrog453-eta.bin" size="1048576" crc="05dc3ffc"/>
 	</game>
+	<game name="tnglwdd" cloneof="tnglwd" romof="tnglwd">
+		<description>Tanglewood (Demo)</description>
+		<year>2018</year>
+		<manufacturer>Big Evil Corp.</manufacturer>
+		<rom name="twood_demo.md" size="2097152" crc="9cc94381"/>
+	</game>
+	<game name="tnglwd">
+		<description>Tanglewood (V1.0)</description>
+		<year>2018</year>
+		<manufacturer>Big Evil Corp.</manufacturer>
+		<rom name="twood_v1.0.md" size="4194304" crc="1a91c419"/>
+	</game>
 	<game name="tank2011">
 		<description>Tanki 2011 (Rus)</description>
 		<year>199?</year>
