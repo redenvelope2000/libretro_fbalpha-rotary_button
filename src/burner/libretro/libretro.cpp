@@ -4374,10 +4374,10 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 		if (strcmp("Right Stick Down", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
 		}
-		if (strcmp("Button 3", description) == 0) {
+		if (strcmp("Right Stick Fire", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
 		}
-		if (strcmp("Button 2", description) == 0) {
+		if (strcmp("Left Stick Thumb", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
 		}
 	}
