@@ -123,6 +123,7 @@ char* DecorateGameName(UINT32 nBurnDrv);
 
 static neo_geo_modes g_opt_neo_geo_mode = NEO_GEO_MODE_MVS;
 static bool core_aspect_par = false;
+static bool is_home_console = false;
 
 extern INT32 EnableHiscores;
 
@@ -1690,7 +1691,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    int game_aspect_x, game_aspect_y;
    BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
 
-   if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par)
+   if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par && !is_home_console)
    {
       geom.aspect_ratio = (float)game_aspect_x / (float)game_aspect_y;
       log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: (%d/%d) = %f (core_aspect_par: %d)\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, game_aspect_x, game_aspect_y, geom.aspect_ratio, core_aspect_par);
@@ -2040,6 +2041,8 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 	if(game_type == RETRO_GAME_TYPE_NEOCD) {
 		extract_basename(g_driver_name, "neocdz", sizeof(g_driver_name), "");
 	}
+
+	is_home_console = true;
 
 	return retro_load_game_common();
 }
