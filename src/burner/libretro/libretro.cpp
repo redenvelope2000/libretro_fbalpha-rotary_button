@@ -4315,6 +4315,72 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 		}
 	}
 	
+	// Toobin' (reported on discord, layout suggestion by alfrix#8029)
+	if ((parentrom && strcmp(parentrom, "toobin") == 0) ||
+		(drvname && strcmp(drvname, "toobin") == 0)
+	) {
+		if (strcmp("Throw", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
+		}
+		if (strcmp("Right.Paddle Forward", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
+		}
+		if (strcmp("Left Paddle Forward", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
+		}
+		if (strcmp("Left Paddle Backward", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L2, description);
+		}
+		if (strcmp("Right Paddle Backward", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
+		}
+	}
+	
+	// Vindicators (reported on discord, layout suggestion by alfrix#8029)
+	if ((parentrom && strcmp(parentrom, "vindictr") == 0) ||
+		(drvname && strcmp(drvname, "vindictr") == 0)
+	) {
+		if (strcmp("Left Stick Up", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L2, description);
+		}
+		if (strcmp("Left Stick Down", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
+		}
+		if (strcmp("Right Stick Up", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
+		}
+		if (strcmp("Right Stick Down", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
+		}
+		if (strcmp("-- Alt. Input --", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L3, description);
+		}
+	}
+	
+	// Vindicators Part II (reported on discord, layout suggestion by alfrix#8029)
+	if ((parentrom && strcmp(parentrom, "vindctr2") == 0) ||
+		(drvname && strcmp(drvname, "vindctr2") == 0)
+	) {
+		if (strcmp("Left Stick Up", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L2, description);
+		}
+		if (strcmp("Left Stick Down", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
+		}
+		if (strcmp("Right Stick Up", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
+		}
+		if (strcmp("Right Stick Down", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
+		}
+		if (strcmp("Button 3", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
+		}
+		if (strcmp("Button 2", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
+		}
+	}
+	
 	// Handle megadrive
 	if ((systemname && strcmp(systemname, "Sega Megadrive") == 0)) {
 		// Street Fighter 2 mapping (which is the only 6 button megadrive game ?)
