@@ -167,6 +167,7 @@ INT32 nFireButtons = 0;
 bool bStreetFighterLayout = false;
 bool bButtonMapped = false;
 bool bVolumeIsFireButton = false;
+static bool bVerticalMode = false;
 
 // libretro globals
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
@@ -179,6 +180,7 @@ static const struct retro_variable var_empty = { NULL, NULL };
 
 // Global core options
 static const struct retro_variable var_fba_aspect = { "fba-aspect", "Core-provided aspect ratio; DAR|PAR" };
+static const struct retro_variable var_fba_vertical_mode = { "fba-vertical-mode", "Vertical mode; disabled|enabled" };
 static const struct retro_variable var_fba_frameskip = { "fba-frameskip", "Frameskip; 0|1|2|3|4|5" };
 static const struct retro_variable var_fba_cpu_speed_adjust = { "fba-cpu-speed-adjust", "CPU overclock; 100|110|120|130|140|150|160|170|180|190|200" };
 static const struct retro_variable var_fba_diagnostic_input = { "fba-diagnostic-input", "Diagnostic Input; None|Hold Start|Start + A + B|Hold Start + A + B|Start + L + R|Hold Start + L + R|Hold Select|Select + A + B|Hold Select + A + B|Select + L + R|Hold Select + L + R" };
@@ -743,6 +745,7 @@ static void set_environment()
 
 	// Add the Global core options
 	vars_systems.push_back(&var_fba_aspect);
+	vars_systems.push_back(&var_fba_vertical_mode);
 	vars_systems.push_back(&var_fba_frameskip);
 	vars_systems.push_back(&var_fba_cpu_speed_adjust);
 	vars_systems.push_back(&var_fba_hiscores);
@@ -1339,6 +1342,15 @@ static void check_variables(void)
 			core_aspect_par = false;
 	}
 
+	var.key = var_fba_vertical_mode.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "enabled") == 0)
+			bVerticalMode = true;
+		else
+			bVerticalMode = false;
+	}
+
 	var.key = var_fba_frameskip.key;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
@@ -1682,28 +1694,35 @@ void retro_cheat_set(unsigned, bool, const char*) {}
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   int width, height;
-   BurnDrvGetVisibleSize(&width, &height);
-   int maximum = width > height ? width : height;
-   struct retro_game_geometry geom = { (unsigned)width, (unsigned)height, (unsigned)maximum, (unsigned)maximum };
+	int width, height, game_aspect_x, game_aspect_y;
+	BurnDrvGetVisibleSize(&width, &height);
+	BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
+	if (bVerticalMode)
+	{
+		int tmp_height = width;
+		width = height;
+		height = tmp_height;
+	}
+	int maximum = width > height ? width : height;
+	struct retro_game_geometry geom = { (unsigned)width, (unsigned)height, (unsigned)maximum, (unsigned)maximum };
 
-   int game_aspect_x, game_aspect_y;
-   BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
 
-   if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par)
-   {
-      geom.aspect_ratio = (float)game_aspect_x / (float)game_aspect_y;
-      log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: (%d/%d) = %f (core_aspect_par: %d)\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, game_aspect_x, game_aspect_y, geom.aspect_ratio, core_aspect_par);
-   }
-   else
-   {
-      log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: %f\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, geom.aspect_ratio);
-   }
+	if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par)
+	{
+		geom.aspect_ratio = (float)game_aspect_x / (float)game_aspect_y;
+		if (bVerticalMode)
+			geom.aspect_ratio = (float)game_aspect_y / (float)game_aspect_x;
+		log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: (%d/%d) = %f (core_aspect_par: %d)\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, game_aspect_x, game_aspect_y, geom.aspect_ratio, core_aspect_par);
+	}
+	else
+	{
+		log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: %f\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, geom.aspect_ratio);
+	}
 
-   struct retro_system_timing timing = { (nBurnFPS / 100.0), (nBurnFPS / 100.0) * nAudSegLen };
+	struct retro_system_timing timing = { (nBurnFPS / 100.0), (nBurnFPS / 100.0) * nAudSegLen };
 
-   info->geometry = geom;
-   info->timing   = timing;
+	info->geometry = geom;
+	info->timing   = timing;
 }
 
 int VidRecalcPal()
@@ -1944,16 +1963,16 @@ static bool retro_load_game_common()
 		switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
 		{
 			case BDF_ORIENTATION_VERTICAL:
-				rotation = 1;
+				rotation = (bVerticalMode ? 0 : 1);
 				break;
 			case BDF_ORIENTATION_FLIPPED:
-				rotation = 2;
+				rotation = (bVerticalMode ? 1 : 2);
 				break;
 			case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-				rotation = 3;
+				rotation = (bVerticalMode ? 2 : 3);
 				break;
 			default:
-				rotation = 0;
+				rotation = (bVerticalMode ? 3 : 0);;
 				break;
 		}
 		environ_cb(RETRO_ENVIRONMENT_SET_ROTATION, &rotation);
