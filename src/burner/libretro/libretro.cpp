@@ -1217,40 +1217,40 @@ int CreateAllDatfiles()
 	INT32 nRet = 0;
 	TCHAR szFilename[MAX_PATH];
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, Arcade only");
 	create_datfile(szFilename, DAT_ARCADE_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Megadrive only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, Megadrive only");
 	create_datfile(szFilename, DAT_MEGADRIVE_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, PC-Engine only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, PC-Engine only");
 	create_datfile(szFilename, DAT_PCENGINE_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, TurboGrafx16 only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, TurboGrafx16 only");
 	create_datfile(szFilename, DAT_TG16_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, SuprGrafx only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, SuprGrafx only");
 	create_datfile(szFilename, DAT_SGX_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Sega SG-1000 only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, Sega SG-1000 only");
 	create_datfile(szFilename, DAT_SG1000_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, ColecoVision only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, ColecoVision only");
 	create_datfile(szFilename, DAT_COLECO_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Master System only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, Master System only");
 	create_datfile(szFilename, DAT_MASTERSYSTEM_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Game Gear only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, Game Gear only");
 	create_datfile(szFilename, DAT_GAMEGEAR_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, MSX 1 Games only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, MSX 1 Games only");
 	create_datfile(szFilename, DAT_MSX_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, ZX Spectrum Games only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, ZX Spectrum Games only");
 	create_datfile(szFilename, DAT_SPECTRUM_ONLY);
 
-	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha v%.20s (%s).dat", "dats", path_default_slash_c(), szAppBurnVer, "ClrMame Pro XML, Neogeo only");
+	snprintf(szFilename, sizeof(szFilename), "%s%cFB Alpha (%s).dat", "dats", path_default_slash_c(), "ClrMame Pro XML, Neogeo only");
 	create_datfile(szFilename, DAT_NEOGEO_ONLY);
 
 	return nRet;
