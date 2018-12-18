@@ -362,7 +362,11 @@ int ide_disk::load_hdd_image(int idx)
 	
 	// make the path
 	char path[256];
+#if defined(_WIN32) || defined(_XBOX)
 	sprintf(path, "%s\\%s", setname, szHDDNameTmp);
+#else
+	sprintf(path, "%s/%s", setname, szHDDNameTmp);
+#endif
 	
 	// null terminate
 	path[strlen(path)] = '\0';

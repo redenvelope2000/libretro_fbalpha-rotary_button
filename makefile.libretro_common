@@ -134,11 +134,7 @@ else
 	ifeq (,$(findstring msvc,$(platform)))
 		CXXFLAGS += -std=gnu++98
 	endif
-	MIPS3_DIR :=
 	MIPS3_X64_DYNAREC_DIR :=
-	BURN_BLACKLIST += $(MIDWAY_DIR)/d_kinst.cpp \
-		$(MIDWAY_DIR)/ide.cpp \
-		$(FBA_CPU_DIR)/mips3_intf.cpp
 endif
 
 FBA_BURN_DRIVERS_DIRS := $(CAPCOM_DIR) \
