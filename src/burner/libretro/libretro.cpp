@@ -2180,9 +2180,11 @@ static inline INT32 CinpState(INT32 nCode)
 	{
 		INT32 s = input_cb(port, keybinds[nCode][4], idx, id);
 		INT32 position = keybinds[nCode][3];
-		if(s < -1000 && position == JOY_NEG)
+		// Using a large deadzone when mapping microswitches to analog axis
+		// Or said axis become way too sensitive and some game become unplayable (assault)
+		if(s < -10000 && position == JOY_NEG)
 			return 1;
-		if(s > 1000 && position == JOY_POS)
+		if(s > 10000 && position == JOY_POS)
 			return 1;
 	}
 	return 0;
@@ -4439,6 +4441,24 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 		}
 		if (strcmp("Left Thumb", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
+		}
+	}
+
+	// Assault
+	if ((parentrom && strcmp(parentrom, "assault") == 0) ||
+		(drvname && strcmp(drvname, "assault") == 0)
+	) {
+		if (strcmp("Right Stick Up", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_NEG, "Right Stick Up / Down");
+		}
+		if (strcmp("Right Stick Down", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_POS, "Right Stick Up / Down");
+		}
+		if (strcmp("Right Stick Left", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_NEG, "Right Stick Left / Right");
+		}
+		if (strcmp("Right Stick Right", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Right Stick Left / Right");
 		}
 	}
 	
