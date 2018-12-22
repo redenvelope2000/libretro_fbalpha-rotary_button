@@ -1,14 +1,14 @@
 #ifndef IDE
 #define IDE
 
-#include <string>
-#include <fstream>
-
 #ifdef __LIBRETRO__
  #include "streams/file_stream_transforms.h"
  #define ftello rftell
  #define fseeko rfseek
 #endif
+
+#include <string>
+#include <fstream>
 
 namespace ide
 {
