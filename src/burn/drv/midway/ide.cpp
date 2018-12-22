@@ -7,7 +7,6 @@
 #include <cstring>*/
 #include "burnint.h"
 #include "ide.h"
-#include "ioapi.h"
 
 #define DEBUG_ATA   0
 
