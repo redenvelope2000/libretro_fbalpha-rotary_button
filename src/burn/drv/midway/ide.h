@@ -6,26 +6,8 @@
 
 #ifdef __LIBRETRO__
  #include "streams/file_stream_transforms.h"
- #ifndef USE_FILE32API
-  #define USE_FILE32API
- #endif
-#endif
-
-#if defined(USE_FILE32API)
-#define fopen64 fopen
-#define ftello64 ftell
-#define fseeko64 fseek
-#else
-#ifdef _MSC_VER
- #define fopen64 fopen
- #if (_MSC_VER >= 1400) && (!(defined(NO_MSCVER_FILE64_FUNC)))
-  #define ftello64 _ftelli64
-  #define fseeko64 _fseeki64
- #else // old MSC
-  #define ftello64 ftell
-  #define fseeko64 fseek
- #endif
-#endif
+ #define ftello rftell
+ #define fseeko rfseek
 #endif
 
 namespace ide
