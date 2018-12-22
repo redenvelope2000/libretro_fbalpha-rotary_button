@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <wchar.h>
+#include "streams/file_stream_transforms.h"
 
 #include "libretro.h"
 #include "inp_keys.h"
