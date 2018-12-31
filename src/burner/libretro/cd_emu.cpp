@@ -5,6 +5,8 @@
 
 CDEmuStatusValue CDEmuStatus;
 TCHAR CDEmuImage[MAX_PATH];
+audio_mixer_sound_t *cdsound;
+audio_mixer_voice_t *cdvoice;
 
 void NeoCDInfo_Exit() {}
 
@@ -79,10 +81,6 @@ INT32 QuoteRead(TCHAR** ppszQuote, TCHAR** ppszEnd, TCHAR* pszSrc)	// Read a (qu
 	return 0;
 }
 
-#include <audio/audio_mixer.h>
-audio_mixer_sound_t *cdsound;
-audio_mixer_voice_t *cdvoice;
-
 /**
  * see src/intf/cd/sdl/cdsound.cpp
  */
@@ -134,6 +132,7 @@ void wav_stop()
 void wav_play()
 {
 	if(!cdsound) return;
+	cdvoice = audio_mixer_play(cdsound, true, 100, NULL);
 	cdvoice = audio_mixer_play(cdsound, true, 100, NULL);
 }
 

@@ -1,6 +1,10 @@
 #ifndef __RETRO_CD_EMU__
 #define __RETRO_CD_EMU__
 
+#include <audio/audio_mixer.h>
+extern audio_mixer_sound_t *cdsound;
+extern audio_mixer_voice_t *cdvoice;
+
 TCHAR* GetIsoPath();
 INT32 CDEmuInit();
 INT32 CDEmuExit();

@@ -8,7 +8,6 @@
 #include "retro_mem.h"
 #include "cd_emu.h"
 
-#include <audio/audio_mixer.h>
 #include <file/file_path.h>
 
 #include <streams/file_stream.h>
@@ -1538,67 +1537,68 @@ static void check_variables(void)
 
 void retro_run()
 {
-   int width, height;
-   BurnDrvGetVisibleSize(&width, &height);
-   pBurnDraw = (uint8_t*)g_fba_frame;
+	int width, height;
+	BurnDrvGetVisibleSize(&width, &height);
+	pBurnDraw = (uint8_t*)g_fba_frame;
 
-   InputMake();
+	InputMake();
 
-   ForceFrameStep(nCurrentFrame % nFrameskip == 0);
-   
-   unsigned drv_flags = BurnDrvGetFlags();
-   uint32_t height_tmp = height;
-   size_t pitch_size = nBurnBpp == 2 ? sizeof(uint16_t) : sizeof(uint32_t);
+	ForceFrameStep(nCurrentFrame % nFrameskip == 0);
 
-   switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
-   {
-      case BDF_ORIENTATION_VERTICAL:
-      case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-         nBurnPitch = height * pitch_size;
-         height = width;
-         width = height_tmp;
-         break;
-      case BDF_ORIENTATION_FLIPPED:
-      default:
-         nBurnPitch = width * pitch_size;
-   }
+	unsigned drv_flags = BurnDrvGetFlags();
+	uint32_t height_tmp = height;
+	size_t pitch_size = nBurnBpp == 2 ? sizeof(uint16_t) : sizeof(uint32_t);
 
-   video_cb(g_fba_frame, width, height, nBurnPitch);
-   audio_batch_cb(g_audio_buf, nBurnSoundLen);
-   bool updated = false;
+	switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
+	{
+		case BDF_ORIENTATION_VERTICAL:
+		case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
+			nBurnPitch = height * pitch_size;
+			height = width;
+			width = height_tmp;
+			break;
+		case BDF_ORIENTATION_FLIPPED:
+		default:
+			nBurnPitch = width * pitch_size;
+	}
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-   {
-      bool old_core_aspect_par = core_aspect_par;
-      neo_geo_modes old_g_opt_neo_geo_mode = g_opt_neo_geo_mode;
+	video_cb(g_fba_frame, width, height, nBurnPitch);
+	// TODO : do something to mix cdvoice with g_audio_buf ?
+	audio_batch_cb(g_audio_buf, nBurnSoundLen);
+	bool updated = false;
 
-      check_variables();
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+	{
+		bool old_core_aspect_par = core_aspect_par;
+		neo_geo_modes old_g_opt_neo_geo_mode = g_opt_neo_geo_mode;
 
-      apply_dipswitch_from_variables();
+		check_variables();
 
-      bool macro_updated = apply_macro_from_variables();
-      if (macro_updated)
-      {
-         // Re-create the list of macro input_descriptors with new values
-         init_macro_input_descriptors();
-         // Re-assign all the input_descriptors to retroarch
-         set_input_descriptors();
-      }
+		apply_dipswitch_from_variables();
 
-      // adjust aspect ratio if the needed
-      if (old_core_aspect_par != core_aspect_par)
-      {
-         struct retro_system_av_info av_info;
-         retro_get_system_av_info(&av_info);
-         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
-      }
+		bool macro_updated = apply_macro_from_variables();
+		if (macro_updated)
+		{
+			// Re-create the list of macro input_descriptors with new values
+			init_macro_input_descriptors();
+			// Re-assign all the input_descriptors to retroarch
+			set_input_descriptors();
+		}
 
-      // reset the game if the user changed the bios
-      if (old_g_opt_neo_geo_mode != g_opt_neo_geo_mode)
-      {
-         retro_reset();
-      }
-   }
+		// adjust aspect ratio if the needed
+		if (old_core_aspect_par != core_aspect_par)
+		{
+			struct retro_system_av_info av_info;
+			retro_get_system_av_info(&av_info);
+			environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+		}
+
+		// reset the game if the user changed the bios
+		if (old_g_opt_neo_geo_mode != g_opt_neo_geo_mode)
+		{
+			retro_reset();
+		}
+	}
 }
 
 static uint8_t *write_state_ptr;
