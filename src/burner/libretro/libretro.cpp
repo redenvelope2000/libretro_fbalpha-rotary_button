@@ -8,6 +8,7 @@
 #include "retro_mem.h"
 #include "cd_emu.h"
 
+#include <audio/audio_mixer.h>
 #include <file/file_path.h>
 
 #include <streams/file_stream.h>
@@ -1278,9 +1279,10 @@ void retro_init()
 
 void retro_deinit()
 {
-   BurnLibExit();
-   if (g_fba_frame)
-      free(g_fba_frame);
+	audio_mixer_done();
+	BurnLibExit();
+	if (g_fba_frame)
+		free(g_fba_frame);
 }
 
 void retro_reset()
@@ -1908,6 +1910,7 @@ static bool retro_load_game_common()
 
 		// Announcing to fba which samplerate we want
 		nBurnSoundRate = g_audio_samplerate;
+		audio_mixer_init(nBurnSoundRate);
 
 		// Some game drivers won't initialize with an undefined nBurnSoundLen
 		init_audio_buffer(nBurnSoundRate, 6000);

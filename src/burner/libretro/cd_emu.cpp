@@ -113,13 +113,10 @@ int wav_open(TCHAR* szFile)
 	if (ext)
 	{
 		if (!strcmp(".wav", ext)) {
-			return 0;
-			// Following code is crashing the core, no idea why
-			//cdsound = audio_mixer_load_wav(buffer, size);
+			cdsound = audio_mixer_load_wav(buffer, size);
 		}
 		else if (!strcmp(".mp3", ext)) {
-			return 0;
-			//cdsound = audio_mixer_load_mp3(buffer, size);
+			cdsound = audio_mixer_load_mp3(buffer, size);
 		}
 		else
 			return 0;
