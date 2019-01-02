@@ -75,6 +75,7 @@ bool allow_neogeo_mode = true;
 UINT16 switch_ncode = 0;
 int kNetGame = 0;
 INT32 nReplayStatus = 0;
+static unsigned nGameType = 0;
 #ifdef USE_CYCLONE
 // 0 - c68k, 1 - m68k
 // we don't use cyclone by default because it breaks savestates cross-platform compatibility (including netplay)
@@ -150,6 +151,8 @@ INT32 nAudSegLen = 0;
 
 static uint32_t *g_fba_frame;
 static int16_t *g_audio_buf;
+static int16_t *neocd_ibuf;
+static float *neocd_fbuf;
 
 #define JOY_NEG 0
 #define JOY_POS 1
@@ -1278,10 +1281,18 @@ void retro_init()
 
 void retro_deinit()
 {
-	audio_mixer_done();
+	if(nGameType == RETRO_GAME_TYPE_NEOCD) {
+		audio_mixer_done();
+		if (neocd_fbuf)
+			free(neocd_fbuf);
+		if (neocd_ibuf)
+			free(neocd_ibuf);
+	}
 	BurnLibExit();
 	if (g_fba_frame)
 		free(g_fba_frame);
+	if (g_audio_buf)
+		free(g_audio_buf);
 }
 
 void retro_reset()
@@ -1563,7 +1574,18 @@ void retro_run()
 	}
 
 	video_cb(g_fba_frame, width, height, nBurnPitch);
-	// TODO : do something to mix cdvoice with g_audio_buf ?
+
+	// If game is neocd, mix sound tracks into the audio buffer
+	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
+		memset(neocd_fbuf, 0, nAudSegLen<<2 * sizeof(float));
+		audio_mixer_mix(neocd_fbuf, nBurnSoundLen, 1, false);
+		convert_float_to_s16(neocd_ibuf, neocd_fbuf, nAudSegLen<<2);
+		for (unsigned i = 0; i < nBurnSoundLen; i++)
+		{
+			g_audio_buf[i * 2]       = CLAMP_I16(g_audio_buf[i * 2] + neocd_ibuf[i * 2]);
+			g_audio_buf[(i * 2) + 1] = CLAMP_I16(g_audio_buf[(i * 2) + 1] + neocd_ibuf[(i * 2) + 1]);
+		}
+	}
 	audio_batch_cb(g_audio_buf, nBurnSoundLen);
 	bool updated = false;
 
@@ -1813,8 +1835,18 @@ static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 	if ((sample_rate / 1000) > (fps / 100))
 		sample_rate = fps * 10;
 	nAudSegLen = (sample_rate * 100 + (fps >> 1)) / fps;
-	free(g_audio_buf);
+	if (g_audio_buf)
+		free(g_audio_buf);
 	g_audio_buf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
+	// If game is neocd, allocate buffers for sound tracks
+	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
+		if (neocd_fbuf)
+			free(neocd_fbuf);
+		if (neocd_ibuf)
+			free(neocd_ibuf);
+		neocd_fbuf = (float*)malloc(nAudSegLen<<2 * sizeof(float));
+		neocd_ibuf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
+	}
 	nBurnSoundLen = nAudSegLen;
 	pBurnSoundOut = g_audio_buf;
 }
@@ -1910,7 +1942,6 @@ static bool retro_load_game_common()
 
 		// Announcing to fba which samplerate we want
 		nBurnSoundRate = g_audio_samplerate;
-		audio_mixer_init(nBurnSoundRate);
 
 		// Some game drivers won't initialize with an undefined nBurnSoundLen
 		init_audio_buffer(nBurnSoundRate, 6000);
@@ -1920,7 +1951,9 @@ static bool retro_load_game_common()
 		input_initialized = true;
 
 		// Start CD reader emulation if needed
-		if ((BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_SNK_NEOCD) {
+		if (nGameType == RETRO_GAME_TYPE_NEOCD) {
+			// If game is neocd, we need to start the audio mixer for sound tracks
+			audio_mixer_init(nBurnSoundRate);
 			if (CDEmuInit()) {
 				log_cb(RETRO_LOG_INFO, "[FBA] Starting neogeo CD\n");
 			}
@@ -2015,8 +2048,10 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 	if (!info)
 		return false;
 
+	nGameType = game_type;
+
 	char * prefix;
-	switch (game_type) {
+	switch (nGameType) {
 		case RETRO_GAME_TYPE_CV:
 			prefix = "cv_";
 			break;
@@ -2059,9 +2094,8 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 	extract_basename(g_driver_name, info->path, sizeof(g_driver_name), prefix);
 	extract_directory(g_rom_dir, info->path, sizeof(g_rom_dir));
 
-	if(game_type == RETRO_GAME_TYPE_NEOCD) {
+	if(nGameType == RETRO_GAME_TYPE_NEOCD)
 		extract_basename(g_driver_name, "neocdz", sizeof(g_driver_name), "");
-	}
 
 	return retro_load_game_common();
 }

@@ -2,8 +2,17 @@
 #define __RETRO_CD_EMU__
 
 #include <audio/audio_mixer.h>
-extern audio_mixer_sound_t *cdsound;
-extern audio_mixer_voice_t *cdvoice;
+#include <audio/conversion/float_to_s16.h>
+
+#ifndef INT16_MAX
+#define INT16_MAX    0x7fff
+#endif
+
+#ifndef INT16_MIN
+#define INT16_MIN    (-INT16_MAX - 1)
+#endif
+
+#define CLAMP_I16(x)    (x > INT16_MAX ? INT16_MAX : x < INT16_MIN ? INT16_MIN : x)
 
 TCHAR* GetIsoPath();
 INT32 CDEmuInit();

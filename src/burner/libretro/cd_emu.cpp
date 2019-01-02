@@ -3,6 +3,34 @@
 
 #define dprintf printf
 
+#define MAXIMUM_NUMBER_TRACKS (100)
+
+#define CD_FRAMES_MINUTE (60 * 75)
+#define CD_FRAMES_SECOND (     75)
+#define CD_FRAMES_PREGAP ( 2 * 75)
+
+struct isowavTRACK_DATA { 
+	char Control; 
+	int Mode;
+	char TrackNumber; 
+	char Address[4]; 
+	TCHAR* Filename; 
+};
+
+struct isowavCDROM_TOC  { 
+	char FirstTrack; 
+	char LastTrack; 
+	isowavTRACK_DATA TrackData[MAXIMUM_NUMBER_TRACKS]; 
+};
+
+static isowavCDROM_TOC* isowavTOC;
+
+static FILE*  isowavFile     = NULL;
+static int    isowavTrack    = 0;
+static int    isowavLBA      = 0;
+
+bool bCDEmuOkay = false;
+
 CDEmuStatusValue CDEmuStatus;
 TCHAR CDEmuImage[MAX_PATH];
 audio_mixer_sound_t *cdsound;
@@ -123,7 +151,7 @@ int wav_open(TCHAR* szFile)
 	return 1;
 }
 
-void wav_stop() 
+void wav_stop()
 {
 	if(!cdvoice) return;
 	audio_mixer_stop(cdvoice);
@@ -132,8 +160,8 @@ void wav_stop()
 void wav_play()
 {
 	if(!cdsound) return;
-	cdvoice = audio_mixer_play(cdsound, true, 100, NULL);
-	cdvoice = audio_mixer_play(cdsound, true, 100, NULL);
+	wav_stop();
+	cdvoice = audio_mixer_play(cdsound, true, 1, NULL);
 }
 
 void wav_exit()
@@ -145,31 +173,6 @@ void wav_exit()
 /**
  * see src/intf/cd/sdl/cd_isowav.cpp
  */
-#define MAXIMUM_NUMBER_TRACKS (100)
-
-#define CD_FRAMES_MINUTE (60 * 75)
-#define CD_FRAMES_SECOND (     75)
-#define CD_FRAMES_PREGAP ( 2 * 75)
-
-struct isowavTRACK_DATA { 
-	char Control; 
-	int Mode;
-	char TrackNumber; 
-	char Address[4]; 
-	TCHAR* Filename; 
-};
-
-struct isowavCDROM_TOC  { 
-	char FirstTrack; 
-	char LastTrack; 
-	isowavTRACK_DATA TrackData[MAXIMUM_NUMBER_TRACKS]; 
-};
-
-static isowavCDROM_TOC* isowavTOC;
-
-static FILE*  isowavFile     = NULL;
-static int    isowavTrack    = 0;
-static int    isowavLBA      = 0;
 
 // -----------------------------------------------------------------------------
 
@@ -734,7 +737,6 @@ static int isowavGetSoundBuffer(short* /*buffer*/, int /*samples*/)
 /**
  * see src/intf/cd/cd_interface.cpp
  */
-bool bCDEmuOkay = false;
 
 INT32 CDEmuInit() {
 	INT32 nRet;

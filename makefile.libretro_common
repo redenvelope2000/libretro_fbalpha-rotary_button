@@ -93,7 +93,8 @@ BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_CPU_DIR)/z180/z180op.c \
 	$(FBA_CPU_DIR)/z180/z180ed.c \
 	$(FBA_CPU_DIR)/z180/z180dd.c \
-	$(FBA_CPU_DIR)/z180/z180cb.c
+	$(FBA_CPU_DIR)/z180/z180cb.c \
+	$(ATARI_DIR)/WHATSNEW.txt.cpp
 
 ifeq ($(AUTOGEN_DATS), 0)
 	BURN_BLACKLIST += $(FBA_BURNER_DIR)/dat.cpp
@@ -198,6 +199,7 @@ ifneq ($(STATIC_LINKING), 1)
 		$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
 		$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c \
 		$(LIBRETRO_COMM_DIR)/audio/audio_mixer.c \
+		$(LIBRETRO_COMM_DIR)/audio/conversion/float_to_s16.c \
 		$(LIBRETRO_COMM_DIR)/audio/resampler/audio_resampler.c \
 		$(LIBRETRO_COMM_DIR)/audio/resampler/drivers/nearest_resampler.c \
 		$(LIBRETRO_COMM_DIR)/audio/resampler/drivers/null_resampler.c \
