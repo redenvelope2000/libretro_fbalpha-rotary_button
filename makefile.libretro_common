@@ -294,8 +294,8 @@ ifeq ($(HAVE_NEON), 1)
 	ifneq (,$(findstring android,$(platform)))
 		NEON_FLAGS =
 	endif
-	SOURCES_S += $(LIBRETRO_COMM_DIR)/audio/resampler/drivers/sinc_resampler_neon.S
-	SOURCES_C += $(LIBRETRO_COMM_DIR)/audio/conversion/float_to_s16_neon.c
+	SOURCES_S += $(LIBRETRO_COMM_DIR)/audio/resampler/drivers/sinc_resampler_neon.S \
+		$(LIBRETRO_COMM_DIR)/audio/conversion/float_to_s16_neon.S
 endif
 
 ifeq ($(EXTERNAL_ZLIB), 1)
