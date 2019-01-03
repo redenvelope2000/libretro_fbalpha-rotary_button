@@ -80,13 +80,13 @@ extern INT32 g_audio_samplerate;
 extern UINT8 *diag_input;
 extern neo_geo_modes g_opt_neo_geo_mode;
 
-void init_macro_core_options();
+char* str_char_replace(char* destination, char c_find, char c_replace);
 void set_neo_system_bios();
 void evaluate_neogeo_bios_mode(const char* drvname);
 void set_environment();
 void check_variables(void);
-bool apply_macro_from_variables();
-void init_macro_input_descriptors();
-void set_input_descriptors();
+#ifdef USE_CYCLONE
+bool IsCycloneEnabled();
+#endif
 
 #endif

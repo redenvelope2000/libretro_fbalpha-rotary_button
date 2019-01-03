@@ -62,6 +62,13 @@ INT32 g_audio_samplerate = 48000;
 UINT8 *diag_input;
 neo_geo_modes g_opt_neo_geo_mode = NEO_GEO_MODE_MVS;
 
+#ifdef USE_CYCLONE
+// 0 - c68k, 1 - m68k
+// we don't use cyclone by default because it breaks savestates cross-platform compatibility (including netplay)
+int nSekCpuCore = 1;
+static bool bCycloneEnabled = false;
+#endif
+
 static UINT8 diag_input_start[] =       {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_EMPTY };
 static UINT8 diag_input_start_a_b[] =   {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_A, RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_EMPTY };
 static UINT8 diag_input_start_l_r[] =   {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_L, RETRO_DEVICE_ID_JOYPAD_R, RETRO_DEVICE_ID_JOYPAD_EMPTY };
@@ -87,6 +94,18 @@ static const struct retro_variable var_fba_cyclone = { "fba-cyclone", "Cyclone (
 
 // Neo Geo core options
 static const struct retro_variable var_fba_neogeo_mode = { "fba-neogeo-mode", "Force Neo Geo mode (if available); MVS|AES|UNIBIOS|DIPSWITCH" };
+
+// Replace the char c_find by the char c_replace in the destination c string
+char* str_char_replace(char* destination, char c_find, char c_replace)
+{
+	for (unsigned str_idx = 0; str_idx < strlen(destination); str_idx++)
+	{
+		if (destination[str_idx] == c_find)
+			destination[str_idx] = c_replace;
+	}
+
+	return destination;
+}
 
 void set_neo_system_bios()
 {
@@ -365,56 +384,56 @@ void check_variables(void)
 		if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 		{
 			diag_input = NULL;
-			diag_input_hold_frame_delay = 0;
+			SetDiagInpHoldFrameDelay(0);
 			if (strcmp(var.value, "Hold Start") == 0)
 			{
 				diag_input = diag_input_start;
-				diag_input_hold_frame_delay = 60;
+				SetDiagInpHoldFrameDelay(60);
 			}
 			else if(strcmp(var.value, "Start + A + B") == 0)
 			{
 				diag_input = diag_input_start_a_b;
-				diag_input_hold_frame_delay = 0;
+				SetDiagInpHoldFrameDelay(0);
 			}
 			else if(strcmp(var.value, "Hold Start + A + B") == 0)
 			{
 				diag_input = diag_input_start_a_b;
-				diag_input_hold_frame_delay = 60;
+				SetDiagInpHoldFrameDelay(60);
 			}
 			else if(strcmp(var.value, "Start + L + R") == 0)
 			{
 				diag_input = diag_input_start_l_r;
-				diag_input_hold_frame_delay = 0;
+				SetDiagInpHoldFrameDelay(0);
 			}
 			else if(strcmp(var.value, "Hold Start + L + R") == 0)
 			{
 				diag_input = diag_input_start_l_r;
-				diag_input_hold_frame_delay = 60;
+				SetDiagInpHoldFrameDelay(60);
 			}
 			else if(strcmp(var.value, "Hold Select") == 0)
 			{
 				diag_input = diag_input_select;
-				diag_input_hold_frame_delay = 60;
+				SetDiagInpHoldFrameDelay(60);
 			}
 			else if(strcmp(var.value, "Select + A + B") == 0)
 			{
 				diag_input = diag_input_select_a_b;
-				diag_input_hold_frame_delay = 0;
+				SetDiagInpHoldFrameDelay(0);
 			}
 			else if(strcmp(var.value, "Hold Select + A + B") == 0)
 			{
 				diag_input = diag_input_select_a_b;
-				diag_input_hold_frame_delay = 60;
+				SetDiagInpHoldFrameDelay(60);
 			}
 			else if(strcmp(var.value, "Select + L + R") == 0)
 			{
 				diag_input = diag_input_select_l_r;
-				diag_input_hold_frame_delay = 0;
+				SetDiagInpHoldFrameDelay(0);
 			}
 			else if(strcmp(var.value, "Hold Select + L + R") == 0)
 			{
 				diag_input = diag_input_select_l_r;
-				diag_input_hold_frame_delay = 60;
+				SetDiagInpHoldFrameDelay(60);
 			}
 		}
 	}
@@ -518,9 +537,16 @@ void check_variables(void)
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
 	{
 		if (strcmp(var.value, "enabled") == 0)
-			cyclone_enabled = true;
+			bCycloneEnabled = true;
 		else if (strcmp(var.value, "disabled") == 0)
-			cyclone_enabled = false;
+			bCycloneEnabled = false;
 	}
 #endif
 }
+
+#ifdef USE_CYCLONE
+bool IsCycloneEnabled()
+{
+	return bCycloneEnabled;
+}
+#endif
