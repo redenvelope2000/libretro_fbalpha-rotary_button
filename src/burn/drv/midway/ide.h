@@ -2,7 +2,6 @@
 #define IDE
 
 #include <string>
-#include <fstream>
 
 namespace ide
 {
@@ -80,7 +79,7 @@ private:
     int m_features;
     int m_command;
 
-    fstream m_disk_image;
+    FILE * m_disk_image;
 
 };
 
