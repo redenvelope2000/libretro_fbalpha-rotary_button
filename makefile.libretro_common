@@ -324,8 +324,10 @@ endif
 SOURCES_C   += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
 SOURCES_CXX += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
 SOURCES_CXX += $(LIBRETRO_DIR)/libretro.cpp \
-	$(LIBRETRO_DIR)/cd_emu.cpp \
-	$(LIBRETRO_DIR)/retro_mem.cpp
+	$(LIBRETRO_DIR)/retro_cdemu.cpp \
+	$(LIBRETRO_DIR)/retro_common.cpp \
+	$(LIBRETRO_DIR)/retro_input.cpp \
+	$(LIBRETRO_DIR)/retro_memory.cpp
 
 ifeq (,$(findstring msvc,$(platform)))
 	CFLAGS += -std=gnu99

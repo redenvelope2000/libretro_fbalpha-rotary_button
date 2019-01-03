@@ -1,6 +1,7 @@
-#ifndef __RETRO_CD_EMU__
-#define __RETRO_CD_EMU__
+#ifndef __RETRO_CDEMU__
+#define __RETRO_CDEMU__
 
+#include "burner.h"
 #include <audio/audio_mixer.h>
 #include <audio/conversion/float_to_s16.h>
 

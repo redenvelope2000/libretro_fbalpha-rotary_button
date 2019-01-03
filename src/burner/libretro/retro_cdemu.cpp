@@ -1,5 +1,4 @@
-#include "burner.h"
-#include "cd_emu.h"
+#include "retro_cdemu.h"
 
 #define dprintf printf
 

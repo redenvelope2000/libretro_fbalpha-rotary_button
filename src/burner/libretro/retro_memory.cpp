@@ -1,9 +1,5 @@
 // Cheevos support
-
-#include <string>
-#include "libretro.h"
-#include "burner.h"
-#include "retro_mem.h"
+#include "retro_memory.h"
 
 void* MainRamData = NULL;
 size_t MainRamSize = 0;

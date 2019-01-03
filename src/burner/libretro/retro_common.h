@@ -1,0 +1,99 @@
+#ifndef __RETRO_COMMON__
+#define __RETRO_COMMON__
+
+#include <string>
+#include <vector>
+#include "burner.h"
+
+struct macro_core_option_value
+{
+	unsigned retro_device_id;
+	const char* friendly_name;
+	macro_core_option_value(unsigned device_id, const char* name):
+		retro_device_id(device_id),
+		friendly_name(name)
+	{
+	}
+};
+
+struct macro_core_option
+{
+	struct GameInp *pgi;
+	char option_name[100];
+	char friendly_name[100];
+	std::string values_str;
+	std::vector<macro_core_option_value> values;
+	macro_core_option_value *selected_value;
+};
+
+struct dipswitch_core_option_value
+{
+	struct GameInp *pgi;
+	BurnDIPInfo bdi;
+	char friendly_name[100];
+};
+
+struct dipswitch_core_option
+{
+	char option_name[100];
+	char friendly_name[100];
+	std::string values_str;
+	std::vector<dipswitch_core_option_value> values;
+};
+
+enum neo_geo_modes
+{
+	NEO_GEO_MODE_MVS = 0,
+	NEO_GEO_MODE_AES = 1,
+	NEO_GEO_MODE_UNIBIOS = 2,
+	NEO_GEO_MODE_DIPSWITCH = 3
+};
+
+struct RomBiosInfo {
+	char* filename;
+	uint32_t crc;
+	uint8_t NeoSystem;
+	char* friendly_name;
+	uint8_t priority;
+};
+
+extern struct RomBiosInfo mvs_bioses[];
+extern struct RomBiosInfo aes_bioses[];
+extern struct RomBiosInfo uni_bioses[];
+
+#if 0
+const struct RomBiosInfo unknown_bioses[] = {
+	{"neopen.sp1",        0xcb915e76, 0x21, "NeoOpen BIOS v0.1 beta"         ,  1 },
+	{NULL, 0, 0, NULL, 0 }
+};
+#endif
+
+extern retro_log_printf_t log_cb;
+extern retro_environment_t environ_cb;
+extern RomBiosInfo *available_mvs_bios;
+extern RomBiosInfo *available_aes_bios;
+extern RomBiosInfo *available_uni_bios;
+extern std::vector<macro_core_option> macro_core_options;
+extern std::vector<dipswitch_core_option> dipswitch_core_options;
+extern struct GameInp *pgi_reset;
+extern struct GameInp *pgi_diag;
+extern bool is_neogeo_game;
+extern bool allow_neogeo_mode;
+extern bool core_aspect_par;
+extern bool bVerticalMode;
+extern UINT32 nFrameskip;
+extern UINT8 NeoSystem;
+extern INT32 g_audio_samplerate;
+extern UINT8 *diag_input;
+extern neo_geo_modes g_opt_neo_geo_mode;
+
+void init_macro_core_options();
+void set_neo_system_bios();
+void evaluate_neogeo_bios_mode(const char* drvname);
+void set_environment();
+void check_variables(void);
+bool apply_macro_from_variables();
+void init_macro_input_descriptors();
+void set_input_descriptors();
+
+#endif
