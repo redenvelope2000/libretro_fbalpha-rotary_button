@@ -61,13 +61,6 @@ extern struct RomBiosInfo mvs_bioses[];
 extern struct RomBiosInfo aes_bioses[];
 extern struct RomBiosInfo uni_bioses[];
 
-#if 0
-const struct RomBiosInfo unknown_bioses[] = {
-	{"neopen.sp1",        0xcb915e76, 0x21, "NeoOpen BIOS v0.1 beta"         ,  1 },
-	{NULL, 0, 0, NULL, 0 }
-};
-#endif
-
 extern retro_log_printf_t log_cb;
 extern retro_environment_t environ_cb;
 extern RomBiosInfo *available_mvs_bios;
