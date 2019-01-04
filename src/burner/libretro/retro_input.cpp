@@ -30,6 +30,49 @@ void SetDiagInpHoldFrameDelay(unsigned val)
 	nDiagInputHoldFrameDelay = val;
 }
 
+static const char *print_label(unsigned i)
+{
+	switch(i)
+	{
+		case RETRO_DEVICE_ID_JOYPAD_B:
+			return "RetroPad B Button";
+		case RETRO_DEVICE_ID_JOYPAD_Y:
+			return "RetroPad Y Button";
+		case RETRO_DEVICE_ID_JOYPAD_SELECT:
+			return "RetroPad Select Button";
+		case RETRO_DEVICE_ID_JOYPAD_START:
+			return "RetroPad Start Button";
+		case RETRO_DEVICE_ID_JOYPAD_UP:
+			return "RetroPad D-Pad Up";
+		case RETRO_DEVICE_ID_JOYPAD_DOWN:
+			return "RetroPad D-Pad Down";
+		case RETRO_DEVICE_ID_JOYPAD_LEFT:
+			return "RetroPad D-Pad Left";
+		case RETRO_DEVICE_ID_JOYPAD_RIGHT:
+			return "RetroPad D-Pad Right";
+		case RETRO_DEVICE_ID_JOYPAD_A:
+			return "RetroPad A Button";
+		case RETRO_DEVICE_ID_JOYPAD_X:
+			return "RetroPad X Button";
+		case RETRO_DEVICE_ID_JOYPAD_L:
+			return "RetroPad L Button";
+		case RETRO_DEVICE_ID_JOYPAD_R:
+			return "RetroPad R Button";
+		case RETRO_DEVICE_ID_JOYPAD_L2:
+			return "RetroPad L2 Button";
+		case RETRO_DEVICE_ID_JOYPAD_R2:
+			return "RetroPad R2 Button";
+		case RETRO_DEVICE_ID_JOYPAD_L3:
+			return "RetroPad L3 Button";
+		case RETRO_DEVICE_ID_JOYPAD_R3:
+			return "RetroPad R3 Button";
+		case RETRO_DEVICE_ID_JOYPAD_EMPTY:
+			return "None";
+		default:
+			return "No known label";
+	}
+}
+
 INT32 GameInpBlank(INT32 bDipSwitch)
 {
 	UINT32 i = 0;
@@ -2161,49 +2204,6 @@ bool poll_diag_input()
 
 	// Return false to poll game inputs
 	return false;
-}
-
-static const char *print_label(unsigned i)
-{
-	switch(i)
-	{
-		case RETRO_DEVICE_ID_JOYPAD_B:
-			return "RetroPad B Button";
-		case RETRO_DEVICE_ID_JOYPAD_Y:
-			return "RetroPad Y Button";
-		case RETRO_DEVICE_ID_JOYPAD_SELECT:
-			return "RetroPad Select Button";
-		case RETRO_DEVICE_ID_JOYPAD_START:
-			return "RetroPad Start Button";
-		case RETRO_DEVICE_ID_JOYPAD_UP:
-			return "RetroPad D-Pad Up";
-		case RETRO_DEVICE_ID_JOYPAD_DOWN:
-			return "RetroPad D-Pad Down";
-		case RETRO_DEVICE_ID_JOYPAD_LEFT:
-			return "RetroPad D-Pad Left";
-		case RETRO_DEVICE_ID_JOYPAD_RIGHT:
-			return "RetroPad D-Pad Right";
-		case RETRO_DEVICE_ID_JOYPAD_A:
-			return "RetroPad A Button";
-		case RETRO_DEVICE_ID_JOYPAD_X:
-			return "RetroPad X Button";
-		case RETRO_DEVICE_ID_JOYPAD_L:
-			return "RetroPad L Button";
-		case RETRO_DEVICE_ID_JOYPAD_R:
-			return "RetroPad R Button";
-		case RETRO_DEVICE_ID_JOYPAD_L2:
-			return "RetroPad L2 Button";
-		case RETRO_DEVICE_ID_JOYPAD_R2:
-			return "RetroPad R2 Button";
-		case RETRO_DEVICE_ID_JOYPAD_L3:
-			return "RetroPad L3 Button";
-		case RETRO_DEVICE_ID_JOYPAD_R3:
-			return "RetroPad R3 Button";
-		case RETRO_DEVICE_ID_JOYPAD_EMPTY:
-			return "None";
-		default:
-			return "No known label";
-	}
 }
 
 // Initialize the macro input descriptors depending of the choice the user made in core options
