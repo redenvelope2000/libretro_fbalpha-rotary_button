@@ -86,7 +86,7 @@ void evaluate_neogeo_bios_mode(const char* drvname);
 void set_environment();
 void check_variables(void);
 #ifdef USE_CYCLONE
-bool IsCycloneEnabled();
+void SetSekCpuCore();
 #endif
 
 #endif

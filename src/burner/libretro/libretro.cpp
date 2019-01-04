@@ -1268,7 +1268,7 @@ static bool retro_load_game_common()
 		check_variables();
 
 #ifdef USE_CYCLONE
-		nSekCpuCore = (IsCycloneEnabled() ? 0 : 1);
+		SetSekCpuCore();
 #endif
 		if (!open_archive()) {
 			log_cb(RETRO_LOG_ERROR, "[FBA] Can't launch this game, some files are missing.\n");

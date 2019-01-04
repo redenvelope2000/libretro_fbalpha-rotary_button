@@ -545,8 +545,8 @@ void check_variables(void)
 }
 
 #ifdef USE_CYCLONE
-bool IsCycloneEnabled()
+void SetSekCpuCore()
 {
-	return bCycloneEnabled;
+	nSekCpuCore = (bCycloneEnabled ? 0 : 1);
 }
 #endif
