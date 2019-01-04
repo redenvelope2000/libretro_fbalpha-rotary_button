@@ -17,8 +17,10 @@ public:
     unsigned read(unsigned offset);
     unsigned read_alternate(unsigned offset);
     bool load_disk_image(const string &filename);
+	void close_disk_image();
 	int load_hdd_image(int idx);
     ide_disk();
+    ~ide_disk();
 
     void set_irq_callback(void (*irq)(int state));
 
