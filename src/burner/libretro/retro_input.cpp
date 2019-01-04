@@ -1785,6 +1785,47 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Right Stick Left / Right");
 		}
 	}
+
+	// Black Widow, Robotron
+	if ((parentrom && strcmp(parentrom, "bwidow") == 0) ||
+		(drvname && strcmp(drvname, "bwidow") == 0) ||
+		(parentrom && strcmp(parentrom, "robotron") == 0) ||
+		(drvname && strcmp(drvname, "robotron") == 0)
+	) {
+		if (strcmp("Fire Up", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, 0, RETRO_DEVICE_ID_ANALOG_Y, JOY_NEG, "Fire Up / Down");
+		}
+		if (strcmp("Fire Down", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, 0, RETRO_DEVICE_ID_ANALOG_Y, JOY_POS, "Fire Up / Down");
+		}
+		if (strcmp("Fire Left", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, 0, RETRO_DEVICE_ID_ANALOG_X, JOY_NEG, "Fire Left / Right");
+		}
+		if (strcmp("Fire Right", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, 0, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Fire Left / Right");
+		}
+	}
+	
+	// Battle Zone
+	if ((parentrom && strcmp(parentrom, "bzone") == 0) ||
+		(drvname && strcmp(drvname, "bzone") == 0)
+	) {
+		if (strcmp("Fire", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, 0, RETRO_DEVICE_ID_JOYPAD_B, description);
+		}
+		if (strcmp("Right Stick Down", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, 0, RETRO_DEVICE_ID_JOYPAD_R, description);
+		}
+		if (strcmp("Left Stick Down", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, 0, RETRO_DEVICE_ID_JOYPAD_L, description);
+		}
+		if (strcmp("Left Stick Up", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, 0, RETRO_DEVICE_ID_JOYPAD_L2, description);
+		}
+		if (strcmp("Right Stick Up", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, 0, RETRO_DEVICE_ID_JOYPAD_R2, description);
+		}
+	}
 	
 	// Handle megadrive
 	if ((systemname && strcmp(systemname, "Sega Megadrive") == 0)) {
