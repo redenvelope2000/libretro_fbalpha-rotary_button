@@ -937,9 +937,9 @@ void retro_run()
 		if (macro_updated)
 		{
 			// Re-create the list of macro input_descriptors with new values
-			init_macro_input_descriptors();
+			InitMacroInputDescriptors();
 			// Re-assign all the input_descriptors to retroarch
-			set_input_descriptors();
+			SetInputDescriptors();
 		}
 
 		// adjust aspect ratio if the needed
