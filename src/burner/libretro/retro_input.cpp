@@ -1756,9 +1756,11 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 	}
 
-	// Angel Kids
+	// Angel Kids, Splat!
 	if ((parentrom && strcmp(parentrom, "angelkds") == 0) ||
-		(drvname && strcmp(drvname, "angelkds") == 0)
+		(drvname && strcmp(drvname, "angelkds") == 0) ||
+		(parentrom && strcmp(parentrom, "splat") == 0) ||
+		(drvname && strcmp(drvname, "splat") == 0)
 	) {
 		if (strcmp("Left Stick Up", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_UP, description);
