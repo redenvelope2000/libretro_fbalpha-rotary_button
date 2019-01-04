@@ -98,6 +98,16 @@ ide_disk::ide_disk()
     m_irq_callback = NULL;
 }
 
+ide_disk::~ide_disk()
+{
+	delete[] m_buffer;
+
+	if (m_disk_image) {
+		fclose(m_disk_image);
+		m_disk_image = NULL;
+	}
+}
+
 void ide_disk::set_irq_callback(void (*irq)(int))
 {
     m_irq_callback = irq;
