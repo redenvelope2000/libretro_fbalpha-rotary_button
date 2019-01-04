@@ -1755,6 +1755,36 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Right Stick Left / Right");
 		}
 	}
+
+	// Angel Kids
+	if ((parentrom && strcmp(parentrom, "angelkds") == 0) ||
+		(drvname && strcmp(drvname, "angelkds") == 0)
+	) {
+		if (strcmp("Left Stick Up", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_UP, description);
+		}
+		if (strcmp("Left Stick Down", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_DOWN, description);
+		}
+		if (strcmp("Left Stick Left", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_LEFT, description);
+		}
+		if (strcmp("Left Stick Right", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_RIGHT, description);
+		}
+		if (strcmp("Right Stick Up", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_NEG, "Right Stick Up / Down");
+		}
+		if (strcmp("Right Stick Down", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_POS, "Right Stick Up / Down");
+		}
+		if (strcmp("Right Stick Left", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_NEG, "Right Stick Left / Right");
+		}
+		if (strcmp("Right Stick Right", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Right Stick Left / Right");
+		}
+	}
 	
 	// Handle megadrive
 	if ((systemname && strcmp(systemname, "Sega Megadrive") == 0)) {
