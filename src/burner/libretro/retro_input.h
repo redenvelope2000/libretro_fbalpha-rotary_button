@@ -12,6 +12,14 @@ struct KeyBind
 	unsigned position;
 };
 
+struct AxiBind
+{
+	unsigned id;
+	unsigned id_pos;
+	unsigned id_neg;
+	int index;
+};
+
 #define RETROPAD_CLASSIC	RETRO_DEVICE_ANALOG
 #define RETROPAD_MODERN		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_ANALOG, 1)
 #define RETROMOUSE_BALL		RETRO_DEVICE_MOUSE
@@ -19,7 +27,6 @@ struct KeyBind
 
 #define JOY_NEG 0
 #define JOY_POS 1
-#define MAX_KEYBINDS 255 // For whatever reason, previously this value was 0x5000 aka 20480, however 255 keybinds should be enough for 1 game
 #define RETRO_DEVICE_ID_JOYPAD_EMPTY 255
 
 void SetDiagInpHoldFrameDelay(unsigned val);
