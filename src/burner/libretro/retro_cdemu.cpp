@@ -187,7 +187,7 @@ static const char* isowavLBAToMSF(const int LBA)
 	return address;
 }
 
-static int isowavMSFToLBA(const char* address)
+static int isowavMSFToLBA(char* address)
 {
 	int LBA;
 
@@ -598,7 +598,7 @@ static int isowavPlayLBA(int LBA)
 
 static int isowavPlay(unsigned char M, unsigned char S, unsigned char F)
 {
-	const char address[] = { 0, M, S, F };
+	char address[] = { 0, M, S, F };
 
 	return isowavPlayLBA(isowavMSFToLBA(address));
 }
