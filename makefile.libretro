@@ -414,11 +414,11 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 	# ("no such file" opening a shared library), and vice-versa.
 	# Work around it for now by using the strictly x86 compiler for x86, and x64 for x64.
 	# NOTE: What about ARM?
-	#ifneq (,$(findstring x64,$(TargetArchMoniker)))
-	VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\HostX64
-	#else
-	#VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\HostX86
-	#endif
+	ifneq (,$(findstring x64,$(TargetArchMoniker)))
+		VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\HostX64
+	else
+		VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\HostX86
+	endif
 
 	PATH := $(shell IFS=$$'\n'; cygpath "$(VCCompilerToolsBinDir)/$(TargetArchMoniker)"):$(PATH)
 	PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VsInstallRoot)/Common7/IDE")
