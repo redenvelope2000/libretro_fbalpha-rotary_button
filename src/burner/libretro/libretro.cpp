@@ -1340,11 +1340,7 @@ static bool retro_load_game_common()
 				break;
 		}
 		environ_cb(RETRO_ENVIRONMENT_SET_ROTATION, &rotation);
-#ifdef FRONTEND_SUPPORTS_RGB565
 		SetBurnHighCol(16);
-#else
-		SetBurnHighCol(15);
-#endif
 		BurnDrvGetFullSize(&width, &height);
 		g_fba_frame = (uint32_t*)malloc(width * height * sizeof(uint32_t));
 

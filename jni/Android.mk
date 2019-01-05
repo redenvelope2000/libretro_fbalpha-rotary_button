@@ -25,7 +25,7 @@ FBA_DEFINES :=
 
 include $(ROOT_DIR)/makefile.libretro_common
 
-COMMON_FLAGS := -DUSE_SPEEDHACKS -D__LIBRETRO__ -DANDROID -DFRONTEND_SUPPORTS_RGB565 -Wno-write-strings -DLSB_FIRST $(FBA_DEFINES)
+COMMON_FLAGS := -DUSE_SPEEDHACKS -D__LIBRETRO__ -DANDROID -Wno-write-strings -DLSB_FIRST $(FBA_DEFINES)
 
 # Build shared library including static C module
 include $(CLEAR_VARS)
