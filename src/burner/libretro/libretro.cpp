@@ -933,14 +933,8 @@ void retro_run()
 
 		apply_dipswitch_from_variables();
 
-		bool macro_updated = GameInpApplyMacros();
-		if (macro_updated)
-		{
-			// Re-create the list of macro input_descriptors with new values
-			InitMacroInputDescriptors();
-			// Re-assign all the input_descriptors to retroarch
-			SetInputDescriptors();
-		}
+		// Maybe macros changed, update them
+		UpdateMacros();
 
 		// adjust aspect ratio if the needed
 		if (old_core_aspect_par != core_aspect_par)

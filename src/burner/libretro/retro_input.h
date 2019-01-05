@@ -31,9 +31,7 @@ struct AxiBind
 
 void SetDiagInpHoldFrameDelay(unsigned val);
 void InputMake(void);
-bool GameInpApplyMacros();
-void InitMacroInputDescriptors();
-void SetInputDescriptors();
+void UpdateMacros();
 void InputInit();
 void InputDeInit();
 

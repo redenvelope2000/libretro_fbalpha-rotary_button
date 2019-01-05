@@ -1918,16 +1918,6 @@ static INT32 GameInpReassign()
 	return 0;
 }
 
-void retro_set_controller_port_device(unsigned port, unsigned device)
-{
-	if (port < nMaxPlayers && nDeviceType[port] != device)
-	{
-		nDeviceType[port] = device;
-		GameInpReassign();
-		SetInputDescriptors();
-	}
-}
-
 // Auto-configure any undefined inputs to defaults
 INT32 GameInpDefault()
 {
@@ -1978,7 +1968,7 @@ INT32 GameInpDefault()
 }
 
 // Activate or deactivate macros depending of the choice the user made in core options
-bool GameInpApplyMacros()
+static bool GameInpApplyMacros()
 {
 	bool macro_changed = false;
 
@@ -2273,7 +2263,7 @@ void InputMake(void)
 // Initialize the macro input descriptors depending of the choice the user made in core options
 // As soon as the user has choosen a RetroPad button for a macro, this macro will be added to the input descriptor and can be used as a regular input
 // This means that the auto remapping of RetroArch will be possible also for macros  
-void InitMacroInputDescriptors()
+static void InitMacroInputDescriptors()
 {
 	macro_input_descriptors.clear();
 
@@ -2314,7 +2304,7 @@ void InitMacroInputDescriptors()
 }
 
 // Set the input descriptors by combininng the two lists of 'Normal' and 'Macros' inputs
-void SetInputDescriptors()
+static void SetInputDescriptors()
 {
 	std::vector<retro_input_descriptor> input_descriptors(normal_input_descriptors.size() + macro_input_descriptors.size() + 1); // + 1 for the empty ending retro_input_descriptor { 0 }
 
@@ -2333,6 +2323,28 @@ void SetInputDescriptors()
 	input_descriptors[input_descriptor_idx].description = NULL;
 
 	environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors.data());
+}
+
+void retro_set_controller_port_device(unsigned port, unsigned device)
+{
+	if (port < nMaxPlayers && nDeviceType[port] != device)
+	{
+		nDeviceType[port] = device;
+		GameInpReassign();
+		SetInputDescriptors();
+	}
+}
+
+void UpdateMacros()
+{
+	bool macro_updated = GameInpApplyMacros();
+	if (macro_updated)
+	{
+		// Re-create the list of macro input_descriptors with new values
+		InitMacroInputDescriptors();
+		// Re-assign all the input_descriptors to retroarch
+		SetInputDescriptors();
+	}
 }
 
 // Creates core option for the available macros of the game
