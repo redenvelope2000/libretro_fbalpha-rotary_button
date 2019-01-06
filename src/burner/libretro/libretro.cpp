@@ -87,7 +87,7 @@ static unsigned g_rom_count;
 
 INT32 nAudSegLen = 0;
 
-static uint32_t *g_fba_frame;
+static UINT8* pVidTransImage = NULL;
 static int16_t *g_audio_buf;
 static int16_t *neocd_ibuf;
 static float *neocd_fbuf;
@@ -856,8 +856,8 @@ void retro_deinit()
 			free(neocd_ibuf);
 	}
 	BurnLibExit();
-	if (g_fba_frame)
-		free(g_fba_frame);
+	if (pVidTransImage)
+		free(pVidTransImage);
 	if (g_audio_buf)
 		free(g_audio_buf);
 }
@@ -885,7 +885,7 @@ void retro_run()
 {
 	int width, height;
 	BurnDrvGetVisibleSize(&width, &height);
-	pBurnDraw = (uint8_t*)g_fba_frame;
+	pBurnDraw = pVidTransImage;
 
 	InputMake();
 
@@ -893,22 +893,21 @@ void retro_run()
 
 	unsigned drv_flags = BurnDrvGetFlags();
 	uint32_t height_tmp = height;
-	size_t pitch_size = nBurnBpp == 2 ? sizeof(uint16_t) : sizeof(uint32_t);
 
 	switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
 	{
 		case BDF_ORIENTATION_VERTICAL:
 		case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-			nBurnPitch = height * pitch_size;
+			nBurnPitch = height * 2;
 			height = width;
 			width = height_tmp;
 			break;
 		case BDF_ORIENTATION_FLIPPED:
 		default:
-			nBurnPitch = width * pitch_size;
+			nBurnPitch = width * 2;
 	}
 
-	video_cb(g_fba_frame, width, height, nBurnPitch);
+	video_cb(pVidTransImage, width, height, nBurnPitch);
 
 	// If game is neocd, mix sound tracks into the audio buffer
 	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
@@ -1121,7 +1120,6 @@ INT32 SetBurnHighCol(INT32 nDepth)
 		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_0RGB1555;
 		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
 		{
-			nBurnBpp = 2;
 			BurnHighCol = HighCol15;
 		}
 	}
@@ -1130,7 +1128,6 @@ INT32 SetBurnHighCol(INT32 nDepth)
 		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
 		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
 		{
-			nBurnBpp = 2;
 			BurnHighCol = HighCol16;
 		}
 	}
@@ -1139,7 +1136,6 @@ INT32 SetBurnHighCol(INT32 nDepth)
 		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
 		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
 		{
-			nBurnBpp = 3;
 			BurnHighCol = HighCol24;
 		}
 	}
@@ -1148,10 +1144,11 @@ INT32 SetBurnHighCol(INT32 nDepth)
 		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
 		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
 		{
-			nBurnBpp = 4;
 			BurnHighCol = HighCol24;
 		}
 	}
+
+	nBurnBpp = (nDepth + 7) >> 3;
 
 	return 0;
 }
@@ -1318,11 +1315,10 @@ static bool retro_load_game_common()
 		INT32 width, height;
 		BurnDrvGetVisibleSize(&width, &height);
 		unsigned drv_flags = BurnDrvGetFlags();
-		size_t pitch_size = nBurnBpp == 2 ? sizeof(uint16_t) : sizeof(uint32_t);
 		if (drv_flags & BDF_ORIENTATION_VERTICAL)
-			nBurnPitch = height * pitch_size;
+			nBurnPitch = height * 2;
 		else
-			nBurnPitch = width * pitch_size;
+			nBurnPitch = width * 2;
 		unsigned rotation;
 		switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
 		{
@@ -1340,9 +1336,13 @@ static bool retro_load_game_common()
 				break;
 		}
 		environ_cb(RETRO_ENVIRONMENT_SET_ROTATION, &rotation);
-		SetBurnHighCol(16);
+		if (bDrvOkay && (BurnDrvGetFlags() & BDF_16BIT_ONLY)) {
+			SetBurnHighCol(15);
+		} else {
+			SetBurnHighCol(16);
+		}
 		BurnDrvGetFullSize(&width, &height);
-		g_fba_frame = (uint32_t*)malloc(width * height * sizeof(uint32_t));
+		pVidTransImage = (UINT8*)malloc(width * height * sizeof(INT16));
 
 		// Apply dipswitches
 		apply_dipswitch_from_variables();
