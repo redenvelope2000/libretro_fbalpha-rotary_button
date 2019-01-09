@@ -1035,9 +1035,7 @@ bool retro_unserialize(const void *data, size_t size)
 	BurnAcb = burn_read_state_cb;
 	read_state_ptr = (const uint8_t*)data;
 	BurnAreaScan(ACB_FULLSCAN | ACB_WRITE, 0);
-	// Recalculating the palette, this is probably only necessary when dealing with normal savestates usage
-	if (kNetGame == 0)
-		BurnRecalcPal();
+	BurnRecalcPal();
 	return true;
 }
 

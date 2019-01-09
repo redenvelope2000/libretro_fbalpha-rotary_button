@@ -13,7 +13,7 @@ int StateGetMainRamAcb(BurnArea *pba)
 		return 0;
 
 	// Neogeo / PGM
-	if ((nHardwareCode & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO
+	if ((nHardwareCode & HARDWARE_PUBLIC_MASK) == HARDWARE_SNK_NEOGEO
 	 || (nHardwareCode & HARDWARE_PUBLIC_MASK) & HARDWARE_PREFIX_IGS_PGM) {
 		if (strcmp(pba->szName, "68K RAM") == 0) {
 			MainRamData = pba->Data;
