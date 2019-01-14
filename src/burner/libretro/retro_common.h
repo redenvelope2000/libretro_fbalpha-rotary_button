@@ -74,6 +74,7 @@ extern bool is_neogeo_game;
 extern bool allow_neogeo_mode;
 extern bool core_aspect_par;
 extern bool bVerticalMode;
+extern bool bAllowDepth32;
 extern UINT32 nFrameskip;
 extern UINT8 NeoSystem;
 extern INT32 g_audio_samplerate;

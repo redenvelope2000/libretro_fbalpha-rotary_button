@@ -57,6 +57,7 @@ bool is_neogeo_game = false;
 bool allow_neogeo_mode = true;
 bool core_aspect_par = false;
 bool bVerticalMode = false;
+bool bAllowDepth32 = false;
 UINT32 nFrameskip = 1;
 INT32 g_audio_samplerate = 48000;
 UINT8 *diag_input;
@@ -79,6 +80,7 @@ static UINT8 diag_input_select_l_r[] =  {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DE
 // Global core options
 static const struct retro_variable var_empty = { NULL, NULL };
 static const struct retro_variable var_fba_aspect = { "fba-aspect", "Core-provided aspect ratio; DAR|PAR" };
+static const struct retro_variable var_fba_allow_depth_32 = { "fba-allow-depth-32", "Use 32-bits color depth when available; disabled|enabled" };
 static const struct retro_variable var_fba_vertical_mode = { "fba-vertical-mode", "Vertical mode; disabled|enabled" };
 static const struct retro_variable var_fba_frameskip = { "fba-frameskip", "Frameskip; 0|1|2|3|4|5" };
 static const struct retro_variable var_fba_cpu_speed_adjust = { "fba-cpu-speed-adjust", "CPU overclock; 100|110|120|130|140|150|160|170|180|190|200" };
@@ -227,6 +229,7 @@ void set_environment()
 
 	// Add the Global core options
 	vars_systems.push_back(&var_fba_aspect);
+	vars_systems.push_back(&var_fba_allow_depth_32);
 	vars_systems.push_back(&var_fba_vertical_mode);
 	vars_systems.push_back(&var_fba_frameskip);
 	vars_systems.push_back(&var_fba_cpu_speed_adjust);
@@ -350,6 +353,15 @@ void check_variables(void)
 			core_aspect_par = true;
 		else
 			core_aspect_par = false;
+	}
+
+	var.key = var_fba_allow_depth_32.key;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	{
+		if (strcmp(var.value, "enabled") == 0)
+			bAllowDepth32 = true;
+		else
+			bAllowDepth32 = false;
 	}
 
 	var.key = var_fba_vertical_mode.key;

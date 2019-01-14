@@ -5,6 +5,7 @@
 
 #include "libretro.h"
 #include "burner.h"
+#include "burnint.h"
 
 #include "retro_common.h"
 #include "retro_cdemu.h"
@@ -87,7 +88,7 @@ static unsigned g_rom_count;
 
 INT32 nAudSegLen = 0;
 
-static UINT8* pVidTransImage = NULL;
+static UINT8* pVidImage = NULL;
 static int16_t *g_audio_buf;
 static int16_t *neocd_ibuf;
 static float *neocd_fbuf;
@@ -856,8 +857,6 @@ void retro_deinit()
 			free(neocd_ibuf);
 	}
 	BurnLibExit();
-	if (pVidTransImage)
-		free(pVidTransImage);
 	if (g_audio_buf)
 		free(g_audio_buf);
 }
@@ -885,7 +884,7 @@ void retro_run()
 {
 	int width, height;
 	BurnDrvGetVisibleSize(&width, &height);
-	pBurnDraw = pVidTransImage;
+	pBurnDraw = pVidImage;
 
 	InputMake();
 
@@ -898,16 +897,16 @@ void retro_run()
 	{
 		case BDF_ORIENTATION_VERTICAL:
 		case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-			nBurnPitch = height * 2;
+			nBurnPitch = height * nBurnBpp;
 			height = width;
 			width = height_tmp;
 			break;
 		case BDF_ORIENTATION_FLIPPED:
 		default:
-			nBurnPitch = width * 2;
+			nBurnPitch = width * nBurnBpp;
 	}
 
-	video_cb(pVidTransImage, width, height, nBurnPitch);
+	video_cb(pVidImage, width, height, nBurnPitch);
 
 	// If game is neocd, mix sound tracks into the audio buffer
 	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
@@ -1075,32 +1074,27 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 	info->timing   = timing;
 }
 
-int VidRecalcPal()
-{
-   return BurnRecalcPal();
-}
-
-// Standard callbacks for 16/24/32 bit color:
 static UINT32 __cdecl HighCol15(INT32 r, INT32 g, INT32 b, INT32  /* i */)
 {
 	UINT32 t;
-	t =(r<<7)&0x7c00; // 0rrr rr00 0000 0000
-	t|=(g<<2)&0x03e0; // 0000 00gg ggg0 0000
-	t|=(b>>3)&0x001f; // 0000 0000 000b bbbb
+	t =(r<<7)&0x7c00;
+	t|=(g<<2)&0x03e0;
+	t|=(b>>3)&0x001f;
 	return t;
 }
 
+// 16-bit
 static UINT32 __cdecl HighCol16(INT32 r, INT32 g, INT32 b, INT32 /* i */)
 {
 	UINT32 t;
-	t =(r<<8)&0xf800; // rrrr r000 0000 0000
-	t|=(g<<3)&0x07e0; // 0000 0ggg ggg0 0000
-	t|=(b>>3)&0x001f; // 0000 0000 000b bbbb
+	t =(r<<8)&0xf800;
+	t|=(g<<3)&0x07e0;
+	t|=(b>>3)&0x001f;
 	return t;
 }
 
-// 24-bit/32-bit
-static UINT32 __cdecl HighCol24(INT32 r, INT32 g, INT32 b, INT32  /* i */)
+// 32-bit
+static UINT32 __cdecl HighCol32(INT32 r, INT32 g, INT32 b, INT32  /* i */)
 {
 	UINT32 t;
 	t =(r<<16)&0xff0000;
@@ -1112,41 +1106,35 @@ static UINT32 __cdecl HighCol24(INT32 r, INT32 g, INT32 b, INT32  /* i */)
 
 INT32 SetBurnHighCol(INT32 nDepth)
 {
-	VidRecalcPal();
-	
-	if (nDepth == 15) {
-		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_0RGB1555;
-		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-		{
-			BurnHighCol = HighCol15;
-		}
-	}
-	
-	if (nDepth == 16) {
-		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
-		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-		{
-			BurnHighCol = HighCol16;
-		}
-	}
-	
-	if (nDepth == 24) {
-		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
-		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-		{
-			BurnHighCol = HighCol24;
-		}
-	}
-	
+	BurnRecalcPal();
+
+	enum retro_pixel_format fmt;
+
 	if (nDepth == 32) {
-		enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+		fmt = RETRO_PIXEL_FORMAT_XRGB8888;
 		if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
 		{
-			BurnHighCol = HighCol24;
+			BurnHighCol = HighCol32;
+			nBurnBpp = 4;
+			return 0;
 		}
 	}
 
-	nBurnBpp = (nDepth + 7) >> 3;
+	fmt = RETRO_PIXEL_FORMAT_RGB565;
+	if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+	{
+		BurnHighCol = HighCol16;
+		nBurnBpp = 2;
+		return 0;
+	}
+
+	fmt = RETRO_PIXEL_FORMAT_0RGB1555;
+	if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+	{
+		BurnHighCol = HighCol15;
+		nBurnBpp = 2;
+		return 0;
+	}
 
 	return 0;
 }
@@ -1313,10 +1301,6 @@ static bool retro_load_game_common()
 		INT32 width, height;
 		BurnDrvGetVisibleSize(&width, &height);
 		unsigned drv_flags = BurnDrvGetFlags();
-		if (drv_flags & BDF_ORIENTATION_VERTICAL)
-			nBurnPitch = height * 2;
-		else
-			nBurnPitch = width * 2;
 		unsigned rotation;
 		switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
 		{
@@ -1334,13 +1318,13 @@ static bool retro_load_game_common()
 				break;
 		}
 		environ_cb(RETRO_ENVIRONMENT_SET_ROTATION, &rotation);
-		if (bDrvOkay && (BurnDrvGetFlags() & BDF_16BIT_ONLY)) {
-			SetBurnHighCol(15);
-		} else {
+		if ((BurnDrvGetFlags() & BDF_16BIT_ONLY) || !bAllowDepth32) {
 			SetBurnHighCol(16);
+		} else {
+			SetBurnHighCol(32);
 		}
 		BurnDrvGetFullSize(&width, &height);
-		pVidTransImage = (UINT8*)malloc(width * height * sizeof(INT16));
+		pVidImage = BurnMalloc(width * height * nBurnBpp);
 
 		// Apply dipswitches
 		apply_dipswitch_from_variables();
