@@ -1150,6 +1150,7 @@ static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 	if (g_audio_buf)
 		free(g_audio_buf);
 	g_audio_buf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
+	memset(g_audio_buf, 0, nAudSegLen<<2 * sizeof(int16_t));
 	// If game is neocd, allocate buffers for sound tracks
 	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
 		if (neocd_fbuf)
@@ -1157,7 +1158,9 @@ static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 		if (neocd_ibuf)
 			free(neocd_ibuf);
 		neocd_fbuf = (float*)malloc(nAudSegLen<<2 * sizeof(float));
+		memset(neocd_fbuf, 0, nAudSegLen<<2 * sizeof(float));
 		neocd_ibuf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
+		memset(neocd_ibuf, 0, nAudSegLen<<2 * sizeof(int16_t));
 	}
 	nBurnSoundLen = nAudSegLen;
 	pBurnSoundOut = g_audio_buf;
