@@ -465,10 +465,10 @@ int InputSetCooperativeLevel(const bool bExclusive, const bool bForeGround) { re
 
 void Reinitialise(void)
 {
-    // Update the geometry, some games (sfiii2) and systems (megadrive) need it.
-    struct retro_system_av_info av_info;
-    retro_get_system_av_info(&av_info);
-    environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+	// Update the geometry, some games (sfiii2) and systems (megadrive) need it.
+	struct retro_system_av_info av_info;
+	retro_get_system_av_info(&av_info);
+	environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
 
 static void ForceFrameStep(int bDraw)
@@ -1045,6 +1045,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 {
 	int width, height, game_aspect_x, game_aspect_y;
 	BurnDrvGetVisibleSize(&width, &height);
+	pVidImage = BurnMalloc(width * height * nBurnBpp);
 	BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
 	if (bVerticalMode)
 	{
@@ -1326,8 +1327,6 @@ static bool retro_load_game_common()
 		} else {
 			SetBurnHighCol(32);
 		}
-		BurnDrvGetFullSize(&width, &height);
-		pVidImage = BurnMalloc(width * height * nBurnBpp);
 
 		// Apply dipswitches
 		apply_dipswitch_from_variables();
