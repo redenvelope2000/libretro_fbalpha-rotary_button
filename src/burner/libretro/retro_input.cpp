@@ -1604,6 +1604,24 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 	}
 
+	// Rock Climber
+	if ((parentrom && strcmp(parentrom, "rockclim") == 0) ||
+		(drvname && strcmp(drvname, "rockclim") == 0)
+	) {
+		if (strcmp("Rght Stick Up", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_NEG, "Right Stick Up / Down");
+		}
+		if (strcmp("Rght Stick Down", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_POS, "Right Stick Up / Down");
+		}
+		if (strcmp("Rght Stick Left", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_NEG, "Right Stick Left / Right");
+		}
+		if (strcmp("Rght Stick Right", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Right Stick Left / Right");
+		}
+	}
+
 	// Black Widow, Robotron
 	if ((parentrom && strcmp(parentrom, "bwidow") == 0) ||
 		(drvname && strcmp(drvname, "bwidow") == 0) ||
