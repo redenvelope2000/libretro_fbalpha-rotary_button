@@ -1313,7 +1313,9 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		(parentrom && strcmp(parentrom, "opwolf") == 0) ||
 		(drvname && strcmp(drvname, "opwolf") == 0) ||
 		(parentrom && strcmp(parentrom, "spacegun") == 0) ||
-		(drvname && strcmp(drvname, "spacegun") == 0)
+		(drvname && strcmp(drvname, "spacegun") == 0) ||
+		(parentrom && strcmp(parentrom, "mechatt") == 0) ||
+		(drvname && strcmp(drvname, "mechatt") == 0)
 	) {
 		if (strcmp("Gun X", description) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description);
