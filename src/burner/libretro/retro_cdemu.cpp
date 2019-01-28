@@ -169,6 +169,24 @@ void wav_exit()
 	audio_mixer_destroy(cdsound);
 }
 
+void wav_pause(bool bResume)
+{
+	if(!bResume)
+	{
+		if(!cdvoice) return;
+		audio_mixer_stop(cdvoice);
+	}
+	else
+	{
+		if(CDEmuGetStatus() == playing)
+		{
+			if(!cdsound) return;
+			wav_stop();
+			cdvoice = audio_mixer_play(cdsound, true, 1, NULL);
+		}
+	}
+}
+
 /**
  * see src/intf/cd/sdl/cd_isowav.cpp
  */
