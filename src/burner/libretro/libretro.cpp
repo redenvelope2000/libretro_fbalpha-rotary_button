@@ -1328,6 +1328,8 @@ static bool retro_load_game_common()
 			SetBurnHighCol(32);
 		}
 
+		pVidImage = BurnMalloc(width * height * nBurnBpp);
+
 		// Apply dipswitches
 		apply_dipswitch_from_variables();
 
