@@ -10571,6 +10571,7 @@ DRV		BurnDrvKof98ka;
 DRV		BurnDrvKof98h;
 DRV		BurnDrvKof98;
 DRV		BurnDrvKof98a;
+DRV		BurnDrvkof98pfe;
 DRV		BurnDrvmd_kof99;
 DRV		BurnDrvmd_kof99a;
 DRV		BurnDrvkof99e;
@@ -22793,6 +22794,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvKof98h,				// The King of Fighters '98 - The Slugfest / King of Fighters '98 - dream match never ends (NGH-2420)
 	&BurnDrvKof98,				// The King of Fighters '98 - The Slugfest / King of Fighters '98 - dream match never ends (NGM-2420)
 	&BurnDrvKof98a,				// The King of Fighters '98 - The Slugfest / King of Fighters '98 - dream match never ends (NGM-2420, alternate board)
+	&BurnDrvkof98pfe,			// KOF'98 (Plus Final Edition)(2017-07-23)
 	&BurnDrvmd_kof99,			// The King of Fighters '99
 	&BurnDrvmd_kof99a,			// The King of Fighters '99 (Alt)
 	&BurnDrvkof99e,				// The King of Fighters '99 - Millennium Battle (earlier)
