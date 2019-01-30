@@ -17484,12 +17484,12 @@ static INT32 kof98pfeExit()
     return NeoExit();
 }
 	
-struct BurnDriverD BurnDrvkof98pfe = {
+struct BurnDriver BurnDrvkof98pfe = {
 	"kof98pfe", "kof98", "neogeo", NULL, "2017",
 	"KOF'98 (Plus Final Edition)(2017-07-23)\0", NULL, "hack", "Neo Geo MVS",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO, GBF_VSFIGHT, 0,
-	NULL, kof98pfeRomInfo, kof98pfeRomName, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
+	BDF_GAME_WORKING | BDF_CLONE | BDF_HACK, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO, GBF_VSFIGHT, FBF_KOF,
+	NULL, kof98pfeRomInfo, kof98pfeRomName, NULL, NULL, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
 	kof98pfeInit, kof98pfeExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
 	0x1000,	320, 224, 4, 3
 };
