@@ -17470,7 +17470,7 @@ static INT32 kof98pfeInit()
 				}
 		
    		SekOpen(0);
-           	SekMapMemory(kof98pfeExtraROM, 0x900000, 0x91ffff, SM_ROM);
+           	SekMapMemory(kof98pfeExtraROM, 0x900000, 0x91ffff, MAP_ROM);
            	SekClose();
 			}
 
