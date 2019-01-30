@@ -1313,7 +1313,9 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		(parentrom && strcmp(parentrom, "opwolf") == 0) ||
 		(drvname && strcmp(drvname, "opwolf") == 0) ||
 		(parentrom && strcmp(parentrom, "spacegun") == 0) ||
-		(drvname && strcmp(drvname, "spacegun") == 0)
+		(drvname && strcmp(drvname, "spacegun") == 0) ||
+		(parentrom && strcmp(parentrom, "mechatt") == 0) ||
+		(drvname && strcmp(drvname, "mechatt") == 0)
 	) {
 		if (strcmp("Gun X", description) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description);
@@ -1600,6 +1602,24 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_NEG, "Right Stick Left / Right");
 		}
 		if (strcmp("Right Stick Right", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Right Stick Left / Right");
+		}
+	}
+
+	// Rock Climber
+	if ((parentrom && strcmp(parentrom, "rockclim") == 0) ||
+		(drvname && strcmp(drvname, "rockclim") == 0)
+	) {
+		if (strcmp("Rght Stick Up", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_NEG, "Right Stick Up / Down");
+		}
+		if (strcmp("Rght Stick Down", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_POS, "Right Stick Up / Down");
+		}
+		if (strcmp("Rght Stick Left", description) == 0) {
+			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_NEG, "Right Stick Left / Right");
+		}
+		if (strcmp("Rght Stick Right", description) == 0) {
 			GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Right Stick Left / Right");
 		}
 	}
