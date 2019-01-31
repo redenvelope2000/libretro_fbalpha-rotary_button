@@ -5284,7 +5284,7 @@
 		<rom name="242-c6.c6" merge="242-c6.c6" size="8388608" crc="da07b6a2"/>
 		<rom name="242pfe.c7" size="8388608" crc="02f09b2e"/>
 		<rom name="242pfe.c8" size="8388608" crc="d43ab3e6"/>
-		<rom name="242-m1.m1" merge="242-m1.m1" size="262144" crc="4ef7016b"/>
+		<rom name="242-m1.m1" size="262144" crc="4e7a6b1b"/>
 		<rom name="242-v1.v1" merge="242-v1.v1" size="4194304" crc="b9ea8051"/>
 		<rom name="242-v2.v2" merge="242-v2.v2" size="4194304" crc="cc11106e"/>
 		<rom name="242-v3.v3" merge="242-v3.v3" size="4194304" crc="044ea4e1"/>
