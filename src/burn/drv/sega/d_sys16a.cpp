@@ -1549,8 +1549,6 @@ static struct BurnRomInfo FantzoneeRomDesc[] = {
 	{ "epr-7398.24",   0x08000, 0x68807b49, SYS16_ROM_SPRITES | BRF_GRA },
 
 	{ "epr-7535a.12",  0x08000, 0xbc1374fa, SYS16_ROM_Z80PROG | BRF_ESS | BRF_PRG },
-	
-	{ "epr-7391.12",   0x02000, 0xc03e155e, SYS16_ROM_KEY | BRF_ESS | BRF_PRG },
 };
 
 
