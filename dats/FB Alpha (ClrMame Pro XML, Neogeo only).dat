@@ -5273,22 +5273,22 @@
 		<year>2017</year>
 		<manufacturer>hack</manufacturer>
 		<rom name="242pfe.p1" size="1048576" crc="23876d95"/>
-		<rom name="242pfe.p2" size="6291456" crc="b5569607"/>
-		<rom name="242pfe.p3" size="131072" crc="9af621e9"/>
+		<rom name="242pfe.p2" size="4194304" crc="adbaa852"/>
+		<rom name="242pfe.p3" size="131072" crc="930ea34e"/>
 		<rom name="242pfe.s1" size="131072" crc="7f4dbf23"/>
 		<rom name="242hx73.c1" size="8388608" crc="379654a5"/>
 		<rom name="242hx73.c2" size="8388608" crc="9c71fa3d"/>
-		<rom name="242-c3.c3" merge="242-c3.c3" size="8388608" crc="22127b4f"/>
-		<rom name="242-c4.c4" merge="242-c4.c4" size="8388608" crc="0b4fa044"/>
-		<rom name="242-c5.c5" merge="242-c5.c5" size="8388608" crc="9d10bed3"/>
-		<rom name="242-c6.c6" merge="242-c6.c6" size="8388608" crc="da07b6a2"/>
+		<rom name="242.c3" size="8388608" crc="22127b4f"/>
+		<rom name="242.c4" size="8388608" crc="0b4fa044"/>
+		<rom name="242.c5" size="8388608" crc="9d10bed3"/>
+		<rom name="242.c6" size="8388608" crc="da07b6a2"/>
 		<rom name="242pfe.c7" size="8388608" crc="02f09b2e"/>
 		<rom name="242pfe.c8" size="8388608" crc="d43ab3e6"/>
-		<rom name="242-m1.m1" size="262144" crc="4e7a6b1b"/>
-		<rom name="242-v1.v1" merge="242-v1.v1" size="4194304" crc="b9ea8051"/>
-		<rom name="242-v2.v2" merge="242-v2.v2" size="4194304" crc="cc11106e"/>
-		<rom name="242-v3.v3" merge="242-v3.v3" size="4194304" crc="044ea4e1"/>
-		<rom name="242-v4.v4" merge="242-v4.v4" size="4194304" crc="7985ea30"/>
+		<rom name="242-mg1.m1" size="262144" crc="4e7a6b1b"/>
+		<rom name="242.v1" size="4194304" crc="b9ea8051"/>
+		<rom name="242.v2" size="4194304" crc="cc11106e"/>
+		<rom name="242.v3" size="4194304" crc="044ea4e1"/>
+		<rom name="242.v4" size="4194304" crc="7985ea30"/>
 		<rom name="sp-s3.sp1" merge="sp-s3.sp1" size="131072" crc="91b64be3"/>
 		<rom name="sp-s2.sp1" merge="sp-s2.sp1" size="131072" crc="9036d879"/>
 		<rom name="sp-s.sp1" merge="sp-s.sp1" size="131072" crc="c7f2fa45"/>
