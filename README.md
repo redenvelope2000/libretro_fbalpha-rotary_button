@@ -79,5 +79,4 @@ There should be partial support through the new API relying on main ram expositi
 The support is still a work in progress, there are several things to know :
 * You need a copy of neocdz.zip and neogeo.zip in your libretro system directory
 * You need to add `--subsystem neocd` to the command line
-* you can only load `MODE1/2048` tracks at the moment
-* sound doesn't work at the moment
+* You can only load ccd/sub/img iso (trurip) at the moment, and maybe some bin/cue (redump's don't seem to work though)

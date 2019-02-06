@@ -90,8 +90,6 @@ INT32 nAudSegLen = 0;
 
 static UINT8* pVidImage = NULL;
 static int16_t *g_audio_buf;
-static int16_t *neocd_ibuf;
-static float *neocd_fbuf;
 
 // Mapping of PC inputs to game inputs
 struct GameInp* GameInp = NULL;
@@ -127,7 +125,7 @@ void retro_set_environment(retro_environment_t cb)
 		{ "Rom", "zip|7z", true, true, true, NULL, 0 },
 	};
 	static const struct retro_subsystem_rom_info subsystem_iso[] = {
-		{ "Iso", "iso|cue", true, true, true, NULL, 0 },
+		{ "Iso", "ccd|cue", true, true, true, NULL, 0 },
 	};
 	static const struct retro_subsystem_info subsystems[] = {
 		{ "CBS ColecoVision", "cv", subsystem_rom, 1, RETRO_GAME_TYPE_CV },
@@ -849,13 +847,6 @@ void retro_init()
 
 void retro_deinit()
 {
-	if(nGameType == RETRO_GAME_TYPE_NEOCD) {
-		audio_mixer_done();
-		if (neocd_fbuf)
-			free(neocd_fbuf);
-		if (neocd_ibuf)
-			free(neocd_ibuf);
-	}
 	BurnLibExit();
 	if (g_audio_buf)
 		free(g_audio_buf);
@@ -908,17 +899,6 @@ void retro_run()
 
 	video_cb(pVidImage, width, height, nBurnPitch);
 
-	// If game is neocd, mix sound tracks into the audio buffer
-	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
-		memset(neocd_fbuf, 0, nAudSegLen<<2 * sizeof(float));
-		audio_mixer_mix(neocd_fbuf, nBurnSoundLen, 1, false);
-		convert_float_to_s16(neocd_ibuf, neocd_fbuf, nAudSegLen<<2);
-		for (unsigned i = 0; i < nBurnSoundLen; i++)
-		{
-			g_audio_buf[i * 2]       = CLAMP_I16(g_audio_buf[i * 2] + neocd_ibuf[i * 2]);
-			g_audio_buf[(i * 2) + 1] = CLAMP_I16(g_audio_buf[(i * 2) + 1] + neocd_ibuf[(i * 2) + 1]);
-		}
-	}
 	audio_batch_cb(g_audio_buf, nBurnSoundLen);
 	bool updated = false;
 
@@ -1152,17 +1132,6 @@ static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 		free(g_audio_buf);
 	g_audio_buf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
 	memset(g_audio_buf, 0, nAudSegLen<<2 * sizeof(int16_t));
-	// If game is neocd, allocate buffers for sound tracks
-	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
-		if (neocd_fbuf)
-			free(neocd_fbuf);
-		if (neocd_ibuf)
-			free(neocd_ibuf);
-		neocd_fbuf = (float*)malloc(nAudSegLen<<2 * sizeof(float));
-		memset(neocd_fbuf, 0, nAudSegLen<<2 * sizeof(float));
-		neocd_ibuf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
-		memset(neocd_ibuf, 0, nAudSegLen<<2 * sizeof(int16_t));
-	}
 	nBurnSoundLen = nAudSegLen;
 	pBurnSoundOut = g_audio_buf;
 }
@@ -1267,8 +1236,6 @@ static bool retro_load_game_common()
 
 		// Start CD reader emulation if needed
 		if (nGameType == RETRO_GAME_TYPE_NEOCD) {
-			// If game is neocd, we need to start the audio mixer for sound tracks
-			audio_mixer_init(nBurnSoundRate);
 			if (CDEmuInit()) {
 				log_cb(RETRO_LOG_INFO, "[FBA] Starting neogeo CD\n");
 			}
