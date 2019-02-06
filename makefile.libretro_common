@@ -198,16 +198,9 @@ ifneq ($(STATIC_LINKING), 1)
 		$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
 		$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
 		$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c \
-		$(LIBRETRO_COMM_DIR)/audio/audio_mixer.c \
-		$(LIBRETRO_COMM_DIR)/audio/conversion/float_to_s16.c \
-		$(LIBRETRO_COMM_DIR)/audio/resampler/audio_resampler.c \
-		$(LIBRETRO_COMM_DIR)/audio/resampler/drivers/nearest_resampler.c \
-		$(LIBRETRO_COMM_DIR)/audio/resampler/drivers/null_resampler.c \
-		$(LIBRETRO_COMM_DIR)/audio/resampler/drivers/sinc_resampler.c \
 		$(LIBRETRO_COMM_DIR)/features/features_cpu.c \
 		$(LIBRETRO_COMM_DIR)/file/config_file.c \
 		$(LIBRETRO_COMM_DIR)/file/config_file_userdata.c \
-		$(LIBRETRO_COMM_DIR)/formats/wav/rwav.c \
 		$(LIBRETRO_COMM_DIR)/lists/string_list.c \
 		$(LIBRETRO_COMM_DIR)/memmap/memalign.c
 endif
@@ -294,8 +287,6 @@ ifeq ($(HAVE_NEON), 1)
 	ifneq (,$(findstring android,$(platform)))
 		NEON_FLAGS =
 	endif
-	SOURCES_S += $(LIBRETRO_COMM_DIR)/audio/resampler/drivers/sinc_resampler_neon.S \
-		$(LIBRETRO_COMM_DIR)/audio/conversion/float_to_s16_neon.S
 endif
 
 ifeq ($(EXTERNAL_ZLIB), 1)

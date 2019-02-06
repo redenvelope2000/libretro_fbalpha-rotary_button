@@ -1,7 +1,21 @@
+#include "retro_common.h"
 #include "retro_cdemu.h"
 
-#define dprintf printf
-#define _wfopen fopen
+#define DPRINTF_BUFFER_SIZE 512
+char dprintf_buf[DPRINTF_BUFFER_SIZE];
+static INT32 __cdecl libretro_dprintf(TCHAR* szFormat, ...)
+{
+	va_list vp;
+	va_start(vp, szFormat);
+	int rc = vsnprintf(dprintf_buf, DPRINTF_BUFFER_SIZE, szFormat, vp);
+	va_end(vp);
+
+	if (rc >= 0)
+		log_cb(RETRO_LOG_INFO, dprintf_buf);
+
+	return rc;
+}
+#define dprintf libretro_dprintf
 
 const int MAXIMUM_NUMBER_TRACKS = 100;
 
@@ -197,7 +211,7 @@ static int cdimgParseSubFile()
 
 	_tcscpy(filename_sub + length - 4, _T(".sub"));
 	//bprintf(0, _T("filename_sub: %s\n"),filename_sub);
-	h = _wfopen(filename_sub, _T("rb"));
+	h = fopen(filename_sub, _T("rb"));
 	if (h == 0)
 	{
 		dprintf(_T("*** Bad image: %s\n"), filename_sub);
@@ -261,7 +275,7 @@ static int cdimgParseSubFile()
 	//bprintf(0, _T("pregap lba: %d MSF: %d:%d:%d\n"), cd_pregap, QChannel[0].MSFabs.M, QChannel[0].MSFabs.S, QChannel[0].MSFabs.F);
 
 	{ // Make a fake last-track w/total image size (for bounds checking)
-		h = _wfopen(cdimgTOC->Image, _T("rb"));
+		h = fopen(cdimgTOC->Image, _T("rb"));
 		if (h)
 		{
 			fseek(h, 0, SEEK_END);
@@ -303,7 +317,7 @@ static int cdimgParseCueFile()
 	_tcscpy(cdimgTOC->Image + length - 4, _T(".bin"));
 	//bprintf(0, _T("Image file: %s\n"),cdimgTOC->Image);
 
-	h = _tfopen(CDEmuImage, _T("rt"));
+	h = fopen(CDEmuImage, _T("rt"));
 	if (h == NULL) {
 		return 1;
 	}
@@ -422,7 +436,7 @@ static int cdimgParseCueFile()
 	fclose(h);
 
 	{
-		h = _wfopen(cdimgTOC->Image, _T("rb"));
+		h = fopen(cdimgTOC->Image, _T("rb"));
 		if (h)
 		{
 			fseek(h, 0, SEEK_END);
@@ -515,7 +529,7 @@ static int cdimgInit()
 
 	{
 		char buf[2048];
-		FILE* h = _wfopen(cdimgTOC->Image, _T("rb"));	cdimgLBA++;
+		FILE* h = fopen(cdimgTOC->Image, _T("rb"));	cdimgLBA++;
 
 		if (h)
 		{
@@ -589,7 +603,7 @@ static int cdimgPlayLBA(int LBA)
 
 	bprintf(PRINT_IMPORTANT, _T("    playing track %2i\n"), cdimgTrack + 1);
 
-	cdimgFile = _wfopen(cdimgTOC->Image, _T("rb"));
+	cdimgFile = fopen(cdimgTOC->Image, _T("rb"));
 	if (cdimgFile == NULL)
 		return 1;
 
@@ -631,7 +645,7 @@ static int cdimgLoadSector(int LBA, char* pBuffer)
 		{
 			cdimgStop();
 
-			cdimgFile = _wfopen(cdimgTOC->Image, _T("rb"));
+			cdimgFile = fopen(cdimgTOC->Image, _T("rb"));
 			if (cdimgFile == NULL)
 				return 0;
 		}

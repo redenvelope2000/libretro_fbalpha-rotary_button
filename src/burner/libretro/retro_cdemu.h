@@ -2,8 +2,6 @@
 #define __RETRO_CDEMU__
 
 #include "burner.h"
-//#include "ioapi.h"
-//#include <file/file_path.h>
 
 TCHAR* GetIsoPath();
 INT32 CDEmuInit();
