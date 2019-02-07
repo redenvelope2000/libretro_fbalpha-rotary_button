@@ -3855,6 +3855,8 @@ static INT32 neogeoReset()
 			memset(NeoCDOBJBankUpdate, 0, sizeof(NeoCDOBJBankUpdate));
 
 			LC8951Reset();
+
+			CDEmuStop();
 		}
 
 		ZetSetBUSREQLine(0);
