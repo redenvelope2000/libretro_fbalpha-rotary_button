@@ -326,7 +326,7 @@ static int cdimgParseCueFile()
 	}
 
 	while (1) {
-		if (_fgetts(szLine, sizeof(szLine), h) == NULL) {
+		if (fgets(szLine, sizeof(szLine), h) == NULL) {
 			break;
 		}
 

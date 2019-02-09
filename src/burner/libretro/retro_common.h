@@ -5,6 +5,18 @@
 #include <vector>
 #include "burner.h"
 
+#define RETRO_GAME_TYPE_CV		1
+#define RETRO_GAME_TYPE_GG		2
+#define RETRO_GAME_TYPE_MD		3
+#define RETRO_GAME_TYPE_MSX		4
+#define RETRO_GAME_TYPE_PCE		5
+#define RETRO_GAME_TYPE_SG1K	6
+#define RETRO_GAME_TYPE_SGX		7
+#define RETRO_GAME_TYPE_SMS		8
+#define RETRO_GAME_TYPE_TG		9
+#define RETRO_GAME_TYPE_SPEC	10
+#define RETRO_GAME_TYPE_NEOCD	11
+
 struct macro_core_option_value
 {
 	unsigned retro_device_id;
@@ -80,6 +92,7 @@ extern UINT8 NeoSystem;
 extern INT32 g_audio_samplerate;
 extern UINT8 *diag_input;
 extern neo_geo_modes g_opt_neo_geo_mode;
+extern unsigned nGameType;
 
 char* str_char_replace(char* destination, char c_find, char c_replace);
 void set_neo_system_bios();

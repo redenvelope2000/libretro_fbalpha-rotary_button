@@ -637,6 +637,10 @@ endif
 %.o: %.c
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 
+# Disabling file_stream_transform for this file, it's messing up cdda playback
+src/burner/libretro/retro_cdemu.o: src/burner/libretro/retro_cdemu.cpp
+	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS) -DSKIP_STDIO_REDEFINES
+
 %.o: %.cpp
 	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS)
 

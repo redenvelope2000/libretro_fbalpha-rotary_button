@@ -61,7 +61,7 @@ INT32 (__cdecl *bprintf) (INT32 nStatus, TCHAR* szFormat, ...) = libretro_bprint
 
 int kNetGame = 0;
 INT32 nReplayStatus = 0;
-static unsigned nGameType = 0;
+unsigned nGameType = 0;
 
 static unsigned int BurnDrvGetIndexByName(const char* name);
 char* DecorateGameName(UINT32 nBurnDrv);
@@ -103,18 +103,6 @@ INT32 nFireButtons = 0;
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 void retro_set_audio_sample(retro_audio_sample_t) {}
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
-
-#define RETRO_GAME_TYPE_CV		1
-#define RETRO_GAME_TYPE_GG		2
-#define RETRO_GAME_TYPE_MD		3
-#define RETRO_GAME_TYPE_MSX		4
-#define RETRO_GAME_TYPE_PCE		5
-#define RETRO_GAME_TYPE_SG1K	6
-#define RETRO_GAME_TYPE_SGX		7
-#define RETRO_GAME_TYPE_SMS		8
-#define RETRO_GAME_TYPE_TG		9
-#define RETRO_GAME_TYPE_SPEC	10
-#define RETRO_GAME_TYPE_NEOCD	11
 
 void retro_set_environment(retro_environment_t cb)
 {

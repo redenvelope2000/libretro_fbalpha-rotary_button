@@ -234,7 +234,8 @@ void set_environment()
 	vars_systems.push_back(&var_fba_frameskip);
 	vars_systems.push_back(&var_fba_cpu_speed_adjust);
 	vars_systems.push_back(&var_fba_hiscores);
-	vars_systems.push_back(&var_fba_samplerate);
+	if (nGameType != RETRO_GAME_TYPE_NEOCD)
+		vars_systems.push_back(&var_fba_samplerate);
 	vars_systems.push_back(&var_fba_sample_interpolation);
 	vars_systems.push_back(&var_fba_fm_interpolation);
 	vars_systems.push_back(&var_fba_analog_speed);
@@ -478,19 +479,27 @@ void check_variables(void)
 			EnableHiscores = false;
 	}
 
-	var.key = var_fba_samplerate.key;
-	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	if (nGameType != RETRO_GAME_TYPE_NEOCD)
 	{
-		if (strcmp(var.value, "48000") == 0)
-			g_audio_samplerate = 48000;
-		else if (strcmp(var.value, "44100") == 0)
-			g_audio_samplerate = 44100;
-		else if (strcmp(var.value, "22050") == 0)
-			g_audio_samplerate = 22050;
-		else if (strcmp(var.value, "11025") == 0)
-			g_audio_samplerate = 11025;
-		else
-			g_audio_samplerate = 48000;
+		var.key = var_fba_samplerate.key;
+		if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+		{
+			if (strcmp(var.value, "48000") == 0)
+				g_audio_samplerate = 48000;
+			else if (strcmp(var.value, "44100") == 0)
+				g_audio_samplerate = 44100;
+			else if (strcmp(var.value, "22050") == 0)
+				g_audio_samplerate = 22050;
+			else if (strcmp(var.value, "11025") == 0)
+				g_audio_samplerate = 11025;
+			else
+				g_audio_samplerate = 48000;
+		}
+	}
+	else
+	{
+		// src/burn/drv/neogeo/neo_run.cpp is mentioning issues with ngcd cdda playback if samplerate isn't 44100
+		g_audio_samplerate = 44100;
 	}
 
 	var.key = var_fba_sample_interpolation.key;
