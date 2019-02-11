@@ -17,6 +17,7 @@ static UINT8 DrvInputPort2r[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 static UINT8 DrvDip[3]        = {0, 0, 0};
 static UINT8 DrvInput[3]      = {0x00, 0x00, 0x00};
 static UINT8 DrvReset         = 0;
+static UINT8 PrevInValue;
 
 static UINT8 *Mem                 = NULL;
 static UINT8 *MemEnd              = NULL;
@@ -49,6 +50,7 @@ static UINT8 DrvStarControl[6];
 static UINT32 DrvStarScrollX;
 static UINT32 DrvStarScrollY;
 
+/*
 static UINT8 IOChipCustomCommand;
 static UINT8 IOChipCPU1FireIRQ;
 static UINT8 IOChipMode;
@@ -56,13 +58,20 @@ static UINT8 IOChipCredits;
 static UINT8 IOChipCoinPerCredit;
 static UINT8 IOChipCreditPerCoin;
 static UINT8 IOChipCustom[16];
-static UINT8 PrevInValue;
-// Namco54XX Stuff
-/*
-static INT32 Fetch = 0;
-static INT32 FetchMode = 0;
-static UINT8 Config1[4], Config2[4], Config3[5];
 */
+
+struct IOChip_Def
+{
+   UINT8 CustomCommand;
+   UINT8 CPU1FireIRQ;
+   UINT8 Mode;
+   UINT8 Credits;
+   UINT8 CoinPerCredit;
+   UINT8 CreditPerCoin;
+   UINT8 Buffer[16];
+};
+
+static struct IOChip_Def ioChip = { 0 };
 
 struct NAMCO54XX_Def
 {
@@ -130,14 +139,14 @@ static INT32 DrvDoReset()
 	DrvStarScrollX = 0;
 	DrvStarScrollY = 0;
 	
-	IOChipCustomCommand = 0;
-	IOChipCPU1FireIRQ = 0;
-	IOChipMode = 0;
-	IOChipCredits = 0;
-	IOChipCoinPerCredit = 0;
-	IOChipCreditPerCoin = 0;
+	ioChip.CustomCommand = 0;
+	ioChip.CPU1FireIRQ = 0;
+	ioChip.Mode = 0;
+	ioChip.Credits = 0;
+	ioChip.CoinPerCredit = 0;
+	ioChip.CreditPerCoin = 0;
 	for (INT32 i = 0; i < 16; i++) {
-		IOChipCustom[i] = 0;
+		ioChip.Buffer[i] = 0;
 	}
 	PrevInValue = 0xff;
 
@@ -294,7 +303,7 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 		case 0x700f: {
 			INT32 Offset = a - 0x7000;
 			
-			switch (IOChipCustomCommand) {
+			switch (ioChip.CustomCommand) {
 				case 0xd2: {// digdug dips
 					//if (digdugmode && ((Offset == 0) || (Offset == 1)))
                if ( (NAMCO_DIGDUG == machine.Game) && 
@@ -304,7 +313,7 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 				}
 				case 0x71:
 				case 0xb1: {
-					if ((IOChipCustomCommand == 0xb1) && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
+					if ((ioChip.CustomCommand == 0xb1) && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
                {
 						if (Offset <= 2) // status
 							return 0;
@@ -312,7 +321,7 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 							return 0xff;
 					}
 					if (Offset == 0) {
-						if (IOChipMode) {
+						if (ioChip.Mode) {
 							return DrvInput[0];
 						} else {
 							UINT8 In;
@@ -320,47 +329,47 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 							
 							In = DrvInput[0];
 							if (In != PrevInValue) {
-								if (IOChipCoinPerCredit > 0) {
+								if (ioChip.CoinPerCredit > 0) {
 									//if (((((In & 0x70) != 0x70) && !digdugmode) || (((In & 0x01) == 0) && digdugmode)) && (IOChipCredits < 99)) {
                            if ( ( ( ((In & 0x70) != 0x70) && (NAMCO_GALAGA == machine.Game) )   || 
                                   ( ((In & 0x01) == 0   ) && (NAMCO_DIGDUG == machine.Game) ) ) && 
-                                (IOChipCredits < 99) ) 
+                                (ioChip.Credits < 99) ) 
                            {
 										CoinInserted++;
-										if (CoinInserted >= IOChipCoinPerCredit) {
-											IOChipCredits += IOChipCreditPerCoin;
+										if (CoinInserted >= ioChip.CoinPerCredit) {
+											ioChip.Credits += ioChip.CreditPerCoin;
 											CoinInserted = 0;
 										}
 									}
 								} else {
-									IOChipCredits = 2;
+									ioChip.Credits = 2;
 								}
 								
 								//if (((In & 0x04) == 0 && !digdugmode) || ((In & 0x10) == 0 && digdugmode)) {
                         if ( ( ((In & 0x04) == 0) && (NAMCO_GALAGA == machine.Game) ) || 
                              ( ((In & 0x10) == 0) && (NAMCO_DIGDUG == machine.Game) ) ) 
                         {
-									if (IOChipCredits >= 1) IOChipCredits--;
+									if (ioChip.Credits >= 1) ioChip.Credits--;
 								}
 							
 								//if (((In & 0x08) == 0 && !digdugmode) || ((In & 0x20) == 0 && digdugmode)) {
                         if ( ( ((In & 0x08) == 0) && (NAMCO_GALAGA == machine.Game) ) ||
                              ( ((In & 0x20) == 0) && (NAMCO_DIGDUG == machine.Game) ) ) 
                         {
-									if (IOChipCredits >= 2) IOChipCredits -= 2;
+									if (ioChip.Credits >= 2) ioChip.Credits -= 2;
 								}
 							}
 							
 							PrevInValue = In;
 							
-							return (IOChipCredits / 10) * 16 + IOChipCredits % 10;
+							return (ioChip.Credits / 10) * 16 + ioChip.Credits % 10;
 						}
 					}
 					
 					if (Offset == 1 || Offset == 2) {
 						INT32 jp = DrvInput[Offset];
 
-						if (IOChipMode == 0 && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
+						if (ioChip.Mode == 0 && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
                   {
 							/* check directions, according to the following 8-position rule */
 							/*         0          */
@@ -401,7 +410,7 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 		}
 		
 		case 0x7100: {
-			return IOChipCustomCommand;
+			return ioChip.CustomCommand;
 		}
 		case 0xa000:
 		case 0xa001:
@@ -513,23 +522,23 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		case 0x700e:
 		case 0x700f: {
 			INT32 Offset = a - 0x7000;
-			IOChipCustom[Offset] = d;
+			ioChip.Buffer[Offset] = d;
 			Namco54XXWrite(d);
 			
-			switch (IOChipCustomCommand) {
+			switch (ioChip.CustomCommand) {
 				case 0xe1: {
 					if (Offset == 7 && (NAMCO_GALAGA == machine.Game) ) // !digdugmode) { // galaga
                {
-						IOChipCoinPerCredit = IOChipCustom[1];
-						IOChipCreditPerCoin = IOChipCustom[2];
+						ioChip.CoinPerCredit = ioChip.Buffer[1];
+						ioChip.CreditPerCoin = ioChip.Buffer[2];
 					}
 					break;
 				}
 				case 0xc1: {
 					if (Offset == 8 && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) { // digdug
                {
-						IOChipCoinPerCredit = IOChipCustom[2] & 0x0f;
-						IOChipCreditPerCoin = IOChipCustom[3] & 0x0f;
+						ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
+						ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
 					}
 					break;
 				}
@@ -539,27 +548,27 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		}
 	
 		case 0x7100: {
-			IOChipCustomCommand = d;
-			IOChipCPU1FireIRQ = 1;
+			ioChip.CustomCommand = d;
+			ioChip.CPU1FireIRQ = 1;
 			
-			switch (IOChipCustomCommand) {
+			switch (ioChip.CustomCommand) {
 				case 0x10: {
-					IOChipCPU1FireIRQ = 0;
+					ioChip.CPU1FireIRQ = 0;
 					return;
 				}
 				
 				case 0xa1: {
-					IOChipMode = 1;
+					ioChip.Mode = 1;
 					return;
 				}
 				case 0xb1: {
-					IOChipCredits = 0;
+					ioChip.Credits = 0;
 					return;
 				}
 				case 0xc1:
 				case 0xe1: {
-					IOChipCredits = 0;
-					IOChipMode = 0;
+					ioChip.Credits = 0;
+					ioChip.Mode = 0;
 					return;
 				}
 			}
@@ -663,14 +672,14 @@ static INT32 DrvExit()
 	DrvStarScrollX = 0;
 	DrvStarScrollY = 0;
 	
-	IOChipCustomCommand = 0;
-	IOChipCPU1FireIRQ = 0;
-	IOChipMode = 0;
-	IOChipCredits = 0;
-	IOChipCoinPerCredit = 0;
-	IOChipCreditPerCoin = 0;
+	ioChip.CustomCommand = 0;
+	ioChip.CPU1FireIRQ = 0;
+	ioChip.Mode = 0;
+	ioChip.Credits = 0;
+	ioChip.CoinPerCredit = 0;
+	ioChip.CreditPerCoin = 0;
 	for (INT32 i = 0; i < 16; i++) {
-		IOChipCustom[i] = 0;
+		ioChip.Buffer[i] = 0;
 	}
 	machine.Game = NAMCO_GALAGA; // digdugmode = 0;
 
@@ -752,7 +761,7 @@ static INT32 DrvFrame()
 		if (i == (nInterleave-1) && DrvCPU1FireIRQ) {
 			ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		}
-		if ((i % 10==9) && IOChipCPU1FireIRQ) {
+		if ((i % 10==9) && ioChip.CPU1FireIRQ) {
 			ZetNmi();
 		}
 		ZetClose();
@@ -845,15 +854,15 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(DrvFlipScreen);
 		SCAN_VAR(DrvStarScrollX);
 		SCAN_VAR(DrvStarScrollY);
-		SCAN_VAR(IOChipCustomCommand);
-		SCAN_VAR(IOChipCPU1FireIRQ);
-		SCAN_VAR(IOChipMode);
-		SCAN_VAR(IOChipCredits);
-		SCAN_VAR(IOChipCoinPerCredit);
-		SCAN_VAR(IOChipCreditPerCoin);
+		SCAN_VAR(ioChip.CustomCommand);
+		SCAN_VAR(ioChip.CPU1FireIRQ);
+		SCAN_VAR(ioChip.Mode);
+		SCAN_VAR(ioChip.Credits);
+		SCAN_VAR(ioChip.CoinPerCredit);
+		SCAN_VAR(ioChip.CreditPerCoin);
 		SCAN_VAR(PrevInValue);
 		SCAN_VAR(DrvStarControl);
-		SCAN_VAR(IOChipCustom);
+		SCAN_VAR(ioChip.Buffer);
 
 		SCAN_VAR(namco54xx.Fetch);
 		SCAN_VAR(namco54xx.FetchMode);
