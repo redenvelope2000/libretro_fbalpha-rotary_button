@@ -63,8 +63,20 @@ static INT32 FetchMode = 0;
 static UINT8 Config1[4], Config2[4], Config3[5];
 // Dig Dug playfield stuff
 static INT32 playfield, alphacolor, playenable, playcolor;
-static INT32 digdugmode;
-static UINT8 bHasSamples = 0;
+
+enum GAMES_ON_MACHINE
+{
+   NAMCO_GALAGA = 0,
+   NAMCO_DIGDUG
+};
+
+struct MachineDef
+{
+   INT32 Game;
+   UINT8 bHasSamples;
+};
+
+static struct MachineDef machine = { 0 };
 
 static INT32 DrvButtonHold[2] = { 0, 0 }; // Fire button must be held for 1 frame
 static INT32 DrvButtonHeld[2] = { 0, 0 }; // otherwise Dig Dug acts strangely.
@@ -225,7 +237,8 @@ static void Namco54XXWrite(INT32 Data)
 
 static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 {
-	if (a >= 0xb800 && a <= 0xb83f && digdugmode) { // EAROM Read
+	if ( (a >= 0xb800) && (a <= 0xb83f) && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) { // EAROM Read
+   {
 		return earom_read(a - 0xb800);
 	}
 
@@ -265,13 +278,16 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 			
 			switch (IOChipCustomCommand) {
 				case 0xd2: {// digdug dips
-					if (digdugmode && ((Offset == 0) || (Offset == 1)))
+					//if (digdugmode && ((Offset == 0) || (Offset == 1)))
+               if ( (NAMCO_DIGDUG == machine.Game) && 
+                    ( (0 == Offset) || (1 == Offset) ) )
 						return DrvDip[Offset];
 					break;
 				}
 				case 0x71:
 				case 0xb1: {
-					if (IOChipCustomCommand == 0xb1 && digdugmode) {
+					if ((IOChipCustomCommand == 0xb1) && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
+               {
 						if (Offset <= 2) // status
 							return 0;
 						else
@@ -287,7 +303,11 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 							In = DrvInput[0];
 							if (In != PrevInValue) {
 								if (IOChipCoinPerCredit > 0) {
-									if (((((In & 0x70) != 0x70) && !digdugmode) || (((In & 0x01) == 0) && digdugmode)) && (IOChipCredits < 99)) {
+									//if (((((In & 0x70) != 0x70) && !digdugmode) || (((In & 0x01) == 0) && digdugmode)) && (IOChipCredits < 99)) {
+                           if ( ( ( ((In & 0x70) != 0x70) && (NAMCO_GALAGA == machine.Game) )   || 
+                                  ( ((In & 0x01) == 0   ) && (NAMCO_DIGDUG == machine.Game) ) ) && 
+                                (IOChipCredits < 99) ) 
+                           {
 										CoinInserted++;
 										if (CoinInserted >= IOChipCoinPerCredit) {
 											IOChipCredits += IOChipCreditPerCoin;
@@ -298,11 +318,17 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 									IOChipCredits = 2;
 								}
 								
-								if (((In & 0x04) == 0 && !digdugmode) || ((In & 0x10) == 0 && digdugmode)) {
+								//if (((In & 0x04) == 0 && !digdugmode) || ((In & 0x10) == 0 && digdugmode)) {
+                        if ( ( ((In & 0x04) == 0) && (NAMCO_GALAGA == machine.Game) ) || 
+                             ( ((In & 0x10) == 0) && (NAMCO_DIGDUG == machine.Game) ) ) 
+                        {
 									if (IOChipCredits >= 1) IOChipCredits--;
 								}
 							
-								if (((In & 0x08) == 0 && !digdugmode) || ((In & 0x20) == 0 && digdugmode)) {
+								//if (((In & 0x08) == 0 && !digdugmode) || ((In & 0x20) == 0 && digdugmode)) {
+                        if ( ( ((In & 0x08) == 0) && (NAMCO_GALAGA == machine.Game) ) ||
+                             ( ((In & 0x20) == 0) && (NAMCO_DIGDUG == machine.Game) ) ) 
+                        {
 									if (IOChipCredits >= 2) IOChipCredits -= 2;
 								}
 							}
@@ -316,7 +342,8 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 					if (Offset == 1 || Offset == 2) {
 						INT32 jp = DrvInput[Offset];
 
-						if (IOChipMode == 0 && digdugmode) {
+						if (IOChipMode == 0 && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
+                  {
 							/* check directions, according to the following 8-position rule */
 							/*         0          */
 							/*        7 1         */
@@ -381,7 +408,8 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		return;
 	}
 
-	if (a >= 0xb800 && a <= 0xb83f && digdugmode) { // EAROM Write
+	if (a >= 0xb800 && a <= 0xb83f && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) { // EAROM Write
+   {
 		earom_write(a - 0xb800, d);
 		return;
 	}
@@ -390,7 +418,7 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 
 	switch (a) {
 		case 0xb840:
-			if (digdugmode)
+			if (NAMCO_DIGDUG == machine.Game) // digdugmode)
 				earom_ctrl_write(0xb840, d);
 			return;
 
@@ -472,14 +500,16 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 			
 			switch (IOChipCustomCommand) {
 				case 0xe1: {
-					if (Offset == 7 && !digdugmode) { // galaga
+					if (Offset == 7 && (NAMCO_GALAGA == machine.Game) ) // !digdugmode) { // galaga
+               {
 						IOChipCoinPerCredit = IOChipCustom[1];
 						IOChipCreditPerCoin = IOChipCustom[2];
 					}
 					break;
 				}
 				case 0xc1: {
-					if (Offset == 8 && digdugmode) { // digdug
+					if (Offset == 8 && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) { // digdug
+               {
 						IOChipCoinPerCredit = IOChipCustom[2] & 0x0f;
 						IOChipCreditPerCoin = IOChipCustom[3] & 0x0f;
 					}
@@ -582,7 +612,7 @@ static void MachineInit()
 	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
 	BurnSampleInit(1);
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
-	bHasSamples = BurnSampleGetStatus(0) != -1;
+	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
 
 	GenericTilesInit();
 
@@ -624,7 +654,7 @@ static INT32 DrvExit()
 	for (INT32 i = 0; i < 16; i++) {
 		IOChipCustom[i] = 0;
 	}
-	digdugmode = 0;
+	machine.Game = NAMCO_GALAGA; // digdugmode = 0;
 
 	return 0;
 }
@@ -673,7 +703,7 @@ static void DrvMakeInputs()
 		DrvInput[2] -= (DrvInputPort2r[i] & 1) << i;
 	}
 
-	if (!digdugmode) // galaga only - service mode
+	if (NAMCO_GALAGA == machine.Game) // !digdugmode) // galaga only - service mode
 		DrvInput[0] = (DrvInput[0] & ~0x80) | (DrvDip[0] & 0x80);
 }
 
@@ -736,7 +766,7 @@ static INT32 DrvFrame()
 			
 			if (nSegmentLength) {
 				NamcoSoundUpdate(pSoundBuf, nSegmentLength);
-				if (bHasSamples)
+				if (machine.bHasSamples)
 					BurnSampleRender(pSoundBuf, nSegmentLength);
 			}
 			nSoundBufferPos += nSegmentLength;
@@ -749,7 +779,7 @@ static INT32 DrvFrame()
 
 		if (nSegmentLength) {
 			NamcoSoundUpdate(pSoundBuf, nSegmentLength);
-			if (bHasSamples)
+			if (machine.bHasSamples)
 				BurnSampleRender(pSoundBuf, nSegmentLength);
 		}
 	}
@@ -757,7 +787,8 @@ static INT32 DrvFrame()
 	if (pBurnDraw)
 		BurnDrvRedraw();
 
-	if (!digdugmode) {
+	if (NAMCO_GALAGA == machine.Game) // !digdugmode) 
+   {
 		static const INT32 Speeds[8] = { -1, -2, -3, 0, 3, 2, 1, 0 };
 
 		DrvStarScrollX += Speeds[DrvStarControl[0] + (DrvStarControl[1] * 2) + (DrvStarControl[2] * 4)];
@@ -817,7 +848,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(playcolor);
 	}
 
-	if (digdugmode)
+	if (NAMCO_DIGDUG == machine.Game) //digdugmode)
 		earom_scan(nAction, pnMin); // here.
 
 	return 0;
@@ -1896,7 +1927,8 @@ static INT32 DigdugInit()
 	nRet = BurnLoadRom(NamcoSoundProm + 0x0100, 18, 1); if (nRet != 0) return 1;
 	
 	BurnFree(DrvTempRom);
-	digdugmode = 1;
+	//digdugmode = 1;
+   machine.Game = NAMCO_DIGDUG;
 
 	MachineInit();
 
