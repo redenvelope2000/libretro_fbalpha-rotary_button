@@ -58,9 +58,23 @@ static UINT8 IOChipCreditPerCoin;
 static UINT8 IOChipCustom[16];
 static UINT8 PrevInValue;
 // Namco54XX Stuff
+/*
 static INT32 Fetch = 0;
 static INT32 FetchMode = 0;
 static UINT8 Config1[4], Config2[4], Config3[5];
+*/
+
+struct NAMCO54XX_Def
+{
+   INT32 Fetch;
+   INT32 FetchMode;
+   UINT8 Config1[4];
+   UINT8 Config2[4]; 
+   UINT8 Config3[5];
+};
+
+static struct NAMCO54XX_Def namco54xx = { 0 };
+
 // Dig Dug playfield stuff
 static INT32 playfield, alphacolor, playenable, playcolor;
 
@@ -127,11 +141,15 @@ static INT32 DrvDoReset()
 	}
 	PrevInValue = 0xff;
 
+   /*
 	Fetch = 0;
 	FetchMode = 0;
 	memset(&Config1, 0, sizeof(Config1));
 	memset(&Config2, 0, sizeof(Config2));
 	memset(&Config3, 0, sizeof(Config3));
+   */
+   memset(&namco54xx, 0, sizeof(namco54xx));
+   
 	playfield = 0;
 	alphacolor = 0;
 	playenable = 0;
@@ -147,19 +165,19 @@ static INT32 DrvDoReset()
 
 static void Namco54XXWrite(INT32 Data)
 {
-	if (Fetch) {
-		switch (FetchMode) {
+	if (namco54xx.Fetch) {
+		switch (namco54xx.FetchMode) {
 			default:
 			case 1:
-				Config1[4 - (Fetch--)] = Data;
+				namco54xx.Config1[4 - (namco54xx.Fetch--)] = Data;
 				break;
 
 			case 2:
-				Config2[4 - (Fetch--)] = Data;
+				namco54xx.Config2[4 - (namco54xx.Fetch--)] = Data;
 				break;
 
 			case 3:
-				Config3[5 - (Fetch--)] = Data;
+				namco54xx.Config3[5 - (namco54xx.Fetch--)] = Data;
 				break;
 		}
 	} else {			
@@ -168,52 +186,52 @@ static void Namco54XXWrite(INT32 Data)
 				break;
 
 			case 0x10:	// output sound on pins 4-7 only
-				if (memcmp(Config1,"\x40\x00\x02\xdf",4) == 0)
+				if (memcmp(namco54xx.Config1,"\x40\x00\x02\xdf",4) == 0)
 					// bosco
 					// galaga
 					// xevious
 					BurnSamplePlay(0);
-//				else if (memcmp(Config1,"\x10\x00\x80\xff",4) == 0)
+//				else if (memcmp(namco54xx.Config1,"\x10\x00\x80\xff",4) == 0)
 					// xevious
 //					sample_start(0, 1, 0);
-//				else if (memcmp(Config1,"\x80\x80\x01\xff",4) == 0)
+//				else if (memcmp(namco54xx.Config1,"\x80\x80\x01\xff",4) == 0)
 					// xevious
 //					sample_start(0, 2, 0);
 				break;
 
 			case 0x20:	// output sound on pins 8-11 only
-//				if (memcmp(Config2,"\x40\x40\x01\xff",4) == 0)
+//				if (memcmp(namco54xx.Config2,"\x40\x40\x01\xff",4) == 0)
 					// xevious
 //					sample_start(1, 3, 0);
 //					BurnSamplePlay(1);
-				/*else*/ if (memcmp(Config2,"\x30\x30\x03\xdf",4) == 0)
+				/*else*/ if (memcmp(namco54xx.Config2,"\x30\x30\x03\xdf",4) == 0)
 					// bosco
 					// galaga
 					BurnSamplePlay(1);
-//				else if (memcmp(Config2,"\x60\x30\x03\x66",4) == 0)
+//				else if (memcmp(namco54xx.Config2,"\x60\x30\x03\x66",4) == 0)
 					// polepos
 //					sample_start( 0, 0, 0 );
 				break;
 
 			case 0x30:
-				Fetch = 4;
-				FetchMode = 1;
+				namco54xx.Fetch = 4;
+				namco54xx.FetchMode = 1;
 				break;
 
 			case 0x40:
-				Fetch = 4;
-				FetchMode = 2;
+				namco54xx.Fetch = 4;
+				namco54xx.FetchMode = 2;
 				break;
 
 			case 0x50:	// output sound on pins 17-20 only
-//				if (memcmp(Config3,"\x08\x04\x21\x00\xf1",5) == 0)
+//				if (memcmp(namco54xx.Config3,"\x08\x04\x21\x00\xf1",5) == 0)
 					// bosco
 //					sample_start(2, 2, 0);
 				break;
 
 			case 0x60:
-				Fetch = 5;
-				FetchMode = 3;
+				namco54xx.Fetch = 5;
+				namco54xx.FetchMode = 3;
 				break;
 
 			case 0x70:
@@ -837,11 +855,11 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(DrvStarControl);
 		SCAN_VAR(IOChipCustom);
 
-		SCAN_VAR(Fetch);
-		SCAN_VAR(FetchMode);
-		SCAN_VAR(Config1);
-		SCAN_VAR(Config2);
-		SCAN_VAR(Config3);
+		SCAN_VAR(namco54xx.Fetch);
+		SCAN_VAR(namco54xx.FetchMode);
+		SCAN_VAR(namco54xx.Config1);
+		SCAN_VAR(namco54xx.Config2);
+		SCAN_VAR(namco54xx.Config3);
 		SCAN_VAR(playfield);
 		SCAN_VAR(alphacolor);
 		SCAN_VAR(playenable);
