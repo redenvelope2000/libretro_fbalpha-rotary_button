@@ -9,6 +9,14 @@
 #include "samples.h"
 #include "earom.h"
 
+static const INT32 Colour2Bit[4] = { 
+   0x00, 0x47, 0x97, 0xde 
+};
+static const INT32 Colour3Bit[8] = { 
+   0x00, 0x21, 0x47, 0x68,
+   0x97, 0xb8, 0xde, 0xff 
+};
+
 static UINT8 DrvInputPort0[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 static UINT8 DrvInputPort1[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 static UINT8 DrvInputPort2[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -25,23 +33,6 @@ static UINT8 *DrvGfx4             = NULL; // digdug playfield data
 static UINT8 *DrvDigdugChars      = NULL;
 static UINT8 *DrvTempRom          = NULL;
 static UINT32 *DrvPalette         = NULL;
-
-/*
-static UINT8 *Mem                 = NULL;
-static UINT8 *MemEnd              = NULL;
-static UINT8 *RamStart            = NULL;
-static UINT8 *RamEnd              = NULL;
-static UINT8 *DrvZ80Rom1          = NULL;
-static UINT8 *DrvZ80Rom2          = NULL;
-static UINT8 *DrvZ80Rom3          = NULL;
-static UINT8 *DrvVideoRam         = NULL;
-static UINT8 *DrvSharedRam1       = NULL;
-static UINT8 *DrvSharedRam2       = NULL;
-static UINT8 *DrvSharedRam3       = NULL;
-static UINT8 *DrvPromPalette      = NULL;
-static UINT8 *DrvPromCharLookup   = NULL;
-static UINT8 *DrvPromSpriteLookup = NULL;
-*/
 
 struct Memory_Def
 {
@@ -889,7 +880,8 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		*pnMin = 0x029737;
 	}
 
-	if (nAction & ACB_MEMORY_RAM) {
+	if (nAction & ACB_MEMORY_RAM) 
+   {
 		memset(&ba, 0, sizeof(ba));
 		ba.Data	  = memory.RAM.Start;
 		ba.nLen	  = memory.RAM.Size;
@@ -1536,23 +1528,25 @@ static void DrvRenderStars()
 
 static void DrvRenderTilemap()
 {
-	INT32 mx, my, Code, Colour, x, y, TileIndex, Row, Col;
+	INT32 TileIndex;
 
-	for (mx = 0; mx < 28; mx++) {
-		for (my = 0; my < 36; my++) {
-			Row = mx + 2;
-			Col = my - 2;
+	for (INT32 mx = 0; mx < 28; mx ++) 
+   {
+		for (INT32 my = 0; my < 36; my ++) 
+      {
+			INT32 Row = mx + 2;
+			INT32 Col = my - 2;
 			if (Col & 0x20) {
 				TileIndex = Row + ((Col & 0x1f) << 5);
 			} else {
 				TileIndex = Col + (Row << 5);
 			}
 			
-			Code   = memory.RAM.Video[TileIndex + 0x000] & 0x7f;
-			Colour = memory.RAM.Video[TileIndex + 0x400] & 0x3f;
+			INT32 Code   = memory.RAM.Video[TileIndex + 0x000] & 0x7f;
+			INT32 Colour = memory.RAM.Video[TileIndex + 0x400] & 0x3f;
 
-			y = 8 * mx;
-			x = 8 * my;
+			INT32 y = 8 * mx;
+			INT32 x = 8 * my;
 			
 			if (DrvFlipScreen) {
 				x = 280 - x;
@@ -1578,7 +1572,7 @@ static void DrvRenderTilemap()
 
 static void digdugchars()
 {
-	INT32 mx, my, Code, Colour, x, y, TileIndex, Row, Col;
+	INT32 TileIndex;
 	UINT8 *pf = DrvGfx4 + (playfield << 10);
 	UINT8 pfval;
 	UINT32 pfcolor = playcolor << 4;
@@ -1586,33 +1580,39 @@ static void digdugchars()
 	if (playenable != 0)
 		pf = NULL;
 
-	for (mx = 0; mx < 28; mx++) {
-		for (my = 0; my < 36; my++) {
-			Row = mx + 2;
-			Col = my - 2;
-			if (Col & 0x20) {
+	for (INT32 mx = 0; mx < 28; mx ++) 
+   {
+		for (INT32 my = 0; my < 36; my ++) 
+      {
+			INT32 Row = mx + 2;
+			INT32 Col = my - 2;
+			if (Col & 0x20) 
+         {
 				TileIndex = Row + ((Col & 0x1f) << 5);
 			} else {
 				TileIndex = Col + (Row << 5);
 			}
 
-			Code = memory.RAM.Video[TileIndex];
-			Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
+			INT32 Code = memory.RAM.Video[TileIndex];
+			INT32 Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
 			Code &= 0x7f;
 
-			y = 8 * mx;
-			x = 8 * my;
+			INT32 y = 8 * mx;
+			INT32 x = 8 * my;
 			
-			if (DrvFlipScreen) {
+			if (DrvFlipScreen) 
+         {
 				x = 280 - x;
 				y = 216 - y;
 			}
 
-			if (pf) {
+			if (pf) 
+         {
 				// Draw playfield / background
-				pfval = pf[TileIndex&0xfff];
+				pfval = pf[TileIndex & 0xfff];
 				INT32 pfColour = (pfval >> 4) + pfcolor;
-				if (x > 8 && x < 280 && y > 8 && y < 216) {
+				if (x > 8 && x < 280 && y > 8 && y < 216) 
+            {
 					if (DrvFlipScreen) {
 						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
 					} else {
@@ -1627,7 +1627,8 @@ static void digdugchars()
 				}
 			}
 
-			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) {
+			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
+         {
 				if (DrvFlipScreen) {
 					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
 				} else {
@@ -1655,60 +1656,76 @@ static void DrvRenderSprites()
 			{ 0, 1 },
 			{ 2, 3 }
 		};
-		INT32 Sprite = SpriteRam1[Offset + 0] & 0x7f;
-		INT32 Colour = SpriteRam1[Offset + 1] & 0x3f;
-		INT32 sx = SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
-		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
-		INT32 xFlip = (SpriteRam3[Offset + 0] & 0x01);
-		INT32 yFlip = (SpriteRam3[Offset + 0] & 0x02) >> 1;
-		INT32 xSize = (SpriteRam3[Offset + 0] & 0x04) >> 2;
-		INT32 ySize = (SpriteRam3[Offset + 0] & 0x08) >> 3;
-
+		INT32 Sprite =    SpriteRam1[Offset + 0] & 0x7f;
+		INT32 Colour =    SpriteRam1[Offset + 1] & 0x3f;
+		INT32 sx =        SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
+		INT32 sy = 256 -  SpriteRam2[Offset + 0] + 1;
+		INT32 xFlip =    (SpriteRam3[Offset + 0] & 0x01);
+		INT32 yFlip =    (SpriteRam3[Offset + 0] & 0x02) >> 1;
+		INT32 xSize =    (SpriteRam3[Offset + 0] & 0x04) >> 2;
+		INT32 ySize =    (SpriteRam3[Offset + 0] & 0x08) >> 3;
+      INT32 Orient =    SpriteRam3[Offset + 0] & 0x03;
 		sy -= 16 * ySize;
 		sy = (sy & 0xff) - 32;
 
-		if (DrvFlipScreen) {
+		if (DrvFlipScreen) 
+      {
 			xFlip = !xFlip;
 			yFlip = !yFlip;
+         Orient = 3 - Orient;
 		}
 
-		for (INT32 y = 0; y <= ySize; y++) {
-			for (INT32 x = 0; x <= xSize; x++) {
+		for (INT32 y = 0; y <= ySize; y ++) 
+      {
+			for (INT32 x = 0; x <= xSize; x ++) 
+         {
 				INT32 Code = Sprite + GfxOffset[y ^ (ySize * yFlip)][x ^ (xSize * xFlip)];
 				INT32 xPos = sx + 16 * x;
 				INT32 yPos = sy + 16 * y;
 
+            /*
 				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
 				if (xPos < -15 || yPos < -15) continue; // crash preventer
+            */
+            if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
+				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
 
-				if (xPos > 16 && xPos < 272 && yPos > 16 && yPos < 208) {
-					if (xFlip) {
-						if (yFlip) {
+				if ((xPos > 16) && (xPos < 272) && 
+                (yPos > 16) && (yPos < 208) ) 
+            {
+               switch (Orient)
+               {
+                  case 3:
 							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
+                     break;
+                  case 2:
 							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+                     break;
+                  case 0:
+                  default:
 							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					}
+                     break;
+               }
 				} else {
-					if (xFlip) {
-						if (yFlip) {
+               switch (Orient)
+               {
+                  case 3:
 							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
+                     break;
+                  case 2:
 							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+                     break;
+                  case 0:
+                  default:
 							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					}
+                     break;
+               }
 				}
 			}
 		}
@@ -1738,10 +1755,11 @@ static INT32 DrvDigdugDraw()
 
 static void DrvCalcPalette()
 {
-	INT32 i;
 	UINT32 Palette[96];
 	
-	for (i = 0; i < 32; i++) {
+	for (INT32 i = 0; i < 32; i ++) 
+   {
+      /*
 		INT32 bit0, bit1, bit2, r, g, b;
 		
 		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
@@ -1756,33 +1774,44 @@ static void DrvCalcPalette()
 		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
 		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
 		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		
+		*/
+      
+      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
+      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
+      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
+      
 		Palette[i] = BurnHighCol(r, g, b, 0);
 	}
 	
-	for (i = 0; i < 64; i++) {
-		INT32 bits, r, g, b;
-		static const INT32 map[4] = { 0x00, 0x47, 0x97, 0xde };
-		
-		bits = (i >> 0) & 0x03;
-		r = map[bits];
-		bits = (i >> 2) & 0x03;
-		g = map[bits];
-		bits = (i >> 4) & 0x03;
-		b = map[bits];
-		
+	for (INT32 i = 0; i < 64; i ++) 
+   {
+		/*
+		INT32 bits = (i >> 0) & 0x03;
+		INT32 r = map[bits];
+		bits =       (i >> 2) & 0x03;
+		INT32 g = map[bits];
+		bits =       (i >> 4) & 0x03;
+		INT32 b = map[bits];
+		*/
+      INT32 r = Colour2Bit[(i >> 0) & 0x03];
+      INT32 g = Colour2Bit[(i >> 2) & 0x03];
+      INT32 b = Colour2Bit[(i >> 4) & 0x03];
+      
 		Palette[32 + i] = BurnHighCol(r, g, b, 0);
 	}
 	
-	for (i = 0; i < 256; i++) {
-		DrvPalette[i] = Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
+	for (INT32 i = 0; i < 256; i ++) 
+   {
+		DrvPalette[i] =       Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
 	}
 	
-	for (i = 0; i < 256; i++) {
-		DrvPalette[256 + i] = Palette[memory.PROM.SpriteLookup[i] & 0x0f];
+	for (INT32 i = 0; i < 256; i ++) 
+   {
+		DrvPalette[256 + i] = Palette[  memory.PROM.SpriteLookup[i] & 0x0f];
 	}
 	
-	for (i = 0; i < 64; i++) {
+	for (INT32 i = 0; i < 64; i ++) 
+   {
 		DrvPalette[512 + i] = Palette[32 + i];
 	}
 
@@ -2025,42 +2054,53 @@ static INT32 DigdugInit()
 
 static void DrvCalcPaletteDigdug()
 {
-	INT32 i;
 	UINT32 Palette[96];
 	
-	for (i = 0; i < 32; i++) {
-		INT32 bit0, bit1, bit2, r, g, b;
+	for (INT32 i = 0; i < 32; i ++) 
+   {
+      /*
+		INT32 bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
+		INT32 bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
+		INT32 bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
+		INT32 r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+      */
+      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
 		
-		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
-		bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
-		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = (memory.PROM.Palette[i] >> 3) & 0x01;
-		bit1 = (memory.PROM.Palette[i] >> 4) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 5) & 0x01;
-		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = 0;
-		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
-		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+      /*
+      bit0 =       (memory.PROM.Palette[i] >> 3) & 0x01;
+		bit1 =       (memory.PROM.Palette[i] >> 4) & 0x01;
+		bit2 =       (memory.PROM.Palette[i] >> 5) & 0x01;
+		INT32 g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+      */
+      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
 		
+      /*
+      bit0 =       0;
+		bit1 =       (memory.PROM.Palette[i] >> 6) & 0x01;
+		bit2 =       (memory.PROM.Palette[i] >> 7) & 0x01;
+		INT32 b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		*/
+      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
+      
 		Palette[i] = BurnHighCol(r, g, b, 0);
 	}
 
 	/* characters - direct mapping */
-	for (i = 0; i < 16; i++)
+	for (INT32 i = 0; i < 16; i ++)
 	{
 		DrvPalette[i*2+0] = Palette[0];
 		DrvPalette[i*2+1] = Palette[i];
 	}
 
 	/* sprites */
-	for (i = 0; i < 0x100; i++) {
-		DrvPalette[0x200+i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
+	for (INT32 i = 0; i < 0x100; i ++) 
+   {
+		DrvPalette[0x200 + i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
 	}
 
 	/* bg_select */
-	for (i = 0; i < 0x100; i++) {
+	for (INT32 i = 0; i < 0x100; i ++) 
+   {
 		DrvPalette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
 	}
 }
@@ -2071,18 +2111,21 @@ static void digdug_Sprites()
 	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
 	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
 	
-	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
+	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
+   {
 		static const INT32 GfxOffset[2][2] = {
 			{ 0, 1 },
 			{ 2, 3 }
 		};
-		INT32 Sprite = SpriteRam1[Offset + 0];
-		INT32 Colour = SpriteRam1[Offset + 1] & 0x3f;
-		INT32 sx = SpriteRam2[Offset + 1] - 40 + 1;
+		INT32 Sprite =   SpriteRam1[Offset + 0];
+		INT32 Colour =   SpriteRam1[Offset + 1] & 0x3f;
+		INT32 sx =       SpriteRam2[Offset + 1] - 40 + 1;
 		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
-		INT32 xFlip = (SpriteRam3[Offset + 0] & 0x01);
-		INT32 yFlip = (SpriteRam3[Offset + 0] & 0x02) >> 1;
-		INT32 sSize = (Sprite & 0x80) >> 7;
+		INT32 xFlip =   (SpriteRam3[Offset + 0] & 0x01);
+		INT32 yFlip =   (SpriteRam3[Offset + 0] & 0x02) >> 1;
+      UINT32 Orient =  SpriteRam3[Offset + 0] & 0x03;
+		
+      INT32 sSize = (Sprite & 0x80) >> 7;
 
 		sy -= 16 * sSize;
 		sy = (sy & 0xff) - 32;
@@ -2090,57 +2133,70 @@ static void digdug_Sprites()
 		if (sSize)
 			Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
 
-		if (DrvFlipScreen) {
+		if (DrvFlipScreen) 
+      {
 			xFlip = !xFlip;
 			yFlip = !yFlip;
+         Orient = 3 - Orient;
 		}
 
-		for (INT32 y = 0; y <= sSize; y++) {
-			for (INT32 x = 0; x <= sSize; x++) {
+		for (INT32 y = 0; y <= sSize; y ++) 
+      {
+			for (INT32 x = 0; x <= sSize; x ++) 
+         {
 				INT32 Code = Sprite + GfxOffset[y ^ (sSize * yFlip)][x ^ (sSize * xFlip)];
 				INT32 xPos = (sx + 16 * x);
-				INT32 yPos = sy + 16 * y;
+				INT32 yPos =  sy + 16 * y;
 
-				if (xPos < 8) xPos += 0x100; // that's a wrap!
-				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
-				if (xPos < -15 || yPos < -15) continue; // crash preventer
+				if (xPos < 8) 
+               xPos += 0x100; // that's a wrap!
+				//if ((xPos >= nScreenWidth) || (yPos >= nScreenHeight)) continue;
+				//if ((xPos < -15) || (yPos < -15)) continue; // crash preventer
+				if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
+				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
 
-				if (xPos > 0 && xPos < 288-16 && yPos > 0 && yPos < 224-16) {
-					if (xFlip) {
-						if (yFlip) {
+				if ( ((xPos > 0) && (xPos < nScreenWidth-16)) && 
+                 ((yPos > 0) && (yPos < nScreenHeight-16)) ) 
+            {
+               switch (Orient)
+               {
+                  case 3:
 							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
+                     break;
+                  case 2:
 							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+                     break;
+                  case 0:
+                  default:
 							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					}
-				} else {
-					if (xFlip) {
-						if (yFlip) {
+                     break;
+               }
+				} else 
+            {
+               switch (Orient)
+               {
+                  case 3:
 							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
+                     break;
+                  case 2:
 							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+                     break;
+                  case 0:
+                  default:
 							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					}
+                     break;
+               }
 				}
 			}
 		}
 	}
 }
-
-
-
 
 /* === Common === */
 struct BurnDriver BurnDrvGalaga = {
