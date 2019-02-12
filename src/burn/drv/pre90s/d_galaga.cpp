@@ -29,14 +29,6 @@ static UINT8 PrevInValue;
 
 static UINT8 *DrvTempRom          = NULL;
 
-/*
-static UINT8 *DrvChars            = NULL;
-static UINT8 *DrvSprites          = NULL;
-static UINT8 *DrvGfx4             = NULL; // digdug playfield data
-static UINT8 *DrvDigdugChars      = NULL;
-static UINT32 *DrvPalette         = NULL;
-*/
-
 struct Graphics_Def
 {
    UINT8 *Chars;
@@ -86,7 +78,6 @@ static UINT8 DrvCPU2FireIRQ;
 static UINT8 DrvCPU3FireIRQ;
 static UINT8 DrvCPU2Halt;
 static UINT8 DrvCPU3Halt;
-static UINT8 DrvFlipScreen;
 
 struct Stars_Def
 {
@@ -130,10 +121,13 @@ enum GAMES_ON_MACHINE
    NAMCO_DIGDUG
 };
 
+//static UINT8 DrvFlipScreen;
+
 struct MachineDef
 {
    INT32 Game;
    UINT8 bHasSamples;
+   UINT8 FlipScreen;
 };
 
 static struct MachineDef machine = { 0 };
@@ -169,7 +163,7 @@ static INT32 DrvDoReset()
 	DrvCPU3FireIRQ = 0;
 	DrvCPU2Halt = 0;
 	DrvCPU3Halt = 0;
-	DrvFlipScreen = 0;
+	machine.FlipScreen = 0;
 	for (INT32 i = 0; i < 6; i++) {
 		stars.Control[i] = 0;
 	}
@@ -641,7 +635,7 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		}
 		
 		case 0xa007: {
-			DrvFlipScreen = d & 0x01;
+			machine.FlipScreen = d & 0x01;
 			return;
 		}
 		
@@ -716,7 +710,7 @@ static INT32 DrvExit()
 	DrvCPU3FireIRQ = 0;
 	DrvCPU2Halt = 0;
 	DrvCPU3Halt = 0;
-	DrvFlipScreen = 0;
+	machine.FlipScreen = 0;
 	for (INT32 i = 0; i < 6; i++) {
 		stars.Control[i] = 0;
 	}
@@ -906,7 +900,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(DrvCPU3FireIRQ);
 		SCAN_VAR(DrvCPU2Halt);
 		SCAN_VAR(DrvCPU3Halt);
-		SCAN_VAR(DrvFlipScreen);
+		SCAN_VAR(machine.FlipScreen);
 		SCAN_VAR(stars.ScrollX);
 		SCAN_VAR(stars.ScrollY);
 		SCAN_VAR(ioChip.CustomCommand);
@@ -1554,19 +1548,19 @@ static void DrvRenderTilemap()
 			INT32 y = 8 * mx;
 			INT32 x = 8 * my;
 			
-			if (DrvFlipScreen) {
+			if (machine.FlipScreen) {
 				x = 280 - x;
 				y = 216 - y;
 			}
 			
 			if (x > 8 && x < 280 && y > 8 && y < 216) {
-				if (DrvFlipScreen) {
+				if (machine.FlipScreen) {
 					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				} else {
 					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				}
 			} else {
-				if (DrvFlipScreen) {
+				if (machine.FlipScreen) {
 					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				} else {
 					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
@@ -1606,7 +1600,7 @@ static void digdugchars()
 			INT32 y = 8 * mx;
 			INT32 x = 8 * my;
 			
-			if (DrvFlipScreen) 
+			if (machine.FlipScreen) 
          {
 				x = 280 - x;
 				y = 216 - y;
@@ -1619,13 +1613,13 @@ static void digdugchars()
 				INT32 pfColour = (pfval >> 4) + pfcolor;
 				if (x > 8 && x < 280 && y > 8 && y < 216) 
             {
-					if (DrvFlipScreen) {
+					if (machine.FlipScreen) {
 						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
 					} else {
 						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
 					}
 				} else {
-					if (DrvFlipScreen) {
+					if (machine.FlipScreen) {
 						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
 					} else {
 						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
@@ -1635,13 +1629,13 @@ static void digdugchars()
 
 			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
          {
-				if (DrvFlipScreen) {
+				if (machine.FlipScreen) {
 					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				} else {
 					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				}
 			} else {
-				if (DrvFlipScreen) {
+				if (machine.FlipScreen) {
 					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				} else {
 					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
@@ -1674,7 +1668,7 @@ static void DrvRenderSprites()
 		sy -= 16 * ySize;
 		sy = (sy & 0xff) - 32;
 
-		if (DrvFlipScreen) 
+		if (machine.FlipScreen) 
       {
 			xFlip = !xFlip;
 			yFlip = !yFlip;
@@ -2139,7 +2133,7 @@ static void digdug_Sprites()
 		if (sSize)
 			Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
 
-		if (DrvFlipScreen) 
+		if (machine.FlipScreen) 
       {
 			xFlip = !xFlip;
 			yFlip = !yFlip;
