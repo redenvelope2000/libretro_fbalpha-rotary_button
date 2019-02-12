@@ -19,6 +19,14 @@ static UINT8 DrvInput[3]      = {0x00, 0x00, 0x00};
 static UINT8 DrvReset         = 0;
 static UINT8 PrevInValue;
 
+static UINT8 *DrvChars            = NULL;
+static UINT8 *DrvSprites          = NULL;
+static UINT8 *DrvGfx4             = NULL; // digdug playfield data
+static UINT8 *DrvDigdugChars      = NULL;
+static UINT8 *DrvTempRom          = NULL;
+static UINT32 *DrvPalette         = NULL;
+
+/*
 static UINT8 *Mem                 = NULL;
 static UINT8 *MemEnd              = NULL;
 static UINT8 *RamStart            = NULL;
@@ -33,12 +41,40 @@ static UINT8 *DrvSharedRam3       = NULL;
 static UINT8 *DrvPromPalette      = NULL;
 static UINT8 *DrvPromCharLookup   = NULL;
 static UINT8 *DrvPromSpriteLookup = NULL;
-static UINT8 *DrvChars            = NULL;
-static UINT8 *DrvSprites          = NULL;
-static UINT8 *DrvGfx4             = NULL; // digdug playfield data
-static UINT8 *DrvDigdugChars      = NULL;
-static UINT8 *DrvTempRom          = NULL;
-static UINT32 *DrvPalette         = NULL;
+*/
+
+struct Memory_Def
+{
+   struct
+   {
+      UINT8  *Start;
+      UINT32 Size;
+   } All;
+   struct
+   {
+      UINT8 *Start;
+      UINT32 Size;
+      UINT8 *Video;
+      UINT8 *Shared1;
+      UINT8 *Shared2;
+      UINT8 *Shared3;
+   } RAM;
+   struct
+   {
+      UINT8 *Rom1;
+      UINT8 *Rom2;
+      UINT8 *Rom3;
+   } Z80;
+   struct
+   {
+      UINT8 *Palette;
+      UINT8 *CharLookup;
+      UINT8 *SpriteLookup;
+      UINT8 *Sound;
+   } PROM;
+};
+
+static struct Memory_Def memory;
 
 static UINT8 DrvCPU1FireIRQ;
 static UINT8 DrvCPU2FireIRQ;
@@ -624,33 +660,33 @@ static void MachineInit()
 	ZetOpen(0);
 	ZetSetReadHandler(GalagaZ80ProgRead);
 	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(DrvZ80Rom1,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(DrvVideoRam,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam3, 0x9800, 0x9bff, MAP_RAM);
+	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
 	ZetClose();
 	
 	ZetInit(1);
 	ZetOpen(1);
 	ZetSetReadHandler(GalagaZ80ProgRead);
 	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(DrvZ80Rom2,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(DrvVideoRam,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam3, 0x9800, 0x9bff, MAP_RAM);
+	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
 	ZetClose();
 	
 	ZetInit(2);
 	ZetOpen(2);
 	ZetSetReadHandler(GalagaZ80ProgRead);
 	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(DrvZ80Rom3,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(DrvVideoRam,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam3, 0x9800, 0x9bff, MAP_RAM);
+	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
 	ZetClose();
 	
 	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
@@ -676,7 +712,7 @@ static INT32 DrvExit()
 
 	earom_exit();
 
-	BurnFree(Mem);
+	BurnFree(memory.All.Start);
 	
 	DrvCPU1FireIRQ = 0;
 	DrvCPU2FireIRQ = 0;
@@ -855,8 +891,8 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 
 	if (nAction & ACB_MEMORY_RAM) {
 		memset(&ba, 0, sizeof(ba));
-		ba.Data	  = RamStart;
-		ba.nLen	  = RamEnd-RamStart;
+		ba.Data	  = memory.RAM.Start;
+		ba.nLen	  = memory.RAM.Size;
 		ba.szName = "All Ram";
 		BurnAcb(&ba);
 	}
@@ -1254,33 +1290,33 @@ STD_SAMPLE_FN(Galaga)
 
 static INT32 MemIndex()
 {
-	UINT8 *Next; Next = Mem;
+	UINT8 *Next = memory.All.Start;
 
-	DrvZ80Rom1             = Next; Next += 0x04000;
-	DrvZ80Rom2             = Next; Next += 0x04000;
-	DrvZ80Rom3             = Next; Next += 0x04000;
-	DrvPromPalette         = Next; Next += 0x00020;
-	DrvPromCharLookup      = Next; Next += 0x00100;
-	DrvPromSpriteLookup    = Next; Next += 0x00100;
-	NamcoSoundProm         = Next; Next += 0x00200;
+	memory.Z80.Rom1            = Next; Next += 0x04000;
+	memory.Z80.Rom2            = Next; Next += 0x04000;
+	memory.Z80.Rom3            = Next; Next += 0x04000;
+	memory.PROM.Palette        = Next; Next += 0x00020;
+	memory.PROM.CharLookup     = Next; Next += 0x00100;
+	memory.PROM.SpriteLookup   = Next; Next += 0x00100;
+	memory.PROM.Sound          = Next; Next += 0x00200;
 	
-	RamStart               = Next;
+	memory.RAM.Start           = Next;
 
-	DrvVideoRam            = Next; Next += 0x00800;
-	DrvSharedRam1          = Next; Next += 0x00400;
-	DrvSharedRam1          = Next; Next += 0x04000;
-	DrvSharedRam2          = Next; Next += 0x00400;
-	DrvSharedRam3          = Next; Next += 0x00400;
+	memory.RAM.Video           = Next; Next += 0x00800;
+	memory.RAM.Shared1         = Next; Next += 0x00400;
+	//memory.RAM.Shared1         = Next; Next += 0x04000;
+	memory.RAM.Shared2         = Next; Next += 0x00400;
+	memory.RAM.Shared3         = Next; Next += 0x00400;
 
-	RamEnd                 = Next;
+	memory.RAM.Size            = Next - memory.RAM.Start;
 
-	DrvDigdugChars         = Next; Next += 0x00180 * 8 * 8;
-	DrvGfx4                = Next; Next += 0x01000;
-	DrvChars               = Next; Next += 0x01100 * 8 * 8;
-	DrvSprites             = Next; Next += 0x01100 * 16 * 16;
-	DrvPalette             = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
+	DrvDigdugChars             = Next; Next += 0x00180 * 8 * 8;
+	DrvGfx4                    = Next; Next += 0x01000;
+	DrvChars                   = Next; Next += 0x01100 * 8 * 8;
+	DrvSprites                 = Next; Next += 0x01100 * 16 * 16;
+	DrvPalette                 = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
 
-	MemEnd                 = Next;
+	memory.All.Size            = Next - memory.All.Start;
 
 	return 0;
 }
@@ -1294,45 +1330,46 @@ static INT32 SpriteYOffsets[16]    = { 0, 8, 16, 24, 32, 40, 48, 56, 256, 264, 2
 
 static INT32 GalagaInit()
 {
-	INT32 nRet = 0, nLen;
-
 	// Allocate and Blank all required memory
-	Mem = NULL;
+	memory.All.Start = NULL;
 	MemIndex();
-	nLen = MemEnd - (UINT8 *)0;
-	if ((Mem = (UINT8 *)BurnMalloc(nLen)) == NULL) return 1;
-	memset(Mem, 0, nLen);
-	MemIndex();
+	
+   memory.All.Start = (UINT8 *)BurnMalloc(memory.All.Size);
+	if (NULL == memory.All.Start) 
+      return 1;
+	memset(memory.All.Start, 0, memory.All.Size);
+	
+   MemIndex();
 
 	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
 
 	// Load Z80 #1 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x00000,  0, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x01000,  1, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x02000,  2, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x03000,  3, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
 	
 	// Load Z80 #2 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x00000,  4, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
 	
 	// Load Z80 #3 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom3 + 0x00000,  5, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  5, 1)) return 1;
 	
 	// Load and decode the chars
-	nRet = BurnLoadRom(DrvTempRom,            6, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,            6, 1)) return 1;
 	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
-	nRet = BurnLoadRom(DrvTempRom + 0x00000,  7, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x01000,  8, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  7, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  8, 1)) return 1;
 	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
 
 	// Load the PROMs
-	nRet = BurnLoadRom(DrvPromPalette,        9, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromCharLookup,    10, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromSpriteLookup,  11, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm,       12, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette,        9, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,    10, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  11, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Sound,       12, 1)) return 1;
 	
 	BurnFree(DrvTempRom);
 	
@@ -1343,45 +1380,46 @@ static INT32 GalagaInit()
 
 static INT32 GallagInit()
 {
-	INT32 nRet = 0, nLen;
-
 	// Allocate and Blank all required memory
-	Mem = NULL;
+	memory.All.Start = NULL;
 	MemIndex();
-	nLen = MemEnd - (UINT8 *)0;
-	if ((Mem = (UINT8 *)BurnMalloc(nLen)) == NULL) return 1;
-	memset(Mem, 0, nLen);
-	MemIndex();
+   
+	memory.All.Start = (UINT8 *)BurnMalloc(memory.All.Size);
+	if (NULL == memory.All.Start) 
+      return 1;
+	memset(memory.All.Start, 0, memory.All.Size);
+	
+   MemIndex();
 
 	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
 
 	// Load Z80 #1 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x00000,  0, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x01000,  1, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x02000,  2, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x03000,  3, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
 	
 	// Load Z80 #2 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x00000,  4, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
 	
 	// Load Z80 #3 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom3 + 0x00000,  5, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  5, 1)) return 1;
 	
 	// Load and decode the chars
-	nRet = BurnLoadRom(DrvTempRom,            7, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
 	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
-	nRet = BurnLoadRom(DrvTempRom + 0x00000,  8, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x01000,  9, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  8, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
 	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
 
 	// Load the PROMs
-	nRet = BurnLoadRom(DrvPromPalette,       10, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromCharLookup,    11, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromSpriteLookup,  12, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm,       13, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette,       10, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,    11, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  12, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Sound,       13, 1)) return 1;
 	
 	BurnFree(DrvTempRom);
 	
@@ -1510,8 +1548,8 @@ static void DrvRenderTilemap()
 				TileIndex = Col + (Row << 5);
 			}
 			
-			Code = DrvVideoRam[TileIndex + 0x000] & 0x7f;
-			Colour = DrvVideoRam[TileIndex + 0x400] & 0x3f;
+			Code   = memory.RAM.Video[TileIndex + 0x000] & 0x7f;
+			Colour = memory.RAM.Video[TileIndex + 0x400] & 0x3f;
 
 			y = 8 * mx;
 			x = 8 * my;
@@ -1558,7 +1596,7 @@ static void digdugchars()
 				TileIndex = Col + (Row << 5);
 			}
 
-			Code = DrvVideoRam[TileIndex];
+			Code = memory.RAM.Video[TileIndex];
 			Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
 			Code &= 0x7f;
 
@@ -1608,9 +1646,9 @@ static void digdugchars()
 
 static void DrvRenderSprites()
 {
-	UINT8 *SpriteRam1 = DrvSharedRam1 + 0x380;
-	UINT8 *SpriteRam2 = DrvSharedRam2 + 0x380;
-	UINT8 *SpriteRam3 = DrvSharedRam3 + 0x380;
+	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
+	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
+	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
 
 	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
 		static const INT32 GfxOffset[2][2] = {
@@ -1706,17 +1744,17 @@ static void DrvCalcPalette()
 	for (i = 0; i < 32; i++) {
 		INT32 bit0, bit1, bit2, r, g, b;
 		
-		bit0 = (DrvPromPalette[i] >> 0) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 1) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 2) & 0x01;
+		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
 		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = (DrvPromPalette[i] >> 3) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 4) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 5) & 0x01;
+		bit0 = (memory.PROM.Palette[i] >> 3) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 4) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 5) & 0x01;
 		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
 		bit0 = 0;
-		bit1 = (DrvPromPalette[i] >> 6) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 7) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
 		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
 		
 		Palette[i] = BurnHighCol(r, g, b, 0);
@@ -1737,11 +1775,11 @@ static void DrvCalcPalette()
 	}
 	
 	for (i = 0; i < 256; i++) {
-		DrvPalette[i] = Palette[((DrvPromCharLookup[i]) & 0x0f) + 0x10];
+		DrvPalette[i] = Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
 	}
 	
 	for (i = 0; i < 256; i++) {
-		DrvPalette[256 + i] = Palette[DrvPromSpriteLookup[i] & 0x0f];
+		DrvPalette[256 + i] = Palette[memory.PROM.SpriteLookup[i] & 0x0f];
 	}
 	
 	for (i = 0; i < 64; i++) {
@@ -1922,58 +1960,59 @@ static INT32 DigdugCharYOffsets[8] = { STEP8(0,8) };
 
 static INT32 DigdugInit()
 {
-	INT32 nRet = 0, nLen;
-
 	// Allocate and Blank all required memory
-	Mem = NULL;
+	memory.All.Start = NULL;
 	MemIndex();
-	nLen = MemEnd - (UINT8 *)0;
-	if ((Mem = (UINT8 *)BurnMalloc(nLen)) == NULL) return 1;
-	memset(Mem, 0, nLen);
-	MemIndex();
+	
+   memory.All.Start = (UINT8 *)BurnMalloc(memory.All.Size);
+	if (NULL == memory.All.Start) 
+      return 1;
+	memset(memory.All.Start, 0, memory.All.Size);
+	
+   MemIndex();
 
 	DrvTempRom = (UINT8 *)BurnMalloc(0x10000);
 
 	// Load Z80 #1 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x00000,  0, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x01000,  1, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x02000,  2, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x03000,  3, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
 	
 	// Load Z80 #2 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x00000,  4, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x01000,  5, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x01000,  5, 1)) return 1;
 	
 	// Load Z80 #3 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom3 + 0x00000,  6, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  6, 1)) return 1;
 
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 8x8 (in digdug)
-	nRet = BurnLoadRom(DrvTempRom,            7, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
 	GfxDecode(0x80, 1, 8, 8, DigdugCharPlaneOffsets, DigdugCharXOffsets, DigdugCharYOffsets, 0x40, DrvTempRom, DrvDigdugChars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x10000);
-	nRet = BurnLoadRom(DrvTempRom + 0x00000,  8, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x01000,  9, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x02000, 10, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x03000, 11, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  8, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x02000, 10, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x03000, 11, 1)) return 1;
 	GfxDecode(0x80 + 0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
 
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 2bpp
-	nRet = BurnLoadRom(DrvTempRom,           12, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,           12, 1)) return 1;
 	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
 
 	// Load gfx4 - the playfield data
-	nRet = BurnLoadRom(DrvGfx4,              13, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(DrvGfx4,              13, 1)) return 1;
 
 	// Load the PROMs
-	nRet = BurnLoadRom(DrvPromPalette,       14, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromSpriteLookup,  15, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromCharLookup,    16, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm,       17, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm + 0x0100, 18, 1); if (nRet != 0) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette,       14, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  15, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,    16, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Sound,       17, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Sound + 0x0100, 18, 1)) return 1;
 	
 	BurnFree(DrvTempRom);
 	//digdugmode = 1;
@@ -1992,17 +2031,17 @@ static void DrvCalcPaletteDigdug()
 	for (i = 0; i < 32; i++) {
 		INT32 bit0, bit1, bit2, r, g, b;
 		
-		bit0 = (DrvPromPalette[i] >> 0) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 1) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 2) & 0x01;
+		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
 		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = (DrvPromPalette[i] >> 3) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 4) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 5) & 0x01;
+		bit0 = (memory.PROM.Palette[i] >> 3) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 4) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 5) & 0x01;
 		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
 		bit0 = 0;
-		bit1 = (DrvPromPalette[i] >> 6) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 7) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
 		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
 		
 		Palette[i] = BurnHighCol(r, g, b, 0);
@@ -2017,20 +2056,20 @@ static void DrvCalcPaletteDigdug()
 
 	/* sprites */
 	for (i = 0; i < 0x100; i++) {
-		DrvPalette[0x200+i] = Palette[(DrvPromSpriteLookup[i] & 0x0f) + 0x10];
+		DrvPalette[0x200+i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
 	}
 
 	/* bg_select */
 	for (i = 0; i < 0x100; i++) {
-		DrvPalette[0x100 + i] = Palette[DrvPromCharLookup[i] & 0x0f];
+		DrvPalette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
 	}
 }
 
 static void digdug_Sprites()
 {
-	UINT8 *SpriteRam1 = DrvSharedRam1 + 0x380;
-	UINT8 *SpriteRam2 = DrvSharedRam2 + 0x380;
-	UINT8 *SpriteRam3 = DrvSharedRam3 + 0x380;
+	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
+	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
+	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
 	
 	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
 		static const INT32 GfxOffset[2][2] = {
