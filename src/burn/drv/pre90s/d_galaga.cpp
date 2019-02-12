@@ -73,11 +73,28 @@ struct Memory_Def
 
 static struct Memory_Def memory;
 
+/*
 static UINT8 DrvCPU1FireIRQ;
 static UINT8 DrvCPU2FireIRQ;
 static UINT8 DrvCPU3FireIRQ;
 static UINT8 DrvCPU2Halt;
 static UINT8 DrvCPU3Halt;
+*/
+
+struct CPU_Control_Def
+{
+   UINT8 FireIRQ;
+   UINT8 Halt;
+};
+
+struct CPU_Def
+{
+   struct CPU_Control_Def CPU1;
+   struct CPU_Control_Def CPU2;
+   struct CPU_Control_Def CPU3;
+};
+
+static struct CPU_Def cpus = { 0 };
 
 struct Stars_Def
 {
@@ -158,11 +175,11 @@ static INT32 DrvDoReset()
 	BurnSampleReset();
 	NamcoSoundReset();
 
-	DrvCPU1FireIRQ = 0;
-	DrvCPU2FireIRQ = 0;
-	DrvCPU3FireIRQ = 0;
-	DrvCPU2Halt = 0;
-	DrvCPU3Halt = 0;
+	cpus.CPU1.FireIRQ = 0;
+	cpus.CPU2.FireIRQ = 0;
+	cpus.CPU3.FireIRQ = 0;
+	cpus.CPU2.Halt = 0;
+	cpus.CPU3.Halt = 0;
 	machine.FlipScreen = 0;
 	for (INT32 i = 0; i < 6; i++) {
 		stars.Control[i] = 0;
@@ -483,8 +500,8 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 			return;
 
 		case 0x6820: {
-			DrvCPU1FireIRQ = d & 0x01;
-			if (!DrvCPU1FireIRQ) {
+			cpus.CPU1.FireIRQ = d & 0x01;
+			if (!cpus.CPU1.FireIRQ) {
 				INT32 nActive = ZetGetActive();
 				ZetClose();
 				ZetOpen(0);
@@ -496,8 +513,8 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		}
 		
 		case 0x6821: {
-			DrvCPU2FireIRQ = d & 0x01;
-			if (!DrvCPU2FireIRQ) {
+			cpus.CPU2.FireIRQ = d & 0x01;
+			if (!cpus.CPU2.FireIRQ) {
 				INT32 nActive = ZetGetActive();
 				ZetClose();
 				ZetOpen(1);
@@ -509,7 +526,7 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		}
 		
 		case 0x6822: {
-			DrvCPU3FireIRQ = !(d & 0x01);
+			cpus.CPU3.FireIRQ = !(d & 0x01);
 			return;
 		}
 		
@@ -524,12 +541,12 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 				ZetReset();
 				ZetClose();
 				ZetOpen(nActive);
-				DrvCPU2Halt = 1;
-				DrvCPU3Halt = 1;
+				cpus.CPU2.Halt = 1;
+				cpus.CPU3.Halt = 1;
 				return;
 			} else {
-				DrvCPU2Halt = 0;
-				DrvCPU3Halt = 0;
+				cpus.CPU2.Halt = 0;
+				cpus.CPU3.Halt = 0;
 			}
 		}
 		
@@ -705,12 +722,12 @@ static INT32 DrvExit()
 
 	BurnFree(memory.All.Start);
 	
-	DrvCPU1FireIRQ = 0;
-	DrvCPU2FireIRQ = 0;
-	DrvCPU3FireIRQ = 0;
-	DrvCPU2Halt = 0;
-	DrvCPU3Halt = 0;
-	machine.FlipScreen = 0;
+	cpus.CPU1.FireIRQ = 0;
+	cpus.CPU2.FireIRQ = 0;
+	cpus.CPU3.FireIRQ = 0;
+	cpus.CPU2.Halt = 0;
+	cpus.CPU3.Halt = 0;
+   
 	for (INT32 i = 0; i < 6; i++) {
 		stars.Control[i] = 0;
 	}
@@ -727,7 +744,9 @@ static INT32 DrvExit()
    {
 		ioChip.Buffer[i] = 0;
 	}
+   
 	machine.Game = NAMCO_GALAGA; // digdugmode = 0;
+	machine.FlipScreen = 0;
 
 	return 0;
 }
@@ -804,7 +823,7 @@ static INT32 DrvFrame()
 		nCurrentCPU = 0;
 		ZetOpen(nCurrentCPU);
 		ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
-		if (i == (nInterleave-1) && DrvCPU1FireIRQ) {
+		if (i == (nInterleave-1) && cpus.CPU1.FireIRQ) {
 			ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		}
 		if ( (9 == (i % 10)) && 
@@ -814,22 +833,22 @@ static INT32 DrvFrame()
 		}
 		ZetClose();
 		
-		if (!DrvCPU2Halt) {
+		if (!cpus.CPU2.Halt) {
 			nCurrentCPU = 1;
 			ZetOpen(nCurrentCPU);
 			ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
-			if (i == (nInterleave-1) && DrvCPU2FireIRQ) {
+			if (i == (nInterleave-1) && cpus.CPU2.FireIRQ) {
 				ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 			}
 			ZetClose();
 		}
 		
-		if (!DrvCPU3Halt) {
+		if (!cpus.CPU3.Halt) {
 			nCurrentCPU = 2;
 			ZetOpen(nCurrentCPU);
 			ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
 			if (((i == ((64 + 000) * nInterleave) / 272) ||
-				 (i == ((64 + 128) * nInterleave) / 272)) && DrvCPU3FireIRQ) {
+				 (i == ((64 + 128) * nInterleave) / 272)) && cpus.CPU3.FireIRQ) {
 				ZetNmi();
 			}
 			ZetClose();
@@ -895,11 +914,11 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		BurnSampleScan(nAction, pnMin);
 
 		// Scan critical driver variables
-		SCAN_VAR(DrvCPU1FireIRQ);
-		SCAN_VAR(DrvCPU2FireIRQ);
-		SCAN_VAR(DrvCPU3FireIRQ);
-		SCAN_VAR(DrvCPU2Halt);
-		SCAN_VAR(DrvCPU3Halt);
+		SCAN_VAR(cpus.CPU1.FireIRQ);
+		SCAN_VAR(cpus.CPU2.FireIRQ);
+		SCAN_VAR(cpus.CPU3.FireIRQ);
+		SCAN_VAR(cpus.CPU2.Halt);
+		SCAN_VAR(cpus.CPU3.Halt);
 		SCAN_VAR(machine.FlipScreen);
 		SCAN_VAR(stars.ScrollX);
 		SCAN_VAR(stars.ScrollY);
