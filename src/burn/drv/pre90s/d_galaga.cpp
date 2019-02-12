@@ -46,11 +46,6 @@ static UINT8 DrvCPU3FireIRQ;
 static UINT8 DrvCPU2Halt;
 static UINT8 DrvCPU3Halt;
 static UINT8 DrvFlipScreen;
-/*
-static UINT8 DrvStarControl[6];
-static UINT32 DrvStarScrollX;
-static UINT32 DrvStarScrollY;
-*/
 
 struct Stars_Def
 {
@@ -1395,13 +1390,13 @@ static INT32 GallagInit()
 	return 0;
 }
 
-struct Star {
+struct Star_Def {
 	UINT16 x, y;
 	UINT8 Colour, Set;
 };
 
 #define MAX_STARS 252
-static struct Star StarSeedTab[MAX_STARS];
+static struct Star_Def StarSeedTable[MAX_STARS];
 
 static void DrvInitStars()
 {
@@ -1429,41 +1424,41 @@ static void DrvInitStars()
 	const UINT16 feed = 0x9420;
 
 	INT32 idx = 0;
-	for (UINT16 sf = 0; sf < 4; ++sf)
+	for (UINT32 sf = 0; sf < 4; ++ sf)
 	{
 		// starfield select flags
 		UINT16 sf1 = (sf >> 1) & 1;
 		UINT16 sf2 = sf & 1;
 
 		UINT16 i = 0x70cc;
-		for (INT32 cnt = 0; cnt < 65535; ++cnt)
+		for (UINT32 cnt = 0; cnt < 65535; ++ cnt)
 		{
 			// output enable lookup
-			UINT16 xor1 = i ^ (i >> 3);
+			UINT16 xor1 = i    ^ (i >> 3);
 			UINT16 xor2 = xor1 ^ (i >> 2);
 			UINT16 oe = (sf1 ? 0 : 0x4000) | ((sf1 ^ sf2) ? 0 : 0x1000);
-			if ((i & 0x8007) == 0x8007
-			    && (~i & 0x2008) == 0x2008
-			    && (xor1 & 0x0100) == (sf1 ? 0 : 0x0100)
-			    && (xor2 & 0x0040) == (sf2 ? 0 : 0x0040)
-			    && (i & 0x5000) == oe
-			    && cnt >= 256 * 4)
+			if ( ( 0x8007             == ( i   & 0x8007) ) && 
+              ( 0x2008             == (~i   & 0x2008) ) && 
+              ( (sf1 ? 0 : 0x0100) == (xor1 & 0x0100) ) && 
+              ( (sf2 ? 0 : 0x0040) == (xor2 & 0x0040) ) && 
+              ( oe                 == (i    & 0x5000) ) && 
+              ( cnt                >= (256 * 4)       ) )
 			{
 				// color lookup
 				UINT16 xor3 = (i >> 1) ^ (i >> 6);
-				UINT16 clr =
-					(((i >> 9) & 0x07)
-					 | ((xor3 ^ (i >> 4) ^ (i >> 7)) & 0x08)
-					 | (~xor3 & 0x10)
-					 | (((i >> 2) ^ (i >> 5)) & 0x20))
-					^ ((i & 0x4000) ? 0 : 0x24)
-					^ ((((i >> 2) ^ i) & 0x1000) ? 0x21 : 0);
+				UINT16 clr  = ( 
+                 (          (i >> 9)             & 0x07)
+               | ( ( xor3 ^ (i >> 4) ^ (i >> 7)) & 0x08)
+               |   (~xor3                        & 0x10)
+               | (        ( (i >> 2) ^ (i >> 5)) & 0x20) )
+					^ ( (i & 0x4000) ? 0 : 0x24)
+					^ ( ( ((i >> 2) ^ i) & 0x1000) ? 0x21 : 0);
 
-				StarSeedTab[idx].x = cnt % 256;
-				StarSeedTab[idx].y = cnt / 256;
-				StarSeedTab[idx].Colour = clr;
-				StarSeedTab[idx].Set = sf;
-				++idx;
+				StarSeedTable[idx].x = cnt % 256;
+				StarSeedTable[idx].y = cnt / 256;
+				StarSeedTable[idx].Colour = clr;
+				StarSeedTable[idx].Set = sf;
+				++ idx;
 			}
 
 			// update the LFSR
@@ -1477,22 +1472,23 @@ static void DrvInitStars()
 
 static void DrvRenderStars()
 {
-	if (stars.Control[5] == 1) {
-  		INT32 StarCounter;
-		INT32 SetA, SetB;
+	if (1 == stars.Control[5]) 
+   {
+		INT32 SetA = stars.Control[3];
+		INT32 SetB = stars.Control[4] | 0x02;
 
-		SetA = stars.Control[3];
-		SetB = stars.Control[4] | 0x02;
+		for (INT32 StarCounter = 0; StarCounter < MAX_STARS; StarCounter ++) 
+      {
+			if ( (SetA == StarSeedTable[StarCounter].Set) || 
+              (SetB == StarSeedTable[StarCounter].Set) ) 
+         {
+				INT32 x = (                      StarSeedTable[StarCounter].x + stars.ScrollX) % 256 + 16;
+				INT32 y = ((nScreenHeight / 2) + StarSeedTable[StarCounter].y + stars.ScrollY) % 256;
 
-		for (StarCounter = 0; StarCounter < 252; StarCounter++) {
-			INT32 x, y;
-
-			if ((SetA == StarSeedTab[StarCounter].Set) || (SetB == StarSeedTab[StarCounter].Set)) {
-				x = (StarSeedTab[StarCounter].x + stars.ScrollX) % 256 + 16;
-				y = (112 + StarSeedTab[StarCounter].y + stars.ScrollY) % 256;
-
-				if (x >= 0 && x < 288 && y >= 0 && y < 224) {
-					pTransDraw[(y * nScreenWidth) + x] = StarSeedTab[StarCounter].Colour + 512;
+				if ( (x >= 0) && (x < nScreenWidth)  && 
+                 (y >= 0) && (y < nScreenHeight) ) 
+            {
+					pTransDraw[(y * nScreenWidth) + x] = StarSeedTable[StarCounter].Colour + 512;
 				}
 			}
 
