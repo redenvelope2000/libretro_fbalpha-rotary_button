@@ -2,7 +2,11 @@
 
 // mit .bin/.cue & .ccd/.img (trurip) unterstutzung (feb.4.2019)
 // known issues:
-//   Audio Hz rate must be 44100 for proper CDDA speed
+//   Audio Hz rate must be 44100 for proper CDDA speed (auto-handled in fba-ui)
+//
+//   Ninja Commando: glitching "logo" during demo play.  This is fixed by
+//     changing renderbyline mode on.  A side-effect is that it makes CD-Loading
+//     for other games (karnovr, fatalfury3, etc) very slow.  Must investigate.
 
 /*
  * FB Alpha Neo Geo module
@@ -320,6 +324,7 @@ static INT32 NeoCDVectorSwitch = 0; // 1 ROM(ram), 0 BIOS
 
 static INT32 nNeoCDMode = 0;
 static INT32 nff0002 = 0;
+static INT32 nff0004 = 0;
 
 
 bool IsNeoGeoCD() {
@@ -1544,6 +1549,7 @@ INT32 NeoScan(INT32 nAction, INT32* pnMin)
 
 			SCAN_VAR(nNeoCDMode);
 			SCAN_VAR(nff0002);
+			SCAN_VAR(nff0004);
 
 			CDEmuScan(nAction, pnMin);
 		}
@@ -1791,7 +1797,6 @@ static inline void NeoCDIRQUpdate(UINT8 byteValue)
 {
 	nIRQAcknowledge |= (byteValue & 0x38);
 
-	if (!bNeoCDIRQEnabled) return;
 //	bprintf(PRINT_NORMAL, _T("  - IRQ Ack -> %02X (CD, at line %3i).\n"), nIRQAcknowledge, SekCurrentScanline());
 
 	if ((nIRQAcknowledge & 0x3F) == 0x3F) {
@@ -1801,6 +1806,9 @@ static inline void NeoCDIRQUpdate(UINT8 byteValue)
 			NeoIRQUpdate(0);
 			return;
 		}
+
+		if (!bNeoCDIRQEnabled) return;
+
 		if ((nIRQAcknowledge & 0x08) == 0) {
 			nNeoCDIRQVector = 0x17;
 			nNeoCDIRQVectorAck = 1;
@@ -2533,7 +2541,7 @@ static char* LC8951InitTransfer()
 
 static void LC8951EndTransfer()
 {
-	LC8951RegistersW[6]  = 0x00;												// reset DTTRG
+	LC8951RegistersW[6]  = 0x00; 												// reset DTTRG
 
 	LC8951RegistersR[1] |= 0x48;												//   set DTEI & DTBSY
 	if (LC8951RegistersW[1] & 0x40) {
@@ -2583,7 +2591,7 @@ static void NeoCDProcessCommand()
 		case 2:
 //								bprintf(PRINT_ERROR, _T("    CD comms received command %i\n"), NeoCDCommsCommandFIFO[0]);
 			NeoCDCommsStatusFIFO[1] = NeoCDCommsCommandFIFO[3];
-			 switch (NeoCDCommsCommandFIFO[3]) {
+			switch (NeoCDCommsCommandFIFO[3]) {
 
 				case 0: {
 					UINT8* ChannelData = CDEmuReadQChannel();
@@ -2625,12 +2633,16 @@ static void NeoCDProcessCommand()
 					NeoCDCommsStatusFIFO[2] = ChannelData[0] >> 4;
 					NeoCDCommsStatusFIFO[3] = ChannelData[0] & 0x0F;
 
+					UINT8* TOCEntry = CDEmuReadTOC(CDEmuTOC_FIRSTINDEX);
+					NeoCDCommsStatusFIFO[4] = TOCEntry[0] >> 4;
+					NeoCDCommsStatusFIFO[5] = TOCEntry[0] & 0x0F;
+
 					NeoCDCommsStatusFIFO[8] = ChannelData[7];
 
 					break;
 				}
 				case 3: {
-					UINT8* TOCEntry = CDEmuReadTOC(-2);
+					UINT8* TOCEntry = CDEmuReadTOC(CDEmuTOC_LASTMSF);
 
 					NeoCDCommsStatusFIFO[2] = TOCEntry[0] >> 4;
 					NeoCDCommsStatusFIFO[3] = TOCEntry[0] & 0x0F;
@@ -2644,7 +2656,7 @@ static void NeoCDProcessCommand()
 					break;
 				}
 				case 4: {
-					UINT8* TOCEntry = CDEmuReadTOC(-1);
+					UINT8* TOCEntry = CDEmuReadTOC(CDEmuTOC_FIRSTLAST);
 
 					NeoCDCommsStatusFIFO[2] = TOCEntry[0] > 4;
 					NeoCDCommsStatusFIFO[3] = TOCEntry[0] & 0x0F;
@@ -3191,6 +3203,12 @@ static UINT16 __fastcall neogeoReadWordCDROM(UINT32 sekAddress)
 //	bprintf(PRINT_NORMAL, _T("  - CDROM: 0x%06X read (word, PC: 0x%06X)\n"), sekAddress, SekGetPC(-1));
 
 	switch (sekAddress & 0xFFFF) {
+		case 0x0004:
+			//bprintf(PRINT_IMPORTANT, _T("  - NGCD VBL (read) Interrupt mask -> 0x%04X (PC: 0x%06X)\n"), nff0004, SekGetPC(-1));
+
+			return nff0004;
+			break;
+
 		case 0x011C:
 			return ~((0x10 | (NeoSystem & 3)) << 8);
 	}
@@ -3368,6 +3386,12 @@ static void __fastcall neogeoWriteWordCDROM(UINT32 sekAddress, UINT16 wordValue)
 			nff0002 = wordValue;
 
 // LC8951RegistersR[1] |= 0x20;
+			break;
+
+		case 0x0004:
+			//bprintf(PRINT_IMPORTANT, _T("  - NGCD (write) VBL Interrupt mask -> 0x%04X (PC: 0x%06X)\n"), wordValue, SekGetPC(-1));
+
+			nff0004 = wordValue;
 			break;
 
 		case 0x000E:
@@ -3757,6 +3781,7 @@ static INT32 neogeoReset()
 	nNeoCDIRQVector = 0;
 	nNeoCDIRQVectorAck = 0;
 	nff0002 = 0;
+	nff0004 = 0;
 
 	return 0;
 }
@@ -4826,8 +4851,10 @@ INT32 NeoFrame()
 		NeoRenderText();											// Render text layer
 	}
 
-	nIRQAcknowledge &= ~4;
-	SekSetIRQLine(nVBLankIRQ, CPU_IRQSTATUS_ACK);
+	if ( ((nNeoSystemType & NEO_SYS_CD) && (nff0004 & 0x0030) == 0x0030) || (~nNeoSystemType & NEO_SYS_CD) ) {
+		nIRQAcknowledge &= ~4;
+		SekSetIRQLine(nVBLankIRQ, CPU_IRQSTATUS_ACK);
+	}
 
 #if 0 || defined LOG_IRQ
 	bprintf(PRINT_NORMAL, _T("  - VBLank.\n"));
