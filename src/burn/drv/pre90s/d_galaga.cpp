@@ -46,9 +46,20 @@ static UINT8 DrvCPU3FireIRQ;
 static UINT8 DrvCPU2Halt;
 static UINT8 DrvCPU3Halt;
 static UINT8 DrvFlipScreen;
+/*
 static UINT8 DrvStarControl[6];
 static UINT32 DrvStarScrollX;
 static UINT32 DrvStarScrollY;
+*/
+
+struct Stars_Def
+{
+   UINT32 ScrollX;
+   UINT32 ScrollY;
+   UINT8 Control[6];
+};
+
+static struct Stars_Def stars = { 0 };
 
 struct IOChip_Def
 {
@@ -124,10 +135,10 @@ static INT32 DrvDoReset()
 	DrvCPU3Halt = 0;
 	DrvFlipScreen = 0;
 	for (INT32 i = 0; i < 6; i++) {
-		DrvStarControl[i] = 0;
+		stars.Control[i] = 0;
 	}
-	DrvStarScrollX = 0;
-	DrvStarScrollY = 0;
+	stars.ScrollX = 0;
+	stars.ScrollY = 0;
 	
 	ioChip.CustomCommand = 0;
 	ioChip.CPU1FireIRQ = 0;
@@ -596,7 +607,7 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		case 0xa005:
 		case 0xa006: {
 			if (a != 0xa006)
-				DrvStarControl[a - 0xa000] = d & 0x01;
+				stars.Control[a - 0xa000] = d & 0x01;
 			digdug_pf_latch_w(a - 0xa000, d);
 			return;
 		}
@@ -679,10 +690,10 @@ static INT32 DrvExit()
 	DrvCPU3Halt = 0;
 	DrvFlipScreen = 0;
 	for (INT32 i = 0; i < 6; i++) {
-		DrvStarControl[i] = 0;
+		stars.Control[i] = 0;
 	}
-	DrvStarScrollX = 0;
-	DrvStarScrollY = 0;
+	stars.ScrollX = 0;
+	stars.ScrollY = 0;
 	
 	ioChip.CustomCommand = 0;
 	ioChip.CPU1FireIRQ = 0;
@@ -833,7 +844,7 @@ static INT32 DrvFrame()
    {
 		static const INT32 Speeds[8] = { -1, -2, -3, 0, 3, 2, 1, 0 };
 
-		DrvStarScrollX += Speeds[DrvStarControl[0] + (DrvStarControl[1] * 2) + (DrvStarControl[2] * 4)];
+		stars.ScrollX += Speeds[stars.Control[0] + (stars.Control[1] * 2) + (stars.Control[2] * 4)];
 	}
 
 	return 0;
@@ -867,8 +878,8 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(DrvCPU2Halt);
 		SCAN_VAR(DrvCPU3Halt);
 		SCAN_VAR(DrvFlipScreen);
-		SCAN_VAR(DrvStarScrollX);
-		SCAN_VAR(DrvStarScrollY);
+		SCAN_VAR(stars.ScrollX);
+		SCAN_VAR(stars.ScrollY);
 		SCAN_VAR(ioChip.CustomCommand);
 		SCAN_VAR(ioChip.CPU1FireIRQ);
 		SCAN_VAR(ioChip.Mode);
@@ -876,7 +887,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(ioChip.CoinPerCredit);
 		SCAN_VAR(ioChip.CreditPerCoin);
 		SCAN_VAR(PrevInValue);
-		SCAN_VAR(DrvStarControl);
+		SCAN_VAR(stars.Control);
 		SCAN_VAR(ioChip.Buffer);
 
 		SCAN_VAR(namco54xx.Fetch);
@@ -1466,19 +1477,19 @@ static void DrvInitStars()
 
 static void DrvRenderStars()
 {
-	if (DrvStarControl[5] == 1) {
+	if (stars.Control[5] == 1) {
   		INT32 StarCounter;
 		INT32 SetA, SetB;
 
-		SetA = DrvStarControl[3];
-		SetB = DrvStarControl[4] | 0x02;
+		SetA = stars.Control[3];
+		SetB = stars.Control[4] | 0x02;
 
 		for (StarCounter = 0; StarCounter < 252; StarCounter++) {
 			INT32 x, y;
 
 			if ((SetA == StarSeedTab[StarCounter].Set) || (SetB == StarSeedTab[StarCounter].Set)) {
-				x = (StarSeedTab[StarCounter].x + DrvStarScrollX) % 256 + 16;
-				y = (112 + StarSeedTab[StarCounter].y + DrvStarScrollY) % 256;
+				x = (StarSeedTab[StarCounter].x + stars.ScrollX) % 256 + 16;
+				y = (112 + StarSeedTab[StarCounter].y + stars.ScrollY) % 256;
 
 				if (x >= 0 && x < 288 && y >= 0 && y < 224) {
 					pTransDraw[(y * nScreenWidth) + x] = StarSeedTab[StarCounter].Colour + 512;
