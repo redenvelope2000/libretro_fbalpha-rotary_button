@@ -27,12 +27,26 @@ static UINT8 DrvInput[3]      = {0x00, 0x00, 0x00};
 static UINT8 DrvReset         = 0;
 static UINT8 PrevInValue;
 
+static UINT8 *DrvTempRom          = NULL;
+
+/*
 static UINT8 *DrvChars            = NULL;
 static UINT8 *DrvSprites          = NULL;
 static UINT8 *DrvGfx4             = NULL; // digdug playfield data
 static UINT8 *DrvDigdugChars      = NULL;
-static UINT8 *DrvTempRom          = NULL;
 static UINT32 *DrvPalette         = NULL;
+*/
+
+struct Graphics_Def
+{
+   UINT8 *Chars;
+   UINT8 *Sprites;
+   UINT8 *Chars2; // digdug playfield data
+   UINT8 *Chars3;
+   UINT32 *Palette;
+};
+
+static struct Graphics_Def graphics;
 
 struct Memory_Def
 {
@@ -174,13 +188,6 @@ static INT32 DrvDoReset()
 	}
 	PrevInValue = 0xff;
 
-   /*
-	Fetch = 0;
-	FetchMode = 0;
-	memset(&Config1, 0, sizeof(Config1));
-	memset(&Config2, 0, sizeof(Config2));
-	memset(&Config3, 0, sizeof(Config3));
-   */
    memset(&namco54xx, 0, sizeof(namco54xx));
    
 	playfield = 0;
@@ -194,7 +201,6 @@ static INT32 DrvDoReset()
 
 	return 0;
 }
-
 
 static void Namco54XXWrite(INT32 Data)
 {
@@ -1302,11 +1308,11 @@ static INT32 MemIndex()
 
 	memory.RAM.Size            = Next - memory.RAM.Start;
 
-	DrvDigdugChars             = Next; Next += 0x00180 * 8 * 8;
-	DrvGfx4                    = Next; Next += 0x01000;
-	DrvChars                   = Next; Next += 0x01100 * 8 * 8;
-	DrvSprites                 = Next; Next += 0x01100 * 16 * 16;
-	DrvPalette                 = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
+	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
+	graphics.Chars3            = Next; Next += 0x01000;
+	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
+	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
+	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
 
 	memory.All.Size            = Next - memory.All.Start;
 
@@ -1349,13 +1355,13 @@ static INT32 GalagaInit()
 	
 	// Load and decode the chars
 	if (0 != BurnLoadRom(DrvTempRom,            6, 1)) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
 	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  7, 1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  8, 1)) return 1;
-	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
+	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
 
 	// Load the PROMs
 	if (0 != BurnLoadRom(memory.PROM.Palette,        9, 1)) return 1;
@@ -1399,13 +1405,13 @@ static INT32 GallagInit()
 	
 	// Load and decode the chars
 	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
 	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  8, 1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
-	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
+	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
 
 	// Load the PROMs
 	if (0 != BurnLoadRom(memory.PROM.Palette,       10, 1)) return 1;
@@ -1555,15 +1561,15 @@ static void DrvRenderTilemap()
 			
 			if (x > 8 && x < 280 && y > 8 && y < 216) {
 				if (DrvFlipScreen) {
-					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
+					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				} else {
-					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
+					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				}
 			} else {
 				if (DrvFlipScreen) {
-					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
+					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				} else {
-					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
+					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				}
 			}
 		}
@@ -1573,7 +1579,7 @@ static void DrvRenderTilemap()
 static void digdugchars()
 {
 	INT32 TileIndex;
-	UINT8 *pf = DrvGfx4 + (playfield << 10);
+	UINT8 *pf = graphics.Chars3 + (playfield << 10);
 	UINT8 pfval;
 	UINT32 pfcolor = playcolor << 4;
 
@@ -1614,15 +1620,15 @@ static void digdugchars()
 				if (x > 8 && x < 280 && y > 8 && y < 216) 
             {
 					if (DrvFlipScreen) {
-						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
+						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
 					} else {
-						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
+						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
 					}
 				} else {
 					if (DrvFlipScreen) {
-						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
+						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
 					} else {
-						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
+						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
 					}
 				}
 			}
@@ -1630,15 +1636,15 @@ static void digdugchars()
 			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
          {
 				if (DrvFlipScreen) {
-					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
+					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				} else {
-					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
+					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				}
 			} else {
 				if (DrvFlipScreen) {
-					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
+					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				} else {
-					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
+					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				}
 			}
 		}
@@ -1696,34 +1702,34 @@ static void DrvRenderSprites()
                switch (Orient)
                {
                   case 3:
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                   case 2:
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                   case 1:
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                   case 0:
                   default:
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                }
 				} else {
                switch (Orient)
                {
                   case 3:
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                   case 2:
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                   case 1:
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                   case 0:
                   default:
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
+							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
                      break;
                }
 				}
@@ -1739,7 +1745,7 @@ static INT32 DrvDraw()
 	DrvRenderTilemap();
 	DrvRenderStars();
 	DrvRenderSprites();	
-	BurnTransferCopy(DrvPalette);
+	BurnTransferCopy(graphics.Palette);
 	return 0;
 }
 
@@ -1749,7 +1755,7 @@ static INT32 DrvDigdugDraw()
 	DrvCalcPaletteDigdug();
 	digdugchars();
 	digdug_Sprites();
-	BurnTransferCopy(DrvPalette);
+	BurnTransferCopy(graphics.Palette);
 	return 0;
 }
 
@@ -1802,17 +1808,17 @@ static void DrvCalcPalette()
 	
 	for (INT32 i = 0; i < 256; i ++) 
    {
-		DrvPalette[i] =       Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
+		graphics.Palette[i] =       Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
 	}
 	
 	for (INT32 i = 0; i < 256; i ++) 
    {
-		DrvPalette[256 + i] = Palette[  memory.PROM.SpriteLookup[i] & 0x0f];
+		graphics.Palette[0x100 + i] = Palette[  memory.PROM.SpriteLookup[i] & 0x0f];
 	}
 	
 	for (INT32 i = 0; i < 64; i ++) 
    {
-		DrvPalette[512 + i] = Palette[32 + i];
+		graphics.Palette[0x200 + i] = Palette[32 + i];
 	}
 
 	DrvInitStars();
@@ -2018,7 +2024,7 @@ static INT32 DigdugInit()
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 8x8 (in digdug)
 	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
-	GfxDecode(0x80, 1, 8, 8, DigdugCharPlaneOffsets, DigdugCharXOffsets, DigdugCharYOffsets, 0x40, DrvTempRom, DrvDigdugChars);
+	GfxDecode(0x80, 1, 8, 8, DigdugCharPlaneOffsets, DigdugCharXOffsets, DigdugCharYOffsets, 0x40, DrvTempRom, graphics.Chars2);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x10000);
@@ -2026,15 +2032,15 @@ static INT32 DigdugInit()
 	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x02000, 10, 1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x03000, 11, 1)) return 1;
-	GfxDecode(0x80 + 0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
+	GfxDecode(0x80 + 0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
 
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 2bpp
 	if (0 != BurnLoadRom(DrvTempRom,           12, 1)) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
 
 	// Load gfx4 - the playfield data
-	if (0 != BurnLoadRom(DrvGfx4,              13, 1)) return 1;
+	if (0 != BurnLoadRom(graphics.Chars3,              13, 1)) return 1;
 
 	// Load the PROMs
 	if (0 != BurnLoadRom(memory.PROM.Palette,       14, 1)) return 1;
@@ -2088,20 +2094,20 @@ static void DrvCalcPaletteDigdug()
 	/* characters - direct mapping */
 	for (INT32 i = 0; i < 16; i ++)
 	{
-		DrvPalette[i*2+0] = Palette[0];
-		DrvPalette[i*2+1] = Palette[i];
+		graphics.Palette[i*2+0] = Palette[0];
+		graphics.Palette[i*2+1] = Palette[i];
 	}
 
 	/* sprites */
 	for (INT32 i = 0; i < 0x100; i ++) 
    {
-		DrvPalette[0x200 + i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
+		graphics.Palette[0x200 + i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
 	}
 
 	/* bg_select */
 	for (INT32 i = 0; i < 0x100; i ++) 
    {
-		DrvPalette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
+		graphics.Palette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
 	}
 }
 
@@ -2161,17 +2167,17 @@ static void digdug_Sprites()
                switch (Orient)
                {
                   case 3:
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                   case 2:
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                   case 1:
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                   case 0:
                   default:
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                }
 				} else 
@@ -2179,17 +2185,17 @@ static void digdug_Sprites()
                switch (Orient)
                {
                   case 3:
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                   case 2:
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                   case 1:
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                   case 0:
                   default:
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
+							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                }
 				}
