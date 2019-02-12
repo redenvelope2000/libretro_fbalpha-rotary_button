@@ -17,28 +17,18 @@ static const INT32 Colour3Bit[8] = {
    0x97, 0xb8, 0xde, 0xff 
 };
 
-static UINT8 DrvReset         = 0;
-/*
-static UINT8 DrvInputPort0[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-static UINT8 DrvInputPort1[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-static UINT8 DrvInputPort2[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-static UINT8 DrvInputPort1r[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-static UINT8 DrvInputPort2r[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-static UINT8 DrvDip[3]        = {0, 0, 0};
-static UINT8 DrvInput[3]      = {0x00, 0x00, 0x00};
-static UINT8 PrevInValue;
-*/
 struct Input_Def
 {
-   UINT8 Input0Bits[2][8];
-   UINT8 Input1Bits[2][8];
-   UINT8 Input2Bits[2][8];
+   UINT8 Port0Bits[2][8];
+   UINT8 Port1Bits[2][8];
+   UINT8 Port2Bits[2][8];
    UINT8 Dip[3];
-   UINT8 InputPorts[3];
+   UINT8 Ports[3];
    UINT8 PrevInValue;
+   UINT8 Reset;
 };
 
-static struct Input_Def inputPort;
+static struct Input_Def input;
 
 static UINT8 *DrvTempRom          = NULL;
 
@@ -203,7 +193,7 @@ static INT32 DrvDoReset()
 		ioChip.Buffer[i] = 0;
 	}
    
-	inputPort.PrevInValue = 0xff;
+	input.PrevInValue = 0xff;
 
    memset(&namco54xx, 0, sizeof(namco54xx));
    
@@ -326,8 +316,8 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 		case 0x6806:
 		case 0x6807: {
 			INT32 Offset = a - 0x6800;
-			INT32 Bit0 = (inputPort.Dip[2] >> Offset) & 0x01;
-			INT32 Bit1 = (inputPort.Dip[1] >> Offset) & 0x01;
+			INT32 Bit0 = (input.Dip[2] >> Offset) & 0x01;
+			INT32 Bit1 = (input.Dip[1] >> Offset) & 0x01;
 
 			return Bit0 | (Bit1 << 1);
 		}
@@ -357,7 +347,7 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
             {
                if ( (NAMCO_DIGDUG == machine.Game) && 
                     ( (0 == Offset) || (1 == Offset) ) )
-						return inputPort.Dip[Offset];
+						return input.Dip[Offset];
 					break;
 				}
 				case 0x71:
@@ -374,14 +364,14 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
                {
 						if (ioChip.Mode) 
                   {
-							return inputPort.InputPorts[0];
+							return input.Ports[0];
 						} 
                   else 
                   {
 							static UINT8 CoinInserted;
 							
-							UINT8 In = inputPort.InputPorts[0];
-							if (In != inputPort.PrevInValue) 
+							UINT8 In = input.Ports[0];
+							if (In != input.PrevInValue) 
                      {
 								if (ioChip.CoinPerCredit > 0) 
                         {
@@ -415,14 +405,14 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 								}
 							}
 							
-							inputPort.PrevInValue = In;
+							input.PrevInValue = In;
 							
 							return (ioChip.Credits / 10) * 16 + ioChip.Credits % 10;
 						}
 					}
 					
 					if (Offset == 1 || Offset == 2) {
-						INT32 jp = inputPort.InputPorts[Offset];
+						INT32 jp = input.Ports[Offset];
 
 						if ( (0 == ioChip.Mode) && 
                        (NAMCO_DIGDUG == machine.Game) )
@@ -760,27 +750,27 @@ static INT32 DrvExit()
 static void DrvPreMakeInputs() {
 	// silly bit of code to keep the joystick button pressed for only 1 frame
 	// needed for proper pumping action in digdug & highscore name entry.
-	memcpy(&inputPort.Input1Bits[1][0], &inputPort.Input1Bits[0][0], sizeof(inputPort.Input1Bits) / 2);
-	memcpy(&inputPort.Input2Bits[1][0], &inputPort.Input2Bits[0][0], sizeof(inputPort.Input2Bits) / 2);
+	memcpy(&input.Port1Bits[1][0], &input.Port1Bits[0][0], sizeof(input.Port1Bits) / 2);
+	memcpy(&input.Port2Bits[1][0], &input.Port2Bits[0][0], sizeof(input.Port2Bits) / 2);
 
 	{
-		inputPort.Input1Bits[1][4] = 0;
-		inputPort.Input2Bits[1][4] = 0;
+		input.Port1Bits[1][4] = 0;
+		input.Port2Bits[1][4] = 0;
 		for (INT32 i = 0; i < 2; i++) {
-			if(((!i) ? inputPort.Input1Bits[0][4] : inputPort.Input2Bits[0][4]) && !DrvButtonHeld[i]) {
+			if(((!i) ? input.Port1Bits[0][4] : input.Port2Bits[0][4]) && !DrvButtonHeld[i]) {
 				DrvButtonHold[i] = 2; // number of frames to be held + 1.
 				DrvButtonHeld[i] = 1;
 			} else {
-				if (((!i) ? !inputPort.Input1Bits[0][4] : !inputPort.Input2Bits[0][4])) {
+				if (((!i) ? !input.Port1Bits[0][4] : !input.Port2Bits[0][4])) {
 					DrvButtonHeld[i] = 0;
 				}
 			}
 
 			if(DrvButtonHold[i]) {
 				DrvButtonHold[i]--;
-				((!i) ? inputPort.Input1Bits[1][4] : inputPort.Input2Bits[1][4]) = ((DrvButtonHold[i]) ? 1 : 0);
+				((!i) ? input.Port1Bits[1][4] : input.Port2Bits[1][4]) = ((DrvButtonHold[i]) ? 1 : 0);
 			} else {
-				(!i) ? inputPort.Input1Bits[1][4] : inputPort.Input2Bits[1][4] = 0;
+				(!i) ? input.Port1Bits[1][4] : input.Port2Bits[1][4] = 0;
 			}
 		}
 		//bprintf(0, _T("%X:%X,"), DrvInputPort1r[4], DrvButtonHold[0]);
@@ -790,26 +780,26 @@ static void DrvPreMakeInputs() {
 static void DrvMakeInputs()
 {
 	// Reset Inputs
-	inputPort.InputPorts[0] = 0xff;
-	inputPort.InputPorts[1] = 0xff;
-	inputPort.InputPorts[2] = 0xff;
+	input.Ports[0] = 0xff;
+	input.Ports[1] = 0xff;
+	input.Ports[2] = 0xff;
 
 	// Compile Digital Inputs
 	for (INT32 i = 0; i < 8; i ++) 
    {
-		inputPort.InputPorts[0] -= (inputPort.Input0Bits[0][i] & 1) << i;
-		inputPort.InputPorts[1] -= (inputPort.Input1Bits[0][i] & 1) << i;
-		inputPort.InputPorts[2] -= (inputPort.Input2Bits[0][i] & 1) << i;
+		input.Ports[0] -= (input.Port0Bits[0][i] & 1) << i;
+		input.Ports[1] -= (input.Port1Bits[0][i] & 1) << i;
+		input.Ports[2] -= (input.Port2Bits[0][i] & 1) << i;
 	}
 
 	if (NAMCO_GALAGA == machine.Game) // !digdugmode) // galaga only - service mode
-		inputPort.InputPorts[0] = (inputPort.InputPorts[0] & ~0x80) | (inputPort.Dip[0] & 0x80);
+		input.Ports[0] = (input.Ports[0] & ~0x80) | (input.Dip[0] & 0x80);
 }
 
 static INT32 DrvFrame()
 {
 	
-	if (DrvReset) DrvDoReset();
+	if (input.Reset) DrvDoReset();
 
 	DrvPreMakeInputs();
 	DrvMakeInputs();
@@ -935,7 +925,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(ioChip.Credits);
 		SCAN_VAR(ioChip.CoinPerCredit);
 		SCAN_VAR(ioChip.CreditPerCoin);
-		SCAN_VAR(inputPort.PrevInValue);
+		SCAN_VAR(input.PrevInValue);
 		SCAN_VAR(stars.Control);
 		SCAN_VAR(ioChip.Buffer);
 
@@ -960,24 +950,24 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 /* === Galaga === */
 static struct BurnInputInfo GalagaInputList[] =
 {
-	{"Coin 1"            , BIT_DIGITAL  , &inputPort.Input0Bits[0][4], "p1 coin"   },
-	{"Start 1"           , BIT_DIGITAL  , &inputPort.Input0Bits[0][2], "p1 start"  },
-	{"Coin 2"            , BIT_DIGITAL  , &inputPort.Input0Bits[0][5], "p2 coin"   },
-	{"Start 2"           , BIT_DIGITAL  , &inputPort.Input0Bits[0][3], "p2 start"  },
+	{"Coin 1"            , BIT_DIGITAL  , &input.Port0Bits[0][4], "p1 coin"   },
+	{"Start 1"           , BIT_DIGITAL  , &input.Port0Bits[0][2], "p1 start"  },
+	{"Coin 2"            , BIT_DIGITAL  , &input.Port0Bits[0][5], "p2 coin"   },
+	{"Start 2"           , BIT_DIGITAL  , &input.Port0Bits[0][3], "p2 start"  },
 
-	{"Left"              , BIT_DIGITAL  , &inputPort.Input1Bits[0][3], "p1 left"   },
-	{"Right"             , BIT_DIGITAL  , &inputPort.Input1Bits[0][1], "p1 right"  },
-	{"Fire 1"            , BIT_DIGITAL  , &inputPort.Input1Bits[0][4], "p1 fire 1" },
+	{"Left"              , BIT_DIGITAL  , &input.Port1Bits[0][3], "p1 left"   },
+	{"Right"             , BIT_DIGITAL  , &input.Port1Bits[0][1], "p1 right"  },
+	{"Fire 1"            , BIT_DIGITAL  , &input.Port1Bits[0][4], "p1 fire 1" },
 	
-	{"Left (Cocktail)"   , BIT_DIGITAL  , &inputPort.Input2Bits[0][3], "p2 left"   },
-	{"Right (Cocktail)"  , BIT_DIGITAL  , &inputPort.Input2Bits[0][1], "p2 right"  },
-	{"Fire 1 (Cocktail)" , BIT_DIGITAL  , &inputPort.Input2Bits[0][4], "p2 fire 1" },
+	{"Left (Cocktail)"   , BIT_DIGITAL  , &input.Port2Bits[0][3], "p2 left"   },
+	{"Right (Cocktail)"  , BIT_DIGITAL  , &input.Port2Bits[0][1], "p2 right"  },
+	{"Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.Port2Bits[0][4], "p2 fire 1" },
 
-	{"Reset"             , BIT_DIGITAL  , &DrvReset        , "reset"     },
-	{"Service"           , BIT_DIGITAL  , &inputPort.Input0Bits[0][6], "service"   },
-	{"Dip 1"             , BIT_DIPSWITCH, &inputPort.Dip[0]       , "dip"       },
-	{"Dip 2"             , BIT_DIPSWITCH, &inputPort.Dip[1]       , "dip"       },
-	{"Dip 3"             , BIT_DIPSWITCH, &inputPort.Dip[2]       , "dip"       },
+	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
+	{"Service"           , BIT_DIGITAL  , &input.Port0Bits[0][6], "service"   },
+	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
+	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
+	{"Dip 3"             , BIT_DIPSWITCH, &input.Dip[2]       , "dip"       },
 };
 
 STDINPUTINFO(Galaga)
@@ -1847,27 +1837,27 @@ static void DrvCalcPalette()
 /* === Dig Dug === */
 static struct BurnInputInfo DigdugInputList[] =
 {
-	{"P1 Coin"            , BIT_DIGITAL  , &inputPort.Input0Bits[0][0], "p1 coin"   },
-	{"P1 Start"           , BIT_DIGITAL  , &inputPort.Input0Bits[0][4], "p1 start"  },
-	{"P2 Coin"            , BIT_DIGITAL  , &inputPort.Input0Bits[0][1], "p2 coin"   },
-	{"P2 Start"           , BIT_DIGITAL  , &inputPort.Input0Bits[0][5], "p2 start"  },
+	{"P1 Coin"            , BIT_DIGITAL  , &input.Port0Bits[0][0], "p1 coin"   },
+	{"P1 Start"           , BIT_DIGITAL  , &input.Port0Bits[0][4], "p1 start"  },
+	{"P2 Coin"            , BIT_DIGITAL  , &input.Port0Bits[0][1], "p2 coin"   },
+	{"P2 Start"           , BIT_DIGITAL  , &input.Port0Bits[0][5], "p2 start"  },
 
-	{"P1 Up"             , BIT_DIGITAL  , &inputPort.Input1Bits[0][0], "p1 up"     },
-	{"P1 Down"           , BIT_DIGITAL  , &inputPort.Input1Bits[0][2], "p1 down"   },
-	{"P1 Left"              , BIT_DIGITAL  , &inputPort.Input1Bits[0][3], "p1 left"   },
-	{"P1 Right"             , BIT_DIGITAL  , &inputPort.Input1Bits[0][1], "p1 right"  },
-	{"P1 Fire 1"            , BIT_DIGITAL  , &inputPort.Input1Bits[0][4], "p1 fire 1" },
+	{"P1 Up"             , BIT_DIGITAL  , &input.Port1Bits[0][0], "p1 up"     },
+	{"P1 Down"           , BIT_DIGITAL  , &input.Port1Bits[0][2], "p1 down"   },
+	{"P1 Left"              , BIT_DIGITAL  , &input.Port1Bits[0][3], "p1 left"   },
+	{"P1 Right"             , BIT_DIGITAL  , &input.Port1Bits[0][1], "p1 right"  },
+	{"P1 Fire 1"            , BIT_DIGITAL  , &input.Port1Bits[0][4], "p1 fire 1" },
 	
-	{"P2 Up"             , BIT_DIGITAL  , &inputPort.Input2Bits[0][0], "p2 up"     },
-	{"P2 Down"           , BIT_DIGITAL  , &inputPort.Input2Bits[0][2], "p2 down"   },
-	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &inputPort.Input2Bits[0][3], "p2 left"   },
-	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &inputPort.Input2Bits[0][1], "p2 right"  },
-	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &inputPort.Input2Bits[0][4], "p2 fire 1" },
+	{"P2 Up"             , BIT_DIGITAL  , &input.Port2Bits[0][0], "p2 up"     },
+	{"P2 Down"           , BIT_DIGITAL  , &input.Port2Bits[0][2], "p2 down"   },
+	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &input.Port2Bits[0][3], "p2 left"   },
+	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &input.Port2Bits[0][1], "p2 right"  },
+	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.Port2Bits[0][4], "p2 fire 1" },
 
-	{"Reset"             , BIT_DIGITAL  , &DrvReset        , "reset"     },
-	{"Service"           , BIT_DIGITAL  , &inputPort.Input0Bits[0][7], "service"   },
-	{"Dip 1"             , BIT_DIPSWITCH, &inputPort.Dip[0]       , "dip"       },
-	{"Dip 2"             , BIT_DIPSWITCH, &inputPort.Dip[1]       , "dip"       },
+	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
+	{"Service"           , BIT_DIGITAL  , &input.Port0Bits[0][7], "service"   },
+	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
+	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
 //	{"Dip 3"             , BIT_DIPSWITCH, DrvDip + 2       , "dip"       },
 };
 
