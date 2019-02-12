@@ -30,8 +30,6 @@ struct Input_Def
 
 static struct Input_Def input;
 
-static UINT8 *DrvTempRom          = NULL;
-
 struct Graphics_Def
 {
    UINT8 *Chars;
@@ -75,6 +73,8 @@ struct Memory_Def
 };
 
 static struct Memory_Def memory;
+
+static UINT8 *DrvTempRom          = NULL;
 
 struct CPU_Control_Def
 {
@@ -144,9 +144,20 @@ struct MachineDef
 
 static struct MachineDef machine = { 0 };
 
+/*
 static INT32 DrvButtonHold[2] = { 0, 0 }; // Fire button must be held for 1 frame
 static INT32 DrvButtonHeld[2] = { 0, 0 }; // otherwise Dig Dug acts strangely.
 static INT32 DrvLastButtons;              // State of the last button press
+*/
+
+struct Button_Def
+{
+   INT32 Hold[2];
+   INT32 Held[2];
+   INT32 Last;
+};
+
+static struct Button_Def button = { 0 };
 
 static INT32 MemIndex(void);
 static INT32 GalagaInit(void);
@@ -440,8 +451,8 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 
 						in = ~((jp & 0xf0) >> 4);
 
-						toggle = in ^ DrvLastButtons;
-						DrvLastButtons = (DrvLastButtons & 2) | (in & 1);
+						toggle = in ^ button.Last;
+						button.Last = (button.Last & 2) | (in & 1);
 
 						/* fire */
 						joy |= ((toggle & in & 0x01)^1) << 4;
@@ -757,18 +768,20 @@ static void DrvPreMakeInputs() {
 		input.Port1Bits[1][4] = 0;
 		input.Port2Bits[1][4] = 0;
 		for (INT32 i = 0; i < 2; i++) {
-			if(((!i) ? input.Port1Bits[0][4] : input.Port2Bits[0][4]) && !DrvButtonHeld[i]) {
-				DrvButtonHold[i] = 2; // number of frames to be held + 1.
-				DrvButtonHeld[i] = 1;
+			if(((!i) ? input.Port1Bits[0][4] : input.Port2Bits[0][4]) && !button.Held[i]) 
+         {
+				button.Hold[i] = 2; // number of frames to be held + 1.
+				button.Held[i] = 1;
 			} else {
 				if (((!i) ? !input.Port1Bits[0][4] : !input.Port2Bits[0][4])) {
-					DrvButtonHeld[i] = 0;
+					button.Held[i] = 0;
 				}
 			}
 
-			if(DrvButtonHold[i]) {
-				DrvButtonHold[i]--;
-				((!i) ? input.Port1Bits[1][4] : input.Port2Bits[1][4]) = ((DrvButtonHold[i]) ? 1 : 0);
+			if(button.Hold[i]) 
+         {
+				button.Hold[i] --;
+				((!i) ? input.Port1Bits[1][4] : input.Port2Bits[1][4]) = ((button.Hold[i]) ? 1 : 0);
 			} else {
 				(!i) ? input.Port1Bits[1][4] : input.Port2Bits[1][4] = 0;
 			}
