@@ -681,7 +681,7 @@ static UINT8* cdimgReadTOC(int track)
 {
 	static UINT8 TOCEntry[4];
 
-	if (track == -1)
+	if (track == CDEmuTOC_FIRSTLAST)
 	{
 		TOCEntry[0] = tobcd(cdimgTOC->FirstTrack - 1);
 		TOCEntry[1] = tobcd(cdimgTOC->LastTrack);
@@ -690,13 +690,28 @@ static UINT8* cdimgReadTOC(int track)
 
 		return TOCEntry;
 	}
-	if (track == -2)
+	if (track == CDEmuTOC_LASTMSF)
 	{
 		TOCEntry[0] = cdimgTOC->TrackData[cdimgTOC->LastTrack].Address[1];
 		TOCEntry[1] = cdimgTOC->TrackData[cdimgTOC->LastTrack].Address[2];
 		TOCEntry[2] = cdimgTOC->TrackData[cdimgTOC->LastTrack].Address[3];
 
 		TOCEntry[3] = 0;
+
+		return TOCEntry;
+	}
+	if (track == CDEmuTOC_FIRSTINDEX)
+	{
+		if (cdimgLBA < cdimgMSFToLBA(cdimgTOC->TrackData[cdimgTOC->FirstTrack - 1].Address))
+		{
+			const UINT8* addressUNBCD = dinkLBAToMSF(cdimgLBA);
+			UINT8 index = addressUNBCD[1] * 25 + ((addressUNBCD[2] + 4) / 4);
+			TOCEntry[0] = tobcd((index < 100) ? index : 99);
+		}
+		else
+		{
+			TOCEntry[0] = tobcd(1);
+		}
 
 		return TOCEntry;
 	}
