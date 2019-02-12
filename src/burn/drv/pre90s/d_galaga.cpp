@@ -50,16 +50,6 @@ static UINT8 DrvStarControl[6];
 static UINT32 DrvStarScrollX;
 static UINT32 DrvStarScrollY;
 
-/*
-static UINT8 IOChipCustomCommand;
-static UINT8 IOChipCPU1FireIRQ;
-static UINT8 IOChipMode;
-static UINT8 IOChipCredits;
-static UINT8 IOChipCoinPerCredit;
-static UINT8 IOChipCreditPerCoin;
-static UINT8 IOChipCustom[16];
-*/
-
 struct IOChip_Def
 {
    UINT8 CustomCommand;
@@ -145,7 +135,8 @@ static INT32 DrvDoReset()
 	ioChip.Credits = 0;
 	ioChip.CoinPerCredit = 0;
 	ioChip.CreditPerCoin = 0;
-	for (INT32 i = 0; i < 16; i++) {
+	for (INT32 i = 0; i < sizeof(ioChip.Buffer); i ++) 
+   {
 		ioChip.Buffer[i] = 0;
 	}
 	PrevInValue = 0xff;
@@ -300,61 +291,69 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 		case 0x700c:
 		case 0x700d:
 		case 0x700e:
-		case 0x700f: {
+		case 0x700f: 
+      {
 			INT32 Offset = a - 0x7000;
 			
-			switch (ioChip.CustomCommand) {
-				case 0xd2: {// digdug dips
-					//if (digdugmode && ((Offset == 0) || (Offset == 1)))
+			switch (ioChip.CustomCommand) 
+         {
+				case 0xd2: 
+            {
                if ( (NAMCO_DIGDUG == machine.Game) && 
                     ( (0 == Offset) || (1 == Offset) ) )
 						return DrvDip[Offset];
 					break;
 				}
 				case 0x71:
-				case 0xb1: {
-					if ((ioChip.CustomCommand == 0xb1) && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
+				case 0xb1: 
+            {
+					if ((0xb1 == ioChip.CustomCommand) && (NAMCO_DIGDUG == machine.Game) )
                {
 						if (Offset <= 2) // status
 							return 0;
 						else
 							return 0xff;
 					}
-					if (Offset == 0) {
-						if (ioChip.Mode) {
+					if (0 == Offset) 
+               {
+						if (ioChip.Mode) 
+                  {
 							return DrvInput[0];
-						} else {
-							UINT8 In;
+						} 
+                  else 
+                  {
 							static UINT8 CoinInserted;
 							
-							In = DrvInput[0];
-							if (In != PrevInValue) {
-								if (ioChip.CoinPerCredit > 0) {
-									//if (((((In & 0x70) != 0x70) && !digdugmode) || (((In & 0x01) == 0) && digdugmode)) && (IOChipCredits < 99)) {
+							UINT8 In = DrvInput[0];
+							if (In != PrevInValue) 
+                     {
+								if (ioChip.CoinPerCredit > 0) 
+                        {
                            if ( ( ( ((In & 0x70) != 0x70) && (NAMCO_GALAGA == machine.Game) )   || 
                                   ( ((In & 0x01) == 0   ) && (NAMCO_DIGDUG == machine.Game) ) ) && 
                                 (ioChip.Credits < 99) ) 
                            {
 										CoinInserted++;
-										if (CoinInserted >= ioChip.CoinPerCredit) {
+										if (CoinInserted >= ioChip.CoinPerCredit) 
+                              {
 											ioChip.Credits += ioChip.CreditPerCoin;
 											CoinInserted = 0;
 										}
 									}
-								} else {
+								} 
+                        else 
+                        {
 									ioChip.Credits = 2;
 								}
 								
-								//if (((In & 0x04) == 0 && !digdugmode) || ((In & 0x10) == 0 && digdugmode)) {
-                        if ( ( ((In & 0x04) == 0) && (NAMCO_GALAGA == machine.Game) ) || 
-                             ( ((In & 0x10) == 0) && (NAMCO_DIGDUG == machine.Game) ) ) 
+                        if ( ( ( 0 == (In & 0x04) ) && (NAMCO_GALAGA == machine.Game) ) || 
+                             ( ( 0 == (In & 0x10) ) && (NAMCO_DIGDUG == machine.Game) ) ) 
                         {
 									if (ioChip.Credits >= 1) ioChip.Credits--;
 								}
-							
-								//if (((In & 0x08) == 0 && !digdugmode) || ((In & 0x20) == 0 && digdugmode)) {
-                        if ( ( ((In & 0x08) == 0) && (NAMCO_GALAGA == machine.Game) ) ||
-                             ( ((In & 0x20) == 0) && (NAMCO_DIGDUG == machine.Game) ) ) 
+                        
+                        if ( ( ( 0 == (In & 0x08) ) && (NAMCO_GALAGA == machine.Game) ) ||
+                             ( ( 0 == (In & 0x20) ) && (NAMCO_DIGDUG == machine.Game) ) ) 
                         {
 									if (ioChip.Credits >= 2) ioChip.Credits -= 2;
 								}
@@ -369,7 +368,8 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 					if (Offset == 1 || Offset == 2) {
 						INT32 jp = DrvInput[Offset];
 
-						if (ioChip.Mode == 0 && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) {
+						if ( (0 == ioChip.Mode) && 
+                       (NAMCO_DIGDUG == machine.Game) )
                   {
 							/* check directions, according to the following 8-position rule */
 							/*         0          */
@@ -520,22 +520,28 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		case 0x700c:
 		case 0x700d:
 		case 0x700e:
-		case 0x700f: {
+		case 0x700f: 
+      {
 			INT32 Offset = a - 0x7000;
 			ioChip.Buffer[Offset] = d;
 			Namco54XXWrite(d);
 			
-			switch (ioChip.CustomCommand) {
-				case 0xe1: {
-					if (Offset == 7 && (NAMCO_GALAGA == machine.Game) ) // !digdugmode) { // galaga
+			switch (ioChip.CustomCommand) 
+         {
+				case 0xe1: 
+            {
+					if ( (7 == Offset) && 
+                    (NAMCO_GALAGA == machine.Game) )
                {
 						ioChip.CoinPerCredit = ioChip.Buffer[1];
 						ioChip.CreditPerCoin = ioChip.Buffer[2];
 					}
 					break;
 				}
-				case 0xc1: {
-					if (Offset == 8 && (NAMCO_DIGDUG == machine.Game) ) // digdugmode) { // digdug
+				case 0xc1: 
+            {
+					if ( (8 == Offset) && 
+                    (NAMCO_DIGDUG == machine.Game) )
                {
 						ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
 						ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
@@ -547,26 +553,32 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 			return;
 		}
 	
-		case 0x7100: {
+		case 0x7100: 
+      {
 			ioChip.CustomCommand = d;
 			ioChip.CPU1FireIRQ = 1;
 			
-			switch (ioChip.CustomCommand) {
-				case 0x10: {
+			switch (ioChip.CustomCommand) 
+         {
+				case 0x10: 
+            {
 					ioChip.CPU1FireIRQ = 0;
 					return;
 				}
 				
-				case 0xa1: {
+				case 0xa1: 
+            {
 					ioChip.Mode = 1;
 					return;
 				}
-				case 0xb1: {
+				case 0xb1: 
+            {
 					ioChip.Credits = 0;
 					return;
 				}
 				case 0xc1:
-				case 0xe1: {
+				case 0xe1: 
+            {
 					ioChip.Credits = 0;
 					ioChip.Mode = 0;
 					return;
@@ -678,7 +690,8 @@ static INT32 DrvExit()
 	ioChip.Credits = 0;
 	ioChip.CoinPerCredit = 0;
 	ioChip.CreditPerCoin = 0;
-	for (INT32 i = 0; i < 16; i++) {
+	for (INT32 i = 0; i < sizeof(ioChip.Buffer); i ++) 
+   {
 		ioChip.Buffer[i] = 0;
 	}
 	machine.Game = NAMCO_GALAGA; // digdugmode = 0;
@@ -761,7 +774,9 @@ static INT32 DrvFrame()
 		if (i == (nInterleave-1) && DrvCPU1FireIRQ) {
 			ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		}
-		if ((i % 10==9) && ioChip.CPU1FireIRQ) {
+		if ( (9 == (i % 10)) && 
+           ioChip.CPU1FireIRQ ) 
+      {
 			ZetNmi();
 		}
 		ZetClose();
