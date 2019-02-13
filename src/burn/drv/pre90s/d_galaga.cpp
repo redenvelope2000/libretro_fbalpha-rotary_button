@@ -100,11 +100,12 @@ struct CPU_Def
 
 static struct CPU_Def cpus = { 0 };
 
+#define STARS_CTRL_NUM     6
 struct Stars_Def
 {
    UINT32 ScrollX;
    UINT32 ScrollY;
-   UINT8 Control[6];
+   UINT8 Control[STARS_CTRL_NUM];
 };
 
 static struct Stars_Def stars = { 0 };
@@ -203,24 +204,14 @@ static void DrvInitStars(void);
 static void DrvCalcPalette(void);
 void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data);
 static INT32 DigDugMemIndex(void);
-static INT32 DigdugInit(void);
 static void DigDugMachineInit(void);
+static INT32 DigdugInit(void);
 static void DrvCalcPaletteDigdug(void);
 static void digdug_Sprites(void);
 
 
-static INT32 DrvDoReset()
+static void machineReset()
 {
-	for (INT32 i = 0; i < NAMCO_BRD_CPU_COUNT; i ++) 
-   {
-		ZetOpen(i);
-		ZetReset();
-		ZetClose();
-	}
-	
-	BurnSampleReset();
-	NamcoSoundReset();
-
 	cpus.CPU1.FireIRQ = 0;
 	cpus.CPU2.FireIRQ = 0;
 	cpus.CPU3.FireIRQ = 0;
@@ -229,7 +220,7 @@ static INT32 DrvDoReset()
    
 	machine.FlipScreen = 0;
 	
-   for (INT32 i = 0; i < 6; i++) {
+   for (INT32 i = 0; i < STARS_CTRL_NUM; i++) {
 		stars.Control[i] = 0;
 	}
 	stars.ScrollX = 0;
@@ -245,6 +236,22 @@ static INT32 DrvDoReset()
    {
 		ioChip.Buffer[i] = 0;
 	}
+   
+}
+
+static INT32 DrvDoReset()
+{
+	for (INT32 i = 0; i < NAMCO_BRD_CPU_COUNT; i ++) 
+   {
+		ZetOpen(i);
+		ZetReset();
+		ZetClose();
+	}
+	
+	BurnSampleReset();
+	NamcoSoundReset();
+
+   machineReset();
    
 	input.PrevInValue = 0xff;
 
@@ -848,33 +855,11 @@ static INT32 DrvExit()
 
 	earom_exit();
 
+   machineReset();
+   
 	BurnFree(memory.All.Start);
 	
-	cpus.CPU1.FireIRQ = 0;
-	cpus.CPU2.FireIRQ = 0;
-	cpus.CPU3.FireIRQ = 0;
-	cpus.CPU2.Halt = 0;
-	cpus.CPU3.Halt = 0;
-   
-	for (INT32 i = 0; i < 6; i++) {
-		stars.Control[i] = 0;
-	}
-	stars.ScrollX = 0;
-	stars.ScrollY = 0;
-	
-	ioChip.CustomCommand = 0;
-	ioChip.CPU1FireIRQ = 0;
-	ioChip.Mode = 0;
-	ioChip.Credits = 0;
-	ioChip.CoinPerCredit = 0;
-	ioChip.CreditPerCoin = 0;
-	for (INT32 i = 0; i < sizeof(ioChip.Buffer); i ++) 
-   {
-		ioChip.Buffer[i] = 0;
-	}
-   
 	machine.Game = NAMCO_GALAGA; // digdugmode = 0;
-	machine.FlipScreen = 0;
 
 	return 0;
 }
