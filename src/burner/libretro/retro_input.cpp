@@ -1665,6 +1665,21 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 	}
 	
+	// Ms. Pac-Man/Galaga - 20th Anniversary Class of 1981 Reunion
+	// Pac-Man - 25th Anniversary Edition
+	if ((parentrom && strcmp(parentrom, "20pacgal") == 0) ||
+		(drvname && strcmp(drvname, "20pacgal") == 0) ||
+		(parentrom && strcmp(parentrom, "25pacman") == 0) ||
+		(drvname && strcmp(drvname, "25pacman") == 0)
+	) {
+		if (strcmp("Start (left)", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_START, description);
+		}
+		if (strcmp("Start (right)", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
+		}
+	}
+	
 	// Handle megadrive
 	if ((systemname && strcmp(systemname, "Sega Megadrive") == 0)) {
 		// Street Fighter 2 mapping (which is the only 6 button megadrive game ?)
