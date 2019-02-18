@@ -10,7 +10,7 @@
 #include "earom.h"
 
 #define NAMCO_BRD_CPU_COUNT      3
-
+#define NAMCO_BRD_INP_COUNT      3
 
 static const INT32 Colour2Bit[4] = { 
    0x00, 0x47, 0x97, 0xde 
@@ -28,11 +28,9 @@ struct PortBits_Def
 
 struct Input_Def
 {
-   struct PortBits_Def Port0Bits;
-   struct PortBits_Def Port1Bits;
-   struct PortBits_Def Port2Bits;
+   struct PortBits_Def PortBits[NAMCO_BRD_INP_COUNT];
    UINT8 Dip[3];
-   UINT8 Ports[3];
+   UINT8 Ports[NAMCO_BRD_INP_COUNT];
    UINT8 PrevInValue;
    UINT8 Reset;
 };
@@ -176,8 +174,8 @@ static struct MachineDef machine = { 0 };
 
 struct Button_Def
 {
-   INT32 Hold[2];
-   INT32 Held[2];
+   INT32 Hold[NAMCO_BRD_INP_COUNT];
+   INT32 Held[NAMCO_BRD_INP_COUNT];
    INT32 Last;
 };
 
@@ -831,10 +829,16 @@ static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta)
          }
          break;
 	
+      case 0xa000:
+      case 0xa001:
+      case 0xa002:
+      case 0xa003:
+      case 0xa004:
+      case 0xa005:
 		case 0xa006: 
       {
 			digdug_pf_latch_w(addr - 0xa000, dta);
-			return;
+			break;
 		}
 
 		default: 
@@ -867,19 +871,19 @@ static INT32 DrvExit()
 static void DrvPreMakeInputs() {
 	// silly bit of code to keep the joystick button pressed for only 1 frame
 	// needed for proper pumping action in digdug & highscore name entry.
-	memcpy(&input.Port1Bits.Last[0], &input.Port1Bits.Current[0], sizeof(input.Port1Bits.Current));
-	memcpy(&input.Port2Bits.Last[0], &input.Port2Bits.Current[0], sizeof(input.Port2Bits.Current));
+	memcpy(&input.PortBits[1].Last[0], &input.PortBits[1].Current[0], sizeof(input.PortBits[1].Current));
+	memcpy(&input.PortBits[2].Last[0], &input.PortBits[2].Current[0], sizeof(input.PortBits[2].Current));
 
 	{
-		input.Port1Bits.Last[4] = 0;
-		input.Port2Bits.Last[4] = 0;
+		input.PortBits[1].Last[4] = 0;
+		input.PortBits[2].Last[4] = 0;
 		for (INT32 i = 0; i < 2; i++) {
-			if(((!i) ? input.Port1Bits.Current[4] : input.Port2Bits.Current[4]) && !button.Held[i]) 
+			if(((!i) ? input.PortBits[1].Current[4] : input.PortBits[2].Current[4]) && !button.Held[i]) 
          {
 				button.Hold[i] = 2; // number of frames to be held + 1.
 				button.Held[i] = 1;
 			} else {
-				if (((!i) ? !input.Port1Bits.Current[4] : !input.Port2Bits.Current[4])) {
+				if (((!i) ? !input.PortBits[1].Current[4] : !input.PortBits[2].Current[4])) {
 					button.Held[i] = 0;
 				}
 			}
@@ -887,9 +891,9 @@ static void DrvPreMakeInputs() {
 			if(button.Hold[i]) 
          {
 				button.Hold[i] --;
-				((!i) ? input.Port1Bits.Current[4] : input.Port2Bits.Current[4]) = ((button.Hold[i]) ? 1 : 0);
+				((!i) ? input.PortBits[1].Current[4] : input.PortBits[2].Current[4]) = ((button.Hold[i]) ? 1 : 0);
 			} else {
-				(!i) ? input.Port1Bits.Current[4] : input.Port2Bits.Current[4] = 0;
+				(!i) ? input.PortBits[1].Current[4] : input.PortBits[2].Current[4] = 0;
 			}
 		}
 		//bprintf(0, _T("%X:%X,"), DrvInputPort1r[4], DrvButtonHold[0]);
@@ -906,9 +910,9 @@ static void DrvMakeInputs()
 	// Compile Digital Inputs
 	for (INT32 i = 0; i < 8; i ++) 
    {
-		input.Ports[0] -= (input.Port0Bits.Current[i] & 1) << i;
-		input.Ports[1] -= (input.Port1Bits.Current[i] & 1) << i;
-		input.Ports[2] -= (input.Port2Bits.Current[i] & 1) << i;
+		input.Ports[0] -= (input.PortBits[0].Current[i] & 1) << i;
+		input.Ports[1] -= (input.PortBits[1].Current[i] & 1) << i;
+		input.Ports[2] -= (input.PortBits[2].Current[i] & 1) << i;
 	}
 
 	if (NAMCO_GALAGA == machine.Game) // !digdugmode) // galaga only - service mode
@@ -1069,21 +1073,21 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 /* === Galaga === */
 static struct BurnInputInfo GalagaInputList[] =
 {
-	{"Coin 1"            , BIT_DIGITAL  , &input.Port0Bits.Current[4], "p1 coin"   },
-	{"Start 1"           , BIT_DIGITAL  , &input.Port0Bits.Current[2], "p1 start"  },
-	{"Coin 2"            , BIT_DIGITAL  , &input.Port0Bits.Current[5], "p2 coin"   },
-	{"Start 2"           , BIT_DIGITAL  , &input.Port0Bits.Current[3], "p2 start"  },
+	{"Coin 1"            , BIT_DIGITAL  , &input.PortBits[0].Current[4], "p1 coin"   },
+	{"Start 1"           , BIT_DIGITAL  , &input.PortBits[0].Current[2], "p1 start"  },
+	{"Coin 2"            , BIT_DIGITAL  , &input.PortBits[0].Current[5], "p2 coin"   },
+	{"Start 2"           , BIT_DIGITAL  , &input.PortBits[0].Current[3], "p2 start"  },
 
-	{"Left"              , BIT_DIGITAL  , &input.Port1Bits.Current[3], "p1 left"   },
-	{"Right"             , BIT_DIGITAL  , &input.Port1Bits.Current[1], "p1 right"  },
-	{"Fire 1"            , BIT_DIGITAL  , &input.Port1Bits.Current[4], "p1 fire 1" },
+	{"Left"              , BIT_DIGITAL  , &input.PortBits[1].Current[3], "p1 left"   },
+	{"Right"             , BIT_DIGITAL  , &input.PortBits[1].Current[1], "p1 right"  },
+	{"Fire 1"            , BIT_DIGITAL  , &input.PortBits[1].Current[4], "p1 fire 1" },
 	
-	{"Left (Cocktail)"   , BIT_DIGITAL  , &input.Port2Bits.Current[3], "p2 left"   },
-	{"Right (Cocktail)"  , BIT_DIGITAL  , &input.Port2Bits.Current[1], "p2 right"  },
-	{"Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.Port2Bits.Current[4], "p2 fire 1" },
+	{"Left (Cocktail)"   , BIT_DIGITAL  , &input.PortBits[2].Current[3], "p2 left"   },
+	{"Right (Cocktail)"  , BIT_DIGITAL  , &input.PortBits[2].Current[1], "p2 right"  },
+	{"Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.PortBits[2].Current[4], "p2 fire 1" },
 
 	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
-	{"Service"           , BIT_DIGITAL  , &input.Port0Bits.Current[6], "service"   },
+	{"Service"           , BIT_DIGITAL  , &input.PortBits[0].Current[6], "service"   },
 	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
 	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
 	{"Dip 3"             , BIT_DIPSWITCH, &input.Dip[2]       , "dip"       },
@@ -2006,27 +2010,28 @@ static void DrvCalcPalette()
 }
 
 /* === Dig Dug === */
+
 static struct BurnInputInfo DigdugInputList[] =
 {
-	{"P1 Coin"            , BIT_DIGITAL  , &input.Port0Bits.Current[0], "p1 coin"   },
-	{"P1 Start"           , BIT_DIGITAL  , &input.Port0Bits.Current[4], "p1 start"  },
-	{"P2 Coin"            , BIT_DIGITAL  , &input.Port0Bits.Current[1], "p2 coin"   },
-	{"P2 Start"           , BIT_DIGITAL  , &input.Port0Bits.Current[5], "p2 start"  },
+	{"P1 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[0], "p1 coin"   },
+	{"P1 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[4], "p1 start"  },
+	{"P2 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[1], "p2 coin"   },
+	{"P2 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[5], "p2 start"  },
 
-	{"P1 Up"             , BIT_DIGITAL  , &input.Port1Bits.Current[0], "p1 up"     },
-	{"P1 Down"           , BIT_DIGITAL  , &input.Port1Bits.Current[2], "p1 down"   },
-	{"P1 Left"              , BIT_DIGITAL  , &input.Port1Bits.Current[3], "p1 left"   },
-	{"P1 Right"             , BIT_DIGITAL  , &input.Port1Bits.Current[1], "p1 right"  },
-	{"P1 Fire 1"            , BIT_DIGITAL  , &input.Port1Bits.Current[4], "p1 fire 1" },
+	{"P1 Up"             , BIT_DIGITAL  , &input.PortBits[1].Current[0], "p1 up"     },
+	{"P1 Down"           , BIT_DIGITAL  , &input.PortBits[1].Current[2], "p1 down"   },
+	{"P1 Left"              , BIT_DIGITAL  , &input.PortBits[1].Current[3], "p1 left"   },
+	{"P1 Right"             , BIT_DIGITAL  , &input.PortBits[1].Current[1], "p1 right"  },
+	{"P1 Fire 1"            , BIT_DIGITAL  , &input.PortBits[1].Current[4], "p1 fire 1" },
 	
-	{"P2 Up"             , BIT_DIGITAL  , &input.Port2Bits.Current[0], "p2 up"     },
-	{"P2 Down"           , BIT_DIGITAL  , &input.Port2Bits.Current[2], "p2 down"   },
-	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &input.Port2Bits.Current[3], "p2 left"   },
-	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &input.Port2Bits.Current[1], "p2 right"  },
-	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.Port2Bits.Current[4], "p2 fire 1" },
+	{"P2 Up"             , BIT_DIGITAL  , &input.PortBits[2].Current[0], "p2 up"     },
+	{"P2 Down"           , BIT_DIGITAL  , &input.PortBits[2].Current[2], "p2 down"   },
+	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &input.PortBits[2].Current[3], "p2 left"   },
+	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &input.PortBits[2].Current[1], "p2 right"  },
+	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.PortBits[2].Current[4], "p2 fire 1" },
 
 	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
-	{"Service"           , BIT_DIGITAL  , &input.Port0Bits.Current[7], "service"   },
+	{"Service"           , BIT_DIGITAL  , &input.PortBits[0].Current[7], "service"   },
 	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
 	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
 //	{"Dip 3"             , BIT_DIPSWITCH, DrvDip + 2       , "dip"       },
@@ -2422,8 +2427,8 @@ static void DigDugMachineInit()
 {
 	ZetInit(0);
 	ZetOpen(0);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -2433,8 +2438,8 @@ static void DigDugMachineInit()
 	
 	ZetInit(1);
 	ZetOpen(1);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -2444,8 +2449,8 @@ static void DigDugMachineInit()
 	
 	ZetInit(2);
 	ZetOpen(2);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
