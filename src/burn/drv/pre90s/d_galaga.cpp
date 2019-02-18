@@ -41,8 +41,7 @@ struct Graphics_Def
 {
    UINT8 *Chars;
    UINT8 *Sprites;
-   UINT8 *Chars2; // digdug playfield data
-   UINT8 *Chars3;
+   UINT8 *Chars2;
    UINT32 *Palette;
 };
 
@@ -82,6 +81,7 @@ struct Memory_Def
 static struct Memory_Def memory;
 
 static UINT8 *DrvTempRom          = NULL;
+static UINT8 *PlayFieldData; // digdug playfield data
 
 struct CPU_Control_Def
 {
@@ -99,6 +99,7 @@ struct CPU_Def
 static struct CPU_Def cpus = { 0 };
 
 #define STARS_CTRL_NUM     6
+
 struct Stars_Def
 {
    UINT32 ScrollX;
@@ -1449,7 +1450,7 @@ static INT32 GalagaMemIndex()
 	memory.RAM.Size            = Next - memory.RAM.Start;
 
 	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
-	graphics.Chars3            = Next; Next += 0x01000;
+	PlayFieldData              = Next; Next += 0x01000;
 	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
 	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
 	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
@@ -1764,7 +1765,7 @@ static void DrvRenderTilemap()
 static void digdugchars()
 {
 	INT32 TileIndex;
-	UINT8 *pf = graphics.Chars3 + (playfield << 10);
+	UINT8 *pf = PlayFieldData + (playfield << 10);
 	UINT8 pfval;
 	UINT32 pfcolor = playcolor << 4;
 
@@ -2226,7 +2227,7 @@ static INT32 DigdugInit()
 	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
 
 	// Load gfx4 - the playfield data
-	if (0 != BurnLoadRom(graphics.Chars3,              13, 1)) return 1;
+	if (0 != BurnLoadRom(PlayFieldData,             13, 1)) return 1;
 
 	// Load the PROMs
 	if (0 != BurnLoadRom(memory.PROM.Palette,       14, 1)) return 1;
@@ -2413,7 +2414,7 @@ static INT32 DigDugMemIndex()
 	memory.RAM.Size            = Next - memory.RAM.Start;
 
 	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
-	graphics.Chars3            = Next; Next += 0x01000;
+	PlayFieldData              = Next; Next += 0x01000;
 	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
 	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
 	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
