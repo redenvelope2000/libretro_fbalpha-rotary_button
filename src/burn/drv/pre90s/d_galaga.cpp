@@ -195,24 +195,29 @@ static INT32 playfield, alphacolor, playenable, playcolor;
 #define INP_DIGDUG_START_1          0x10
 #define INP_DIGDUG_START_2          0x20
 
-static void GalagaMachineInit(void);
 static INT32 GalagaInit(void);
+static INT32 GallagInit(void);
 static INT32 GalagaMemIndex(void);
+static void GalagaMachineInit(void);
 static UINT8 __fastcall GalagaZ80ProgRead(UINT16 addr);
 static void __fastcall GalagaZ80ProgWrite(UINT16 addr, UINT8 dta);
-static void DrvInitStars(void);
-static void DrvRenderStars(void);
+static INT32 GalagaDraw(void);
+static void GalagaCalcPalette(void);
+static void GalagaInitStars(void);
+static void GalagaRenderStars(void);
+static void GalagaRenderTilemap(void);
+static void GalagaRenderSprites(void);
 
-void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data);
 static INT32 DigdugInit(void);
-static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr);
-static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta);
-static void DrvCalcPaletteDigdug(void);
-static void digdug_Sprites(void);
 static INT32 DigDugMemIndex(void);
 static void DigDugMachineInit(void);
-static INT32 DrvDigdugDraw(void);
-static void digdugchars(void);
+static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr);
+void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data);
+static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta);
+static INT32 DigDugDraw(void);
+static void DigDugCalcPalette(void);
+static void DigDugRenderTiles(void);
+static void DigDugRenderSprites(void);
 
 static void machineReset(void);
 static INT32 DrvDoReset(void);
@@ -224,10 +229,6 @@ static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta);
 static INT32 DrvExit(void);
 static void DrvPreMakeInputs(void);
 static void DrvMakeInputs(void);
-static void DrvRenderTilemap(void);
-static void DrvRenderSprites(void);
-static INT32 DrvDraw(void);
-static void DrvCalcPalette(void);
 static INT32 DrvFrame(void);
 static INT32 DrvScan(INT32 nAction, INT32 *pnMin);
 
@@ -588,55 +589,6 @@ static INT32 SpritePlaneOffsets[2] = { 0, 4 };
 static INT32 SpriteXOffsets[16]    = { 0, 1, 2, 3, 64, 65, 66, 67, 128, 129, 130, 131, 192, 193, 194, 195 };
 static INT32 SpriteYOffsets[16]    = { 0, 8, 16, 24, 32, 40, 48, 56, 256, 264, 272, 280, 288, 296, 304, 312 };
 
-static void GalagaMachineInit()
-{
-	ZetInit(0);
-	ZetOpen(0);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	ZetInit(1);
-	ZetOpen(1);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	ZetInit(2);
-	ZetOpen(2);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
-	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
-	BurnSampleInit(1);
-	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
-	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
-
-	GenericTilesInit();
-
-	earom_init();
-
-	// Reset the driver
-	DrvDoReset();
-}
-
 static INT32 GalagaInit()
 {
 	// Allocate and Blank all required memory
@@ -753,7 +705,6 @@ static INT32 GalagaMemIndex()
 
 	memory.RAM.Video           = Next; Next += 0x00800;
 	memory.RAM.Shared1         = Next; Next += 0x00400;
-	//memory.RAM.Shared1         = Next; Next += 0x04000;
 	memory.RAM.Shared2         = Next; Next += 0x00400;
 	memory.RAM.Shared3         = Next; Next += 0x00400;
 
@@ -768,6 +719,55 @@ static INT32 GalagaMemIndex()
 	memory.All.Size            = Next - memory.All.Start;
 
 	return 0;
+}
+
+static void GalagaMachineInit()
+{
+	ZetInit(0);
+	ZetOpen(0);
+	ZetSetReadHandler(GalagaZ80ProgRead);
+	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(1);
+	ZetOpen(1);
+	ZetSetReadHandler(GalagaZ80ProgRead);
+	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(2);
+	ZetOpen(2);
+	ZetSetReadHandler(GalagaZ80ProgRead);
+	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
+	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
+	BurnSampleInit(1);
+	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
+	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
+
+	GenericTilesInit();
+
+	earom_init();
+
+	// Reset the driver
+	DrvDoReset();
 }
 
 static UINT8 __fastcall GalagaZ80ProgRead(UINT16 addr)
@@ -839,6 +839,82 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 addr, UINT8 dta)
    return NamcoZ80ProgWrite(addr, dta);
 }
 
+static INT32 GalagaDraw()
+{
+	BurnTransferClear();
+	GalagaCalcPalette();
+	GalagaRenderTilemap();
+	GalagaRenderStars();
+	GalagaRenderSprites();	
+	BurnTransferCopy(graphics.Palette);
+	return 0;
+}
+
+static void GalagaCalcPalette()
+{
+	UINT32 Palette[96];
+	
+	for (INT32 i = 0; i < 32; i ++) 
+   {
+      /*
+		INT32 bit0, bit1, bit2, r, g, b;
+		
+		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
+		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		bit0 = (memory.PROM.Palette[i] >> 3) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 4) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 5) & 0x01;
+		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		bit0 = 0;
+		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
+		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		*/
+      
+      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
+      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
+      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
+      
+		Palette[i] = BurnHighCol(r, g, b, 0);
+	}
+	
+	for (INT32 i = 0; i < 64; i ++) 
+   {
+		/*
+		INT32 bits = (i >> 0) & 0x03;
+		INT32 r = map[bits];
+		bits =       (i >> 2) & 0x03;
+		INT32 g = map[bits];
+		bits =       (i >> 4) & 0x03;
+		INT32 b = map[bits];
+		*/
+      INT32 r = Colour2Bit[(i >> 0) & 0x03];
+      INT32 g = Colour2Bit[(i >> 2) & 0x03];
+      INT32 b = Colour2Bit[(i >> 4) & 0x03];
+      
+		Palette[32 + i] = BurnHighCol(r, g, b, 0);
+	}
+	
+	for (INT32 i = 0; i < 256; i ++) 
+   {
+		graphics.Palette[i] =       Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
+	}
+	
+	for (INT32 i = 0; i < 256; i ++) 
+   {
+		graphics.Palette[0x100 + i] = Palette[  memory.PROM.SpriteLookup[i] & 0x0f];
+	}
+	
+	for (INT32 i = 0; i < 64; i ++) 
+   {
+		graphics.Palette[0x200 + i] = Palette[32 + i];
+	}
+
+	GalagaInitStars();
+}
+
 struct Star_Def 
 {
 	UINT16 x;
@@ -850,7 +926,7 @@ struct Star_Def
 #define MAX_STARS 252
 static struct Star_Def StarSeedTable[MAX_STARS];
 
-static void DrvInitStars()
+static void GalagaInitStars()
 {
 	/*
 	  Galaga star line and pixel locations pulled directly from
@@ -922,7 +998,7 @@ static void DrvInitStars()
 	}
 }
 
-static void DrvRenderStars()
+static void GalagaRenderStars()
 {
 	if (1 == stars.Control[5]) 
    {
@@ -944,6 +1020,137 @@ static void DrvRenderStars()
 				}
 			}
 
+		}
+	}
+}
+
+static void GalagaRenderTilemap()
+{
+	INT32 TileIndex;
+
+	for (INT32 mx = 0; mx < 28; mx ++) 
+   {
+		for (INT32 my = 0; my < 36; my ++) 
+      {
+			INT32 Row = mx + 2;
+			INT32 Col = my - 2;
+			if (Col & 0x20) {
+				TileIndex = Row + ((Col & 0x1f) << 5);
+			} else {
+				TileIndex = Col + (Row << 5);
+			}
+			
+			INT32 Code   = memory.RAM.Video[TileIndex + 0x000] & 0x7f;
+			INT32 Colour = memory.RAM.Video[TileIndex + 0x400] & 0x3f;
+
+			INT32 y = 8 * mx;
+			INT32 x = 8 * my;
+			
+			if (machine.FlipScreen) {
+				x = 280 - x;
+				y = 216 - y;
+			}
+			
+			if (x > 8 && x < 280 && y > 8 && y < 216) {
+				if (machine.FlipScreen) {
+					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				} else {
+					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				}
+			} else {
+				if (machine.FlipScreen) {
+					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				} else {
+					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				}
+			}
+		}
+	}
+}
+
+static void GalagaRenderSprites()
+{
+	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
+	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
+	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
+
+	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
+		static const INT32 GfxOffset[2][2] = {
+			{ 0, 1 },
+			{ 2, 3 }
+		};
+		INT32 Sprite =    SpriteRam1[Offset + 0] & 0x7f;
+		INT32 Colour =    SpriteRam1[Offset + 1] & 0x3f;
+		INT32 sx =        SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
+		INT32 sy = 256 -  SpriteRam2[Offset + 0] + 1;
+		INT32 xFlip =    (SpriteRam3[Offset + 0] & 0x01);
+		INT32 yFlip =    (SpriteRam3[Offset + 0] & 0x02) >> 1;
+		INT32 xSize =    (SpriteRam3[Offset + 0] & 0x04) >> 2;
+		INT32 ySize =    (SpriteRam3[Offset + 0] & 0x08) >> 3;
+      INT32 Orient =    SpriteRam3[Offset + 0] & 0x03;
+		sy -= 16 * ySize;
+		sy = (sy & 0xff) - 32;
+
+		if (machine.FlipScreen) 
+      {
+			xFlip = !xFlip;
+			yFlip = !yFlip;
+         Orient = 3 - Orient;
+		}
+
+		for (INT32 y = 0; y <= ySize; y ++) 
+      {
+			for (INT32 x = 0; x <= xSize; x ++) 
+         {
+				INT32 Code = Sprite + GfxOffset[y ^ (ySize * yFlip)][x ^ (xSize * xFlip)];
+				INT32 xPos = sx + 16 * x;
+				INT32 yPos = sy + 16 * y;
+
+            /*
+				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
+				if (xPos < -15 || yPos < -15) continue; // crash preventer
+            */
+            if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
+				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
+
+				if ((xPos > 16) && (xPos < 272) && 
+                (yPos > 16) && (yPos < 208) ) 
+            {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+               }
+				} else {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+               }
+				}
+			}
 		}
 	}
 }
@@ -1084,36 +1291,6 @@ static struct BurnRomInfo digdugRomDesc[] = {
 STD_ROM_PICK(digdug)
 STD_ROM_FN(digdug)
 
-void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data)
-{
-	switch (offset)
-	{
-		case 0:
-			playfield = (playfield & ~1) | (data & 1);
-			break;
-
-		case 1:
-			playfield = (playfield & ~2) | ((data << 1) & 2);
-			break;
-
-		case 2:
-			alphacolor = data & 1;
-			break;
-
-		case 3:
-			playenable = data & 1;
-			break;
-
-		case 4:
-			playcolor = (playcolor & ~1) | (data & 1);
-			break;
-
-		case 5:
-			playcolor = (playcolor & ~2) | ((data << 1) & 2);
-			break;
-	}
-}
-
 static INT32 DigdugCharPlaneOffsets[2] = { 0 };
 static INT32 DigdugCharXOffsets[8] = { STEP8(7,-1) };
 static INT32 DigdugCharYOffsets[8] = { STEP8(0,8) };
@@ -1181,6 +1358,87 @@ static INT32 DigdugInit()
 	DigDugMachineInit();
 
 	return 0;
+}
+
+static INT32 DigDugMemIndex()
+{
+	UINT8 *Next = memory.All.Start;
+
+	memory.Z80.Rom1            = Next; Next += 0x04000;
+	memory.Z80.Rom2            = Next; Next += 0x04000;
+	memory.Z80.Rom3            = Next; Next += 0x04000;
+	memory.PROM.Palette        = Next; Next += 0x00020;
+	memory.PROM.CharLookup     = Next; Next += 0x00100;
+	memory.PROM.SpriteLookup   = Next; Next += 0x00100;
+	memory.PROM.Sound          = Next; Next += 0x00200;
+	
+	memory.RAM.Start           = Next;
+
+	memory.RAM.Video           = Next; Next += 0x00800;
+	memory.RAM.Shared1         = Next; Next += 0x00400;
+	memory.RAM.Shared2         = Next; Next += 0x00400;
+	memory.RAM.Shared3         = Next; Next += 0x00400;
+
+	memory.RAM.Size            = Next - memory.RAM.Start;
+
+	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
+	PlayFieldData              = Next; Next += 0x01000;
+	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
+	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
+	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
+
+	memory.All.Size            = Next - memory.All.Start;
+
+	return 0;
+}
+
+static void DigDugMachineInit()
+{
+	ZetInit(0);
+	ZetOpen(0);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(1);
+	ZetOpen(1);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(2);
+	ZetOpen(2);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
+	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
+	BurnSampleInit(1);
+	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
+	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
+
+	GenericTilesInit();
+
+	earom_init();
+
+	// Reset the driver
+	DrvDoReset();
 }
 
 static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr)
@@ -1285,6 +1543,36 @@ static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr)
 	return NamcoZ80ProgRead(addr);
 }
 
+void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data)
+{
+	switch (offset)
+	{
+		case 0:
+			playfield = (playfield & ~1) | (data & 1);
+			break;
+
+		case 1:
+			playfield = (playfield & ~2) | ((data << 1) & 2);
+			break;
+
+		case 2:
+			alphacolor = data & 1;
+			break;
+
+		case 3:
+			playenable = data & 1;
+			break;
+
+		case 4:
+			playcolor = (playcolor & ~1) | (data & 1);
+			break;
+
+		case 5:
+			playcolor = (playcolor & ~2) | ((data << 1) & 2);
+			break;
+	}
+}
+
 static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta)
 {
 	if ( (addr >= 0xb800) && (addr <= 0xb83f) ) // EAROM Write
@@ -1328,7 +1616,17 @@ static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta)
    return NamcoZ80ProgWrite(addr, dta);
 }
 
-static void DrvCalcPaletteDigdug()
+static INT32 DigDugDraw()
+{
+	BurnTransferClear();
+	DigDugCalcPalette();
+	DigDugRenderTiles();
+	DigDugRenderSprites();
+	BurnTransferCopy(graphics.Palette);
+	return 0;
+}
+
+static void DigDugCalcPalette()
 {
 	UINT32 Palette[96];
 	
@@ -1381,7 +1679,82 @@ static void DrvCalcPaletteDigdug()
 	}
 }
 
-static void digdug_Sprites()
+static void DigDugRenderTiles()
+{
+	INT32 TileIndex;
+	UINT8 *pf = PlayFieldData + (playfield << 10);
+	UINT8 pfval;
+	UINT32 pfcolor = playcolor << 4;
+
+	if (playenable != 0)
+		pf = NULL;
+
+	for (INT32 mx = 0; mx < 28; mx ++) 
+   {
+		for (INT32 my = 0; my < 36; my ++) 
+      {
+			INT32 Row = mx + 2;
+			INT32 Col = my - 2;
+			if (Col & 0x20) 
+         {
+				TileIndex = Row + ((Col & 0x1f) << 5);
+			} else {
+				TileIndex = Col + (Row << 5);
+			}
+
+			INT32 Code = memory.RAM.Video[TileIndex];
+			INT32 Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
+			Code &= 0x7f;
+
+			INT32 y = 8 * mx;
+			INT32 x = 8 * my;
+			
+			if (machine.FlipScreen) 
+         {
+				x = 280 - x;
+				y = 216 - y;
+			}
+
+			if (pf) 
+         {
+				// Draw playfield / background
+				pfval = pf[TileIndex & 0xfff];
+				INT32 pfColour = (pfval >> 4) + pfcolor;
+				if (x > 8 && x < 280 && y > 8 && y < 216) 
+            {
+					if (machine.FlipScreen) {
+						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					} else {
+						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					}
+				} else {
+					if (machine.FlipScreen) {
+						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					} else {
+						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					}
+				}
+			}
+
+			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
+         {
+				if (machine.FlipScreen) {
+					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				} else {
+					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				}
+			} else {
+				if (machine.FlipScreen) {
+					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				} else {
+					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				}
+			}
+		}
+	}
+}
+
+static void DigDugRenderSprites()
 {
 	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
 	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
@@ -1468,173 +1841,6 @@ static void digdug_Sprites()
 							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
                      break;
                }
-				}
-			}
-		}
-	}
-}
-
-static INT32 DigDugMemIndex()
-{
-	UINT8 *Next = memory.All.Start;
-
-	memory.Z80.Rom1            = Next; Next += 0x04000;
-	memory.Z80.Rom2            = Next; Next += 0x04000;
-	memory.Z80.Rom3            = Next; Next += 0x04000;
-	memory.PROM.Palette        = Next; Next += 0x00020;
-	memory.PROM.CharLookup     = Next; Next += 0x00100;
-	memory.PROM.SpriteLookup   = Next; Next += 0x00100;
-	memory.PROM.Sound          = Next; Next += 0x00200;
-	
-	memory.RAM.Start           = Next;
-
-	memory.RAM.Video           = Next; Next += 0x00800;
-	memory.RAM.Shared1         = Next; Next += 0x00400;
-	//memory.RAM.Shared1         = Next; Next += 0x04000;
-	memory.RAM.Shared2         = Next; Next += 0x00400;
-	memory.RAM.Shared3         = Next; Next += 0x00400;
-
-	memory.RAM.Size            = Next - memory.RAM.Start;
-
-	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
-	PlayFieldData              = Next; Next += 0x01000;
-	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
-	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
-	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
-
-	memory.All.Size            = Next - memory.All.Start;
-
-	return 0;
-}
-
-static void DigDugMachineInit()
-{
-	ZetInit(0);
-	ZetOpen(0);
-	ZetSetReadHandler(DigDugZ80ProgRead);
-	ZetSetWriteHandler(DigDugZ80ProgWrite);
-	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	ZetInit(1);
-	ZetOpen(1);
-	ZetSetReadHandler(DigDugZ80ProgRead);
-	ZetSetWriteHandler(DigDugZ80ProgWrite);
-	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	ZetInit(2);
-	ZetOpen(2);
-	ZetSetReadHandler(DigDugZ80ProgRead);
-	ZetSetWriteHandler(DigDugZ80ProgWrite);
-	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
-	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
-	BurnSampleInit(1);
-	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
-	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
-
-	GenericTilesInit();
-
-	earom_init();
-
-	// Reset the driver
-	DrvDoReset();
-}
-
-static INT32 DrvDigdugDraw()
-{
-	BurnTransferClear();
-	DrvCalcPaletteDigdug();
-	digdugchars();
-	digdug_Sprites();
-	BurnTransferCopy(graphics.Palette);
-	return 0;
-}
-
-static void digdugchars()
-{
-	INT32 TileIndex;
-	UINT8 *pf = PlayFieldData + (playfield << 10);
-	UINT8 pfval;
-	UINT32 pfcolor = playcolor << 4;
-
-	if (playenable != 0)
-		pf = NULL;
-
-	for (INT32 mx = 0; mx < 28; mx ++) 
-   {
-		for (INT32 my = 0; my < 36; my ++) 
-      {
-			INT32 Row = mx + 2;
-			INT32 Col = my - 2;
-			if (Col & 0x20) 
-         {
-				TileIndex = Row + ((Col & 0x1f) << 5);
-			} else {
-				TileIndex = Col + (Row << 5);
-			}
-
-			INT32 Code = memory.RAM.Video[TileIndex];
-			INT32 Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
-			Code &= 0x7f;
-
-			INT32 y = 8 * mx;
-			INT32 x = 8 * my;
-			
-			if (machine.FlipScreen) 
-         {
-				x = 280 - x;
-				y = 216 - y;
-			}
-
-			if (pf) 
-         {
-				// Draw playfield / background
-				pfval = pf[TileIndex & 0xfff];
-				INT32 pfColour = (pfval >> 4) + pfcolor;
-				if (x > 8 && x < 280 && y > 8 && y < 216) 
-            {
-					if (machine.FlipScreen) {
-						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					} else {
-						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					}
-				} else {
-					if (machine.FlipScreen) {
-						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					} else {
-						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					}
-				}
-			}
-
-			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
-         {
-				if (machine.FlipScreen) {
-					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
-				} else {
-					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
-				}
-			} else {
-				if (machine.FlipScreen) {
-					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
-				} else {
-					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
 				}
 			}
 		}
@@ -2141,213 +2347,6 @@ static void DrvMakeInputs()
 		input.Ports[0] = (input.Ports[0] & ~0x80) | (input.Dip[0] & 0x80);
 }
 
-static void DrvRenderTilemap()
-{
-	INT32 TileIndex;
-
-	for (INT32 mx = 0; mx < 28; mx ++) 
-   {
-		for (INT32 my = 0; my < 36; my ++) 
-      {
-			INT32 Row = mx + 2;
-			INT32 Col = my - 2;
-			if (Col & 0x20) {
-				TileIndex = Row + ((Col & 0x1f) << 5);
-			} else {
-				TileIndex = Col + (Row << 5);
-			}
-			
-			INT32 Code   = memory.RAM.Video[TileIndex + 0x000] & 0x7f;
-			INT32 Colour = memory.RAM.Video[TileIndex + 0x400] & 0x3f;
-
-			INT32 y = 8 * mx;
-			INT32 x = 8 * my;
-			
-			if (machine.FlipScreen) {
-				x = 280 - x;
-				y = 216 - y;
-			}
-			
-			if (x > 8 && x < 280 && y > 8 && y < 216) {
-				if (machine.FlipScreen) {
-					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
-				} else {
-					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
-				}
-			} else {
-				if (machine.FlipScreen) {
-					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
-				} else {
-					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
-				}
-			}
-		}
-	}
-}
-
-static void DrvRenderSprites()
-{
-	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
-	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
-	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
-
-	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
-		static const INT32 GfxOffset[2][2] = {
-			{ 0, 1 },
-			{ 2, 3 }
-		};
-		INT32 Sprite =    SpriteRam1[Offset + 0] & 0x7f;
-		INT32 Colour =    SpriteRam1[Offset + 1] & 0x3f;
-		INT32 sx =        SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
-		INT32 sy = 256 -  SpriteRam2[Offset + 0] + 1;
-		INT32 xFlip =    (SpriteRam3[Offset + 0] & 0x01);
-		INT32 yFlip =    (SpriteRam3[Offset + 0] & 0x02) >> 1;
-		INT32 xSize =    (SpriteRam3[Offset + 0] & 0x04) >> 2;
-		INT32 ySize =    (SpriteRam3[Offset + 0] & 0x08) >> 3;
-      INT32 Orient =    SpriteRam3[Offset + 0] & 0x03;
-		sy -= 16 * ySize;
-		sy = (sy & 0xff) - 32;
-
-		if (machine.FlipScreen) 
-      {
-			xFlip = !xFlip;
-			yFlip = !yFlip;
-         Orient = 3 - Orient;
-		}
-
-		for (INT32 y = 0; y <= ySize; y ++) 
-      {
-			for (INT32 x = 0; x <= xSize; x ++) 
-         {
-				INT32 Code = Sprite + GfxOffset[y ^ (ySize * yFlip)][x ^ (xSize * xFlip)];
-				INT32 xPos = sx + 16 * x;
-				INT32 yPos = sy + 16 * y;
-
-            /*
-				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
-				if (xPos < -15 || yPos < -15) continue; // crash preventer
-            */
-            if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
-				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
-
-				if ((xPos > 16) && (xPos < 272) && 
-                (yPos > 16) && (yPos < 208) ) 
-            {
-               switch (Orient)
-               {
-                  case 3:
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-                  case 2:
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-                  case 1:
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-                  case 0:
-                  default:
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-               }
-				} else {
-               switch (Orient)
-               {
-                  case 3:
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-                  case 2:
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-                  case 1:
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-                  case 0:
-                  default:
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
-                     break;
-               }
-				}
-			}
-		}
-	}
-}
-
-static INT32 DrvDraw()
-{
-	BurnTransferClear();
-	DrvCalcPalette();
-	DrvRenderTilemap();
-	DrvRenderStars();
-	DrvRenderSprites();	
-	BurnTransferCopy(graphics.Palette);
-	return 0;
-}
-
-static void DrvCalcPalette()
-{
-	UINT32 Palette[96];
-	
-	for (INT32 i = 0; i < 32; i ++) 
-   {
-      /*
-		INT32 bit0, bit1, bit2, r, g, b;
-		
-		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
-		bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
-		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = (memory.PROM.Palette[i] >> 3) & 0x01;
-		bit1 = (memory.PROM.Palette[i] >> 4) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 5) & 0x01;
-		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = 0;
-		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
-		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		*/
-      
-      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
-      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
-      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
-      
-		Palette[i] = BurnHighCol(r, g, b, 0);
-	}
-	
-	for (INT32 i = 0; i < 64; i ++) 
-   {
-		/*
-		INT32 bits = (i >> 0) & 0x03;
-		INT32 r = map[bits];
-		bits =       (i >> 2) & 0x03;
-		INT32 g = map[bits];
-		bits =       (i >> 4) & 0x03;
-		INT32 b = map[bits];
-		*/
-      INT32 r = Colour2Bit[(i >> 0) & 0x03];
-      INT32 g = Colour2Bit[(i >> 2) & 0x03];
-      INT32 b = Colour2Bit[(i >> 4) & 0x03];
-      
-		Palette[32 + i] = BurnHighCol(r, g, b, 0);
-	}
-	
-	for (INT32 i = 0; i < 256; i ++) 
-   {
-		graphics.Palette[i] =       Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
-	}
-	
-	for (INT32 i = 0; i < 256; i ++) 
-   {
-		graphics.Palette[0x100 + i] = Palette[  memory.PROM.SpriteLookup[i] & 0x0f];
-	}
-	
-	for (INT32 i = 0; i < 64; i ++) 
-   {
-		graphics.Palette[0x200 + i] = Palette[32 + i];
-	}
-
-	DrvInitStars();
-}
-
 static INT32 DrvFrame()
 {
 	
@@ -2534,7 +2533,7 @@ struct BurnDriver BurnDrvGalaga =
    /* Init func = */                         	GalagaInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDraw, 
+   /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                576,
@@ -2577,7 +2576,7 @@ struct BurnDriver BurnDrvGalagao =
    /* Init func = */                            GalagaInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDraw, 
+   /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                576,
@@ -2620,7 +2619,7 @@ struct BurnDriver BurnDrvGalagamw =
    /* Init func = */                         	GalagaInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDraw, 
+   /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                576,
@@ -2663,7 +2662,7 @@ struct BurnDriver BurnDrvGalagamk =
 	/* Init func = */                            GalagaInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDraw, 
+   /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                576,
@@ -2706,7 +2705,7 @@ struct BurnDriver BurnDrvGalagamf =
    /* Init func = */                            GalagaInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDraw, 
+   /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan,
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                576,
@@ -2750,7 +2749,7 @@ struct BurnDriver BurnDrvGallag =
    /* Init func = */                            GallagInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDraw, 
+   /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                576,
@@ -2794,7 +2793,7 @@ struct BurnDriver BurnDrvNebulbee =
    /* Init func = */                            GallagInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDraw, 
+   /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                576,
@@ -2835,7 +2834,7 @@ struct BurnDriver BurnDrvDigdug =
    /* Init func = */                            DigdugInit, 
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
-   /* Redraw func = */                          DrvDigdugDraw, 
+   /* Redraw func = */                          DigDugDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                0x300,
