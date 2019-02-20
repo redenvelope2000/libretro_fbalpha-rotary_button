@@ -1,3 +1,3 @@
-APP_ABI := all
 APP_STL := c++_static
-APP_PLATFORM := android-17
+APP_ABI := all
+NDK_TOOLCHAIN_VERSION := clang

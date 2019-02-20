@@ -38,4 +38,11 @@ LOCAL_LDFLAGS      := -Wl,-version-script=$(MAIN_FBA_DIR)/burner/libretro/link.T
 LOCAL_LDLIBS       := $(LDFLAGS)
 LOCAL_CPP_FEATURES := exceptions rtti
 LOCAL_DISABLE_FORMAT_STRING_CHECKS := true
+LOCAL_ARM_MODE := arm
+
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+  LOCAL_ARM_MODE := arm
+  LOCAL_ARM_NEON := true
+endif
+
 include $(BUILD_SHARED_LIBRARY)
