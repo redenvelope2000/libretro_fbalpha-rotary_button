@@ -79,7 +79,7 @@ struct Memory_Def
 
 static struct Memory_Def memory;
 
-static UINT8 *DrvTempRom          = NULL;
+static UINT8 *DrvTempRom = NULL;
 static UINT8 *PlayFieldData; // digdug playfield data
 
 struct CPU_Control_Def
@@ -248,11 +248,11 @@ static struct BurnInputInfo GalagaInputList[] =
 	{"Right (Cocktail)"  , BIT_DIGITAL  , &input.PortBits[2].Current[1], "p2 right"  },
 	{"Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.PortBits[2].Current[4], "p2 fire 1" },
 
-	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
+	{"Reset"             , BIT_DIGITAL  , &input.Reset,                  "reset"     },
 	{"Service"           , BIT_DIGITAL  , &input.PortBits[0].Current[6], "service"   },
-	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
-	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
-	{"Dip 3"             , BIT_DIPSWITCH, &input.Dip[2]       , "dip"       },
+	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0],                 "dip"       },
+	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1],                 "dip"       },
+	{"Dip 3"             , BIT_DIPSWITCH, &input.Dip[2],                 "dip"       },
 };
 
 STDINPUTINFO(Galaga)
@@ -392,179 +392,179 @@ static struct BurnDIPInfo GalagamwDIPList[]=
 STDDIPINFO(Galagamw)
 
 static struct BurnRomInfo GalagaRomDesc[] = {
-	{ "gg1_1b.3p",     0x01000, 0xab036c9f, BRF_ESS | BRF_PRG }, //  0	Z80 #1 Program Code
-	{ "gg1_2b.3m",     0x01000, 0xd9232240, BRF_ESS | BRF_PRG }, //	 1
-	{ "gg1_3.2m",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG }, //	 2
-	{ "gg1_4b.2l",     0x01000, 0x499fcc76, BRF_ESS | BRF_PRG }, //	 3
+	{ "gg1_1b.3p",     0x01000, 0xab036c9f, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "gg1_2b.3m",     0x01000, 0xd9232240, BRF_ESS | BRF_PRG   }, //	 1
+	{ "gg1_3.2m",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG   }, //	 2
+	{ "gg1_4b.2l",     0x01000, 0x499fcc76, BRF_ESS | BRF_PRG   }, //	 3
 	
-	{ "gg1_5b.3f",     0x01000, 0xbb5caae3, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
+	{ "gg1_5b.3f",     0x01000, 0xbb5caae3, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
 	
-	{ "gg1_7b.2c",     0x01000, 0xd016686b, BRF_ESS | BRF_PRG }, //  5	Z80 #3 Program Code
+	{ "gg1_7b.2c",     0x01000, 0xd016686b, BRF_ESS | BRF_PRG   }, //  5	Z80 #3 Program Code
 	
-	{ "gg1_9.4l",      0x01000, 0x58b2f47c, BRF_GRA },	     //  6	Characters
+	{ "gg1_9.4l",      0x01000, 0x58b2f47c, BRF_GRA             },	//  6	Characters
 	
-	{ "gg1_11.4d",     0x01000, 0xad447c80, BRF_GRA },	     //  7	Sprites
-	{ "gg1_10.4f",     0x01000, 0xdd6f1afc, BRF_GRA },	     //  8
+	{ "gg1_11.4d",     0x01000, 0xad447c80, BRF_GRA             },	//  7	Sprites
+	{ "gg1_10.4f",     0x01000, 0xdd6f1afc, BRF_GRA             },	//  8
 	
-	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA },	     //  9	PROMs
-	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA },	     //  10
-	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA },	     //  11
-	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA },	     //  12
-	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA },	     //  13
+	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA             },	//  9	PROMs
+	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA             },	// 10
+	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA             },	// 11
+	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA             },	// 12
+	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA             },	// 13
 };
 
 STD_ROM_PICK(Galaga)
 STD_ROM_FN(Galaga)
 
 static struct BurnRomInfo GalagaoRomDesc[] = {
-	{ "gg1-1.3p",      0x01000, 0xa3a0f743, BRF_ESS | BRF_PRG }, //  0	Z80 #1 Program Code
-	{ "gg1-2.3m",      0x01000, 0x43bb0d5c, BRF_ESS | BRF_PRG }, //	 1
-	{ "gg1-3.2m",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG }, //	 2
-	{ "gg1-4.2l",      0x01000, 0x83874442, BRF_ESS | BRF_PRG }, //	 3
+	{ "gg1-1.3p",      0x01000, 0xa3a0f743, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "gg1-2.3m",      0x01000, 0x43bb0d5c, BRF_ESS | BRF_PRG   }, //	 1
+	{ "gg1-3.2m",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG   }, //	 2
+	{ "gg1-4.2l",      0x01000, 0x83874442, BRF_ESS | BRF_PRG   }, //	 3
 	
-	{ "gg1-5.3f",      0x01000, 0x3102fccd, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
+	{ "gg1-5.3f",      0x01000, 0x3102fccd, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
 	
-	{ "gg1-7.2c",      0x01000, 0x8995088d, BRF_ESS | BRF_PRG }, //  5	Z80 #3 Program Code
+	{ "gg1-7.2c",      0x01000, 0x8995088d, BRF_ESS | BRF_PRG   }, //  5	Z80 #3 Program Code
 	
-	{ "gg1-9.4l",      0x01000, 0x58b2f47c, BRF_GRA },	     //  6	Characters
+	{ "gg1-9.4l",      0x01000, 0x58b2f47c, BRF_GRA             },	//  6	Characters
 	
-	{ "gg1-11.4d",     0x01000, 0xad447c80, BRF_GRA },	     //  7	Sprites
-	{ "gg1-10.4f",     0x01000, 0xdd6f1afc, BRF_GRA },	     //  8
+	{ "gg1-11.4d",     0x01000, 0xad447c80, BRF_GRA             },	//  7	Sprites
+	{ "gg1-10.4f",     0x01000, 0xdd6f1afc, BRF_GRA             }, //  8
 	
-	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA },	     //  9	PROMs
-	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA },	     //  10
-	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA },	     //  11
-	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA },	     //  12
-	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA },	     //  13
+	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA             },	//  9	PROMs
+	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA             },	// 10
+	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA             },	// 11
+	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA             },	// 12
+	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA             },	// 13
 };
 
 STD_ROM_PICK(Galagao)
 STD_ROM_FN(Galagao)
 
 static struct BurnRomInfo GalagamwRomDesc[] = {
-	{ "3200a.bin",     0x01000, 0x3ef0b053, BRF_ESS | BRF_PRG }, //  0	Z80 #1 Program Code
-	{ "3300b.bin",     0x01000, 0x1b280831, BRF_ESS | BRF_PRG }, //	 1
-	{ "3400c.bin",     0x01000, 0x16233d33, BRF_ESS | BRF_PRG }, //	 2
-	{ "3500d.bin",     0x01000, 0x0aaf5c23, BRF_ESS | BRF_PRG }, //	 3
+	{ "3200a.bin",     0x01000, 0x3ef0b053, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "3300b.bin",     0x01000, 0x1b280831, BRF_ESS | BRF_PRG   }, //	 1
+	{ "3400c.bin",     0x01000, 0x16233d33, BRF_ESS | BRF_PRG   }, //	 2
+	{ "3500d.bin",     0x01000, 0x0aaf5c23, BRF_ESS | BRF_PRG   }, //	 3
 	
-	{ "3600e.bin",     0x01000, 0xbc556e76, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
+	{ "3600e.bin",     0x01000, 0xbc556e76, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
 	
-	{ "3700g.bin",     0x01000, 0xb07f0aa4, BRF_ESS | BRF_PRG }, //  5	Z80 #3 Program Code
+	{ "3700g.bin",     0x01000, 0xb07f0aa4, BRF_ESS | BRF_PRG   }, //  5	Z80 #3 Program Code
 	
-	{ "2600j.bin",     0x01000, 0x58b2f47c, BRF_GRA },	     //  6	Characters
+	{ "2600j.bin",     0x01000, 0x58b2f47c, BRF_GRA             },	//  6	Characters
 	
-	{ "2800l.bin",     0x01000, 0xad447c80, BRF_GRA },	     //  7	Sprites
-	{ "2700k.bin",     0x01000, 0xdd6f1afc, BRF_GRA },	     //  8
+	{ "2800l.bin",     0x01000, 0xad447c80, BRF_GRA             },	//  7	Sprites
+	{ "2700k.bin",     0x01000, 0xdd6f1afc, BRF_GRA             },	//  8
 	
-	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA },	     //  9	PROMs
-	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA },	     //  10
-	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA },	     //  11
-	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA },	     //  12
-	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA },	     //  13
+	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA             },	//  9	PROMs
+	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA             },	// 10
+	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA             },	// 11
+	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA             },	// 12
+	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA             },	// 13
 };
 
 STD_ROM_PICK(Galagamw)
 STD_ROM_FN(Galagamw)
 
 static struct BurnRomInfo GalagamfRomDesc[] = {
-	{ "3200a.bin",     0x01000, 0x3ef0b053, BRF_ESS | BRF_PRG }, //  0	Z80 #1 Program Code
-	{ "3300b.bin",     0x01000, 0x1b280831, BRF_ESS | BRF_PRG }, //	 1
-	{ "3400c.bin",     0x01000, 0x16233d33, BRF_ESS | BRF_PRG }, //	 2
-	{ "3500d.bin",     0x01000, 0x0aaf5c23, BRF_ESS | BRF_PRG }, //	 3
+	{ "3200a.bin",     0x01000, 0x3ef0b053, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "3300b.bin",     0x01000, 0x1b280831, BRF_ESS | BRF_PRG   }, //	 1
+	{ "3400c.bin",     0x01000, 0x16233d33, BRF_ESS | BRF_PRG   }, //	 2
+	{ "3500d.bin",     0x01000, 0x0aaf5c23, BRF_ESS | BRF_PRG   }, //	 3
 	
-	{ "3600fast.bin",  0x01000, 0x23d586e5, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
+	{ "3600fast.bin",  0x01000, 0x23d586e5, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
 	
-	{ "3700g.bin",     0x01000, 0xb07f0aa4, BRF_ESS | BRF_PRG }, //  5	Z80 #3 Program Code
+	{ "3700g.bin",     0x01000, 0xb07f0aa4, BRF_ESS | BRF_PRG   }, //  5	Z80 #3 Program Code
 	
-	{ "2600j.bin",     0x01000, 0x58b2f47c, BRF_GRA },	     //  6	Characters
+	{ "2600j.bin",     0x01000, 0x58b2f47c, BRF_GRA             },	//  6	Characters
 	
-	{ "2800l.bin",     0x01000, 0xad447c80, BRF_GRA },	     //  7	Sprites
-	{ "2700k.bin",     0x01000, 0xdd6f1afc, BRF_GRA },	     //  8
+	{ "2800l.bin",     0x01000, 0xad447c80, BRF_GRA             },	//  7	Sprites
+	{ "2700k.bin",     0x01000, 0xdd6f1afc, BRF_GRA             },	//  8
 	
-	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA },	     //  9	PROMs
-	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA },	     //  10
-	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA },	     //  11
-	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA },	     //  12
-	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA },	     //  13
+	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA             },	//  9	PROMs
+	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA             },	// 10
+	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA             },	// 11
+	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA             },	// 12
+	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA             },	// 13
 };
 
 STD_ROM_PICK(Galagamf)
 STD_ROM_FN(Galagamf)
 
 static struct BurnRomInfo GalagamkRomDesc[] = {
-	{ "mk2-1",         0x01000, 0x23cea1e2, BRF_ESS | BRF_PRG }, //  0	Z80 #1 Program Code
-	{ "mk2-2",         0x01000, 0x89695b1a, BRF_ESS | BRF_PRG }, //	 1
-	{ "3400c.bin",     0x01000, 0x16233d33, BRF_ESS | BRF_PRG }, //	 2
-	{ "mk2-4",         0x01000, 0x24b767f5, BRF_ESS | BRF_PRG }, //	 3
+	{ "mk2-1",         0x01000, 0x23cea1e2, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "mk2-2",         0x01000, 0x89695b1a, BRF_ESS | BRF_PRG   }, //	 1
+	{ "3400c.bin",     0x01000, 0x16233d33, BRF_ESS | BRF_PRG   }, //	 2
+	{ "mk2-4",         0x01000, 0x24b767f5, BRF_ESS | BRF_PRG   }, //	 3
 	
-	{ "gg1-5.3f",      0x01000, 0x3102fccd, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
+	{ "gg1-5.3f",      0x01000, 0x3102fccd, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
 	
-	{ "gg1-7b.2c",     0x01000, 0xd016686b, BRF_ESS | BRF_PRG }, //  5	Z80 #3 Program Code
+	{ "gg1-7b.2c",     0x01000, 0xd016686b, BRF_ESS | BRF_PRG   }, //  5	Z80 #3 Program Code
 	
-	{ "gg1-9.4l",      0x01000, 0x58b2f47c, BRF_GRA },	     //  6	Characters
+	{ "gg1-9.4l",      0x01000, 0x58b2f47c, BRF_GRA             },	//  6	Characters
 	
-	{ "gg1-11.4d",     0x01000, 0xad447c80, BRF_GRA },	     //  7	Sprites
-	{ "gg1-10.4f",     0x01000, 0xdd6f1afc, BRF_GRA },	     //  8
+	{ "gg1-11.4d",     0x01000, 0xad447c80, BRF_GRA             },	//  7	Sprites
+	{ "gg1-10.4f",     0x01000, 0xdd6f1afc, BRF_GRA             },	//  8
 	
-	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA },	     //  9	PROMs
-	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA },	     //  10
-	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA },	     //  11
-	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA },	     //  12
-	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA },	     //  13
+	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA             },	//  9	PROMs
+	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA             },	// 10
+	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA             },	// 11
+	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA             },	// 12
+	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA             },	// 13
 };
 
 STD_ROM_PICK(Galagamk)
 STD_ROM_FN(Galagamk)
 
 static struct BurnRomInfo GallagRomDesc[] = {
-	{ "gallag.1",      0x01000, 0xa3a0f743, BRF_ESS | BRF_PRG }, //  0	Z80 #1 Program Code
-	{ "gallag.2",      0x01000, 0x5eda60a7, BRF_ESS | BRF_PRG }, //	 1
-	{ "gallag.3",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG }, //	 2
-	{ "gallag.4",      0x01000, 0x83874442, BRF_ESS | BRF_PRG }, //	 3
+	{ "gallag.1",      0x01000, 0xa3a0f743, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "gallag.2",      0x01000, 0x5eda60a7, BRF_ESS | BRF_PRG   }, //	 1
+	{ "gallag.3",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG   }, //	 2
+	{ "gallag.4",      0x01000, 0x83874442, BRF_ESS | BRF_PRG   }, //	 3
 	
-	{ "gallag.5",      0x01000, 0x3102fccd, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
+	{ "gallag.5",      0x01000, 0x3102fccd, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
 	
-	{ "gallag.7",      0x01000, 0x8995088d, BRF_ESS | BRF_PRG }, //  5	Z80 #3 Program Code
+	{ "gallag.7",      0x01000, 0x8995088d, BRF_ESS | BRF_PRG   }, //  5	Z80 #3 Program Code
 	
-	{ "gallag.6",      0x01000, 0x001b70bc, BRF_ESS | BRF_PRG }, //  6	Z80 #4 Program Code
+	{ "gallag.6",      0x01000, 0x001b70bc, BRF_ESS | BRF_PRG   }, //  6	Z80 #4 Program Code
 	
-	{ "gallag.8",      0x01000, 0x169a98a4, BRF_GRA },	     //  7	Characters
+	{ "gallag.8",      0x01000, 0x169a98a4, BRF_GRA             },	//  7	Characters
 	
-	{ "gallag.a",      0x01000, 0xad447c80, BRF_GRA },	     //  8	Sprites
-	{ "gallag.9",      0x01000, 0xdd6f1afc, BRF_GRA },	     //  9
+	{ "gallag.a",      0x01000, 0xad447c80, BRF_GRA             },	//  8	Sprites
+	{ "gallag.9",      0x01000, 0xdd6f1afc, BRF_GRA             },	//  9
 	
-	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA },	     //  10	PROMs
-	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA },	     //  11
-	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA },	     //  12
-	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA },	     //  13
-	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA },	     //  14
+	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA             },	// 10	PROMs
+	{ "prom-4.2n",     0x00100, 0x59b6edab, BRF_GRA             },	// 11
+	{ "prom-3.1c",     0x00100, 0x4a04bb6b, BRF_GRA             },	// 12
+	{ "prom-1.1d",     0x00100, 0x7a2815b4, BRF_GRA             },	// 13
+	{ "prom-2.5c",     0x00100, 0x77245b66, BRF_GRA             },	// 14
 };
 
 STD_ROM_PICK(Gallag)
 STD_ROM_FN(Gallag)
 
 static struct BurnRomInfo NebulbeeRomDesc[] = {
-	{ "nebulbee.01",   0x01000, 0xf405f2c4, BRF_ESS | BRF_PRG }, //  0	Z80 #1 Program Code
-	{ "nebulbee.02",   0x01000, 0x31022b60, BRF_ESS | BRF_PRG }, //	 1
-	{ "gg1_3.2m",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG }, //	 2
-	{ "nebulbee.04",   0x01000, 0xd76788a5, BRF_ESS | BRF_PRG }, //	 3
+	{ "nebulbee.01",   0x01000, 0xf405f2c4, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "nebulbee.02",   0x01000, 0x31022b60, BRF_ESS | BRF_PRG   }, //	 1
+	{ "gg1_3.2m",      0x01000, 0x753ce503, BRF_ESS | BRF_PRG   }, //	 2
+	{ "nebulbee.04",   0x01000, 0xd76788a5, BRF_ESS | BRF_PRG   }, //	 3
 	
-	{ "gg1-5",         0x01000, 0x3102fccd, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
+	{ "gg1-5",         0x01000, 0x3102fccd, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
 	
-	{ "gg1-7",         0x01000, 0x8995088d, BRF_ESS | BRF_PRG }, //  5	Z80 #3 Program Code
+	{ "gg1-7",         0x01000, 0x8995088d, BRF_ESS | BRF_PRG   }, //  5	Z80 #3 Program Code
 	
-	{ "nebulbee.07",   0x01000, 0x035e300c, BRF_ESS | BRF_PRG }, //  6	Z80 #4 Program Code
+	{ "nebulbee.07",   0x01000, 0x035e300c, BRF_ESS | BRF_PRG   }, //  6	Z80 #4 Program Code
 	
-	{ "gg1_9.4l",      0x01000, 0x58b2f47c, BRF_GRA },	     //  7	Characters
+	{ "gg1_9.4l",      0x01000, 0x58b2f47c, BRF_GRA             },	//  7	Characters
 	
-	{ "gg1_11.4d",     0x01000, 0xad447c80, BRF_GRA },	     //  8	Sprites
-	{ "gg1_10.4f",     0x01000, 0xdd6f1afc, BRF_GRA },	     //  9
+	{ "gg1_11.4d",     0x01000, 0xad447c80, BRF_GRA             },	//  8	Sprites
+	{ "gg1_10.4f",     0x01000, 0xdd6f1afc, BRF_GRA             },	//  9
 	
-	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA },	     //  10	PROMs
-	{ "2n.bin",        0x00100, 0xa547d33b, BRF_GRA },	     //  11
-	{ "1c.bin",        0x00100, 0xb6f585fb, BRF_GRA },	     //  12
-	{ "1d.bin",        0x00100, 0x86d92b24, BRF_GRA },	     //  14
-	{ "5c.bin",        0x00100, 0x8bd565f6, BRF_GRA },	     //  13
+	{ "prom-5.5n",     0x00020, 0x54603c6b, BRF_GRA             },	// 10	PROMs
+	{ "2n.bin",        0x00100, 0xa547d33b, BRF_GRA             },	// 11
+	{ "1c.bin",        0x00100, 0xb6f585fb, BRF_GRA             },	// 12
+	{ "1d.bin",        0x00100, 0x86d92b24, BRF_GRA             },	// 14
+	{ "5c.bin",        0x00100, 0x8bd565f6, BRF_GRA             },	// 13
 };
 
 STD_ROM_PICK(Nebulbee)
@@ -604,32 +604,32 @@ static INT32 GalagaInit()
 	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
 
 	// Load Z80 #1 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,    0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,    1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,    2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,    3, 1)) return 1;
 	
 	// Load Z80 #2 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,    4, 1)) return 1;
 	
 	// Load Z80 #3 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  5, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,    5, 1)) return 1;
 	
 	// Load and decode the chars
-	if (0 != BurnLoadRom(DrvTempRom,            6, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,                   6, 1)) return 1;
 	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
-	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  7, 1)) return 1;
-	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  8, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,         7, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,         8, 1)) return 1;
 	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
 
 	// Load the PROMs
-	if (0 != BurnLoadRom(memory.PROM.Palette,        9, 1)) return 1;
-	if (0 != BurnLoadRom(memory.PROM.CharLookup,    10, 1)) return 1;
-	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  11, 1)) return 1;
-	if (0 != BurnLoadRom(NamcoSoundProm,            12, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette,          9, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,       10, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,     11, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm,               12, 1)) return 1;
 	
 	BurnFree(DrvTempRom);
 	
@@ -654,32 +654,32 @@ static INT32 GallagInit()
 	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
 
 	// Load Z80 #1 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,    0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,    1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,    2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,    3, 1)) return 1;
 	
 	// Load Z80 #2 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,    4, 1)) return 1;
 	
 	// Load Z80 #3 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  5, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,    5, 1)) return 1;
 	
 	// Load and decode the chars
-	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,                   7, 1)) return 1;
 	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
-	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  8, 1)) return 1;
-	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,         8, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,         9, 1)) return 1;
 	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
 
 	// Load the PROMs
-	if (0 != BurnLoadRom(memory.PROM.Palette,       10, 1)) return 1;
-	if (0 != BurnLoadRom(memory.PROM.CharLookup,    11, 1)) return 1;
-	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  12, 1)) return 1;
-	if (0 != BurnLoadRom(NamcoSoundProm,            13, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette,          10, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,       11, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,     12, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm,               13, 1)) return 1;
 	
 	BurnFree(DrvTempRom);
 	
@@ -855,23 +855,6 @@ static void GalagaCalcPalette()
 	
 	for (INT32 i = 0; i < 32; i ++) 
    {
-      /*
-		INT32 bit0, bit1, bit2, r, g, b;
-		
-		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
-		bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
-		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = (memory.PROM.Palette[i] >> 3) & 0x01;
-		bit1 = (memory.PROM.Palette[i] >> 4) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 5) & 0x01;
-		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = 0;
-		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
-		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
-		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		*/
-      
       INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
       INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
       INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
@@ -881,14 +864,6 @@ static void GalagaCalcPalette()
 	
 	for (INT32 i = 0; i < 64; i ++) 
    {
-		/*
-		INT32 bits = (i >> 0) & 0x03;
-		INT32 r = map[bits];
-		bits =       (i >> 2) & 0x03;
-		INT32 g = map[bits];
-		bits =       (i >> 4) & 0x03;
-		INT32 b = map[bits];
-		*/
       INT32 r = Colour2Bit[(i >> 0) & 0x03];
       INT32 g = Colour2Bit[(i >> 2) & 0x03];
       INT32 b = Colour2Bit[(i >> 4) & 0x03];
@@ -898,7 +873,7 @@ static void GalagaCalcPalette()
 	
 	for (INT32 i = 0; i < 256; i ++) 
    {
-		graphics.Palette[i] =       Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
+		graphics.Palette[i]         = Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
 	}
 	
 	for (INT32 i = 0; i < 256; i ++) 
@@ -1050,7 +1025,8 @@ static void GalagaRenderTilemap()
 				y = 216 - y;
 			}
 			
-			if (x > 8 && x < 280 && y > 8 && y < 216) {
+			if (x > 8 && x < 280 && y > 8 && y < 216) 
+         {
 				if (machine.FlipScreen) {
 					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
 				} else {
@@ -1105,10 +1081,6 @@ static void GalagaRenderSprites()
 				INT32 xPos = sx + 16 * x;
 				INT32 yPos = sy + 16 * y;
 
-            /*
-				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
-				if (xPos < -15 || yPos < -15) continue; // crash preventer
-            */
             if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
 				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
 
@@ -1158,28 +1130,27 @@ static void GalagaRenderSprites()
 
 static struct BurnInputInfo DigdugInputList[] =
 {
-	{"P1 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[0], "p1 coin"   },
-	{"P1 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[4], "p1 start"  },
-	{"P2 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[1], "p2 coin"   },
-	{"P2 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[5], "p2 start"  },
+	{"P1 Coin"              , BIT_DIGITAL  , &input.PortBits[0].Current[0], "p1 coin"   },
+	{"P1 Start"             , BIT_DIGITAL  , &input.PortBits[0].Current[4], "p1 start"  },
+	{"P2 Coin"              , BIT_DIGITAL  , &input.PortBits[0].Current[1], "p2 coin"   },
+	{"P2 Start"             , BIT_DIGITAL  , &input.PortBits[0].Current[5], "p2 start"  },
 
-	{"P1 Up"             , BIT_DIGITAL  , &input.PortBits[1].Current[0], "p1 up"     },
-	{"P1 Down"           , BIT_DIGITAL  , &input.PortBits[1].Current[2], "p1 down"   },
+	{"P1 Up"                , BIT_DIGITAL  , &input.PortBits[1].Current[0], "p1 up"     },
+	{"P1 Down"              , BIT_DIGITAL  , &input.PortBits[1].Current[2], "p1 down"   },
 	{"P1 Left"              , BIT_DIGITAL  , &input.PortBits[1].Current[3], "p1 left"   },
 	{"P1 Right"             , BIT_DIGITAL  , &input.PortBits[1].Current[1], "p1 right"  },
 	{"P1 Fire 1"            , BIT_DIGITAL  , &input.PortBits[1].Current[4], "p1 fire 1" },
 	
-	{"P2 Up"             , BIT_DIGITAL  , &input.PortBits[2].Current[0], "p2 up"     },
-	{"P2 Down"           , BIT_DIGITAL  , &input.PortBits[2].Current[2], "p2 down"   },
+	{"P2 Up"                , BIT_DIGITAL  , &input.PortBits[2].Current[0], "p2 up"     },
+	{"P2 Down"              , BIT_DIGITAL  , &input.PortBits[2].Current[2], "p2 down"   },
 	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &input.PortBits[2].Current[3], "p2 left"   },
 	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &input.PortBits[2].Current[1], "p2 right"  },
 	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.PortBits[2].Current[4], "p2 fire 1" },
 
-	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
-	{"Service"           , BIT_DIGITAL  , &input.PortBits[0].Current[7], "service"   },
-	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
-	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
-//	{"Dip 3"             , BIT_DIPSWITCH, DrvDip + 2       , "dip"       },
+	{"Reset"                , BIT_DIGITAL  , &input.Reset,                  "reset"     },
+	{"Service"              , BIT_DIGITAL  , &input.PortBits[0].Current[7], "service"   },
+	{"Dip 1"                , BIT_DIPSWITCH, &input.Dip[0],                 "dip"       },
+	{"Dip 2"                , BIT_DIPSWITCH, &input.Dip[1],                 "dip"       },
 };
 
 STDINPUTINFO(Digdug)
@@ -1187,10 +1158,10 @@ STDINPUTINFO(Digdug)
 
 static struct BurnDIPInfo DigdugDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0xa1, NULL		},
-	{0x11, 0xff, 0xff, 0x24, NULL		},
+	{0x10, 0xff, 0xff, 0xa1, NULL		               },
+	{0x11, 0xff, 0xff, 0x24, NULL		               },
 
-	{0   , 0xfe, 0   ,    8, "Coin B"		},
+	{0   , 0xfe, 0   ,    8, "Coin B"		         },
 	{0x10, 0x01, 0x07, 0x07, "3 Coins 1 Credits"		},
 	{0x10, 0x01, 0x07, 0x03, "2 Coins 1 Credits"		},
 	{0x10, 0x01, 0x07, 0x01, "1 Coin  1 Credits"		},
@@ -1200,57 +1171,57 @@ static struct BurnDIPInfo DigdugDIPList[]=
 	{0x10, 0x01, 0x07, 0x04, "1 Coin  6 Credits"		},
 	{0x10, 0x01, 0x07, 0x00, "1 Coin  7 Credits"		},
 
-	{0   , 0xfe, 0   ,    16, "Bonus Life"		},
-	{0x10, 0x01, 0x38, 0x20, "10K, 40K, Every 40K"		},
-	{0x10, 0x01, 0x38, 0x10, "10K, 50K, Every 50K"		},
-	{0x10, 0x01, 0x38, 0x30, "20K, 60K, Every 60K"		},
-	{0x10, 0x01, 0x38, 0x08, "20K, 70K, Every 70K"		},
+	{0   , 0xfe, 0   ,    16, "Bonus Life"		      },
+	{0x10, 0x01, 0x38, 0x20, "10K, 40K, Every 40K"	},
+	{0x10, 0x01, 0x38, 0x10, "10K, 50K, Every 50K"	},
+	{0x10, 0x01, 0x38, 0x30, "20K, 60K, Every 60K"	},
+	{0x10, 0x01, 0x38, 0x08, "20K, 70K, Every 70K"	},
 	{0x10, 0x01, 0x38, 0x28, "10K and 40K Only"		},
 	{0x10, 0x01, 0x38, 0x18, "20K and 60K Only"		},
-	{0x10, 0x01, 0x38, 0x38, "10K Only"		},
-	{0x10, 0x01, 0x38, 0x00, "None"		},
-	{0x10, 0x01, 0x38, 0x20, "20K, 60K, Every 60K"		},
-	{0x10, 0x01, 0x38, 0x10, "30K, 80K, Every 80K"		},
+	{0x10, 0x01, 0x38, 0x38, "10K Only"		         },
+	{0x10, 0x01, 0x38, 0x00, "None"		            },
+	{0x10, 0x01, 0x38, 0x20, "20K, 60K, Every 60K"	},
+	{0x10, 0x01, 0x38, 0x10, "30K, 80K, Every 80K"	},
 	{0x10, 0x01, 0x38, 0x30, "20K and 50K Only"		},
 	{0x10, 0x01, 0x38, 0x08, "20K and 60K Only"		},
 	{0x10, 0x01, 0x38, 0x28, "30K and 70K Only"		},
-	{0x10, 0x01, 0x38, 0x18, "20K Only"		},
-	{0x10, 0x01, 0x38, 0x38, "30K Only"		},
-	{0x10, 0x01, 0x38, 0x00, "None"		},
+	{0x10, 0x01, 0x38, 0x18, "20K Only"		         },
+	{0x10, 0x01, 0x38, 0x38, "30K Only"		         },
+	{0x10, 0x01, 0x38, 0x00, "None"		            },
 
-	{0   , 0xfe, 0   ,    4, "Lives"		},
-	{0x10, 0x01, 0xc0, 0x00, "1"		},
-	{0x10, 0x01, 0xc0, 0x40, "2"		},
-	{0x10, 0x01, 0xc0, 0x80, "3"		},
-	{0x10, 0x01, 0xc0, 0xc0, "5"		},
+	{0   , 0xfe, 0   ,    4, "Lives"		            },
+	{0x10, 0x01, 0xc0, 0x00, "1"		               },
+	{0x10, 0x01, 0xc0, 0x40, "2"		               },
+	{0x10, 0x01, 0xc0, 0x80, "3"		               },
+	{0x10, 0x01, 0xc0, 0xc0, "5"		               },
 
-	{0   , 0xfe, 0   ,    4, "Coin A"		},
+	{0   , 0xfe, 0   ,    4, "Coin A"		         },
 	{0x11, 0x01, 0xc0, 0x40, "2 Coins 1 Credits"		},
 	{0x11, 0x01, 0xc0, 0x00, "1 Coin  1 Credits"		},
 	{0x11, 0x01, 0xc0, 0xc0, "2 Coins 3 Credits"		},
 	{0x11, 0x01, 0xc0, 0x80, "1 Coin  2 Credits"		},
 
-	{0   , 0xfe, 0   ,    2, "Freeze"		},
-	{0x11, 0x01, 0x20, 0x20, "Off"		},
-	{0x11, 0x01, 0x20, 0x00, "On"		},
+	{0   , 0xfe, 0   ,    2, "Freeze"		         },
+	{0x11, 0x01, 0x20, 0x20, "Off"		            },
+	{0x11, 0x01, 0x20, 0x00, "On"		               },
 
-	{0   , 0xfe, 0   ,    2, "Demo Sounds"		},
-	{0x11, 0x01, 0x10, 0x10, "Off"		},
-	{0x11, 0x01, 0x10, 0x00, "On"		},
+	{0   , 0xfe, 0   ,    2, "Demo Sounds"		      },
+	{0x11, 0x01, 0x10, 0x10, "Off"		            },
+	{0x11, 0x01, 0x10, 0x00, "On"		               },
 
-	{0   , 0xfe, 0   ,    2, "Allow Continue"		},
-	{0x11, 0x01, 0x08, 0x08, "No"		},
-	{0x11, 0x01, 0x08, 0x00, "Yes"		},
+	{0   , 0xfe, 0   ,    2, "Allow Continue"		   },
+	{0x11, 0x01, 0x08, 0x08, "No"		               },
+	{0x11, 0x01, 0x08, 0x00, "Yes"		            },
 
-	{0   , 0xfe, 0   ,    2, "Cabinet"		},
-	{0x11, 0x01, 0x04, 0x04, "Upright"		},
-	{0x11, 0x01, 0x04, 0x00, "Cocktail"		},
+	{0   , 0xfe, 0   ,    2, "Cabinet"		         },
+	{0x11, 0x01, 0x04, 0x04, "Upright"		         },
+	{0x11, 0x01, 0x04, 0x00, "Cocktail"		         },
 
-	{0   , 0xfe, 0   ,    4, "Difficulty"		},
-	{0x11, 0x01, 0x03, 0x00, "Easy"		},
-	{0x11, 0x01, 0x03, 0x02, "Medium"		},
-	{0x11, 0x01, 0x03, 0x01, "Hard"		},
-	{0x11, 0x01, 0x03, 0x03, "Hardest"		},
+	{0   , 0xfe, 0   ,    4, "Difficulty"		      },
+	{0x11, 0x01, 0x03, 0x00, "Easy"		            },
+	{0x11, 0x01, 0x03, 0x02, "Medium"		         },
+	{0x11, 0x01, 0x03, 0x01, "Hard"		            },
+	{0x11, 0x01, 0x03, 0x03, "Hardest"		         },
 };
 
 STDDIPINFO(Digdug)
@@ -1258,33 +1229,33 @@ STDDIPINFO(Digdug)
 // Dig Dug (rev 2)
 
 static struct BurnRomInfo digdugRomDesc[] = {
-	{ "dd1a.1",	0x1000, 0xa80ec984, BRF_ESS | BRF_PRG }, //  0 	Z80 #1 Program Code
-	{ "dd1a.2",	0x1000, 0x559f00bd, BRF_ESS | BRF_PRG }, //  1
-	{ "dd1a.3",	0x1000, 0x8cbc6fe1, BRF_ESS | BRF_PRG }, //  2
-	{ "dd1a.4",	0x1000, 0xd066f830, BRF_ESS | BRF_PRG }, //  3
+	{ "dd1a.1",	      0x1000, 0xa80ec984, BRF_ESS | BRF_PRG  }, //  0 Z80 #1 Program Code
+	{ "dd1a.2",	      0x1000, 0x559f00bd, BRF_ESS | BRF_PRG  }, //  1
+	{ "dd1a.3",	      0x1000, 0x8cbc6fe1, BRF_ESS | BRF_PRG  }, //  2
+	{ "dd1a.4",	      0x1000, 0xd066f830, BRF_ESS | BRF_PRG  }, //  3
 
-	{ "dd1a.5",	0x1000, 0x6687933b, BRF_ESS | BRF_PRG }, //  4	Z80 #2 Program Code
-	{ "dd1a.6",	0x1000, 0x843d857f, BRF_ESS | BRF_PRG }, //  5
+	{ "dd1a.5",	      0x1000, 0x6687933b, BRF_ESS | BRF_PRG  }, //  4	Z80 #2 Program Code
+	{ "dd1a.6",	      0x1000, 0x843d857f, BRF_ESS | BRF_PRG  }, //  5
 
-	{ "dd1.7",	0x1000, 0xa41bce72, BRF_ESS | BRF_PRG }, //  6	Z80 #3 Program Code
+	{ "dd1.7",	      0x1000, 0xa41bce72, BRF_ESS | BRF_PRG  }, //  6	Z80 #3 Program Code
 
-	{ "dd1.9",	0x0800, 0xf14a6fe1, BRF_GRA }, //  7	Characters
+	{ "dd1.9",	      0x0800, 0xf14a6fe1, BRF_GRA            }, //  7	Characters
 
-	{ "dd1.15",	0x1000, 0xe22957c8, BRF_GRA }, //  8	Sprites
-	{ "dd1.14",	0x1000, 0x2829ec99, BRF_GRA }, //  9
-	{ "dd1.13",	0x1000, 0x458499e9, BRF_GRA }, // 10
-	{ "dd1.12",	0x1000, 0xc58252a0, BRF_GRA }, // 11
+	{ "dd1.15",	      0x1000, 0xe22957c8, BRF_GRA            }, //  8	Sprites
+	{ "dd1.14",	      0x1000, 0x2829ec99, BRF_GRA            }, //  9
+	{ "dd1.13",	      0x1000, 0x458499e9, BRF_GRA            }, // 10
+	{ "dd1.12",	      0x1000, 0xc58252a0, BRF_GRA            }, // 11
 
-	{ "dd1.11",	0x1000, 0x7b383983, BRF_GRA }, // 12	Characters 8x8 2bpp
+	{ "dd1.11",	      0x1000, 0x7b383983, BRF_GRA            }, // 12	Characters 8x8 2bpp
 
-	{ "dd1.10b",	0x1000, 0x2cf399c2, BRF_GRA }, // 13    Playfield Data
+	{ "dd1.10b",      0x1000, 0x2cf399c2, BRF_GRA            }, // 13 Playfield Data
 
-	{ "136007.113",	0x0020, 0x4cb9da99, BRF_GRA }, // 14    Palette Prom
-	{ "136007.111",	0x0100, 0x00c7c419, BRF_GRA }, // 15    Sprite Color Prom
-	{ "136007.112",	0x0100, 0xe9b3e08e, BRF_GRA }, // 16    Character Color Prom
+	{ "136007.113",   0x0020, 0x4cb9da99, BRF_GRA            }, // 14 Palette Prom
+	{ "136007.111",   0x0100, 0x00c7c419, BRF_GRA            }, // 15 Sprite Color Prom
+	{ "136007.112",   0x0100, 0xe9b3e08e, BRF_GRA            }, // 16 Character Color Prom
 
-	{ "136007.110",	0x0100, 0x7a2815b4, BRF_GRA }, // 17    Namco Sound Proms
-	{ "136007.109",	0x0100, 0x77245b66, BRF_GRA }, // 18
+	{ "136007.110",   0x0100, 0x7a2815b4, BRF_GRA            }, // 17 Namco Sound Proms
+	{ "136007.109",   0x0100, 0x77245b66, BRF_GRA            }, // 18
 };
 
 STD_ROM_PICK(digdug)
@@ -1310,48 +1281,48 @@ static INT32 DigdugInit()
 	DrvTempRom = (UINT8 *)BurnMalloc(0x10000);
 
 	// Load Z80 #1 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,    0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,    1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,    2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,    3, 1)) return 1;
 	
 	// Load Z80 #2 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
-	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x01000,  5, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,    4, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x01000,    5, 1)) return 1;
 	
 	// Load Z80 #3 Program Roms
-	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  6, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,    6, 1)) return 1;
 
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 8x8 (in digdug)
-	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,                   7, 1)) return 1;
 	GfxDecode(0x80, 1, 8, 8, DigdugCharPlaneOffsets, DigdugCharXOffsets, DigdugCharYOffsets, 0x40, DrvTempRom, graphics.Chars2);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x10000);
-	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  8, 1)) return 1;
-	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
-	if (0 != BurnLoadRom(DrvTempRom + 0x02000, 10, 1)) return 1;
-	if (0 != BurnLoadRom(DrvTempRom + 0x03000, 11, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,         8, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,         9, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x02000,         10, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x03000,         11, 1)) return 1;
 	GfxDecode(0x80 + 0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
 
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 2bpp
-	if (0 != BurnLoadRom(DrvTempRom,           12, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,                   12, 1)) return 1;
 	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
 
 	// Load gfx4 - the playfield data
-	if (0 != BurnLoadRom(PlayFieldData,             13, 1)) return 1;
+	if (0 != BurnLoadRom(PlayFieldData,                13, 1)) return 1;
 
 	// Load the PROMs
-	if (0 != BurnLoadRom(memory.PROM.Palette,       14, 1)) return 1;
-	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  15, 1)) return 1;
-	if (0 != BurnLoadRom(memory.PROM.CharLookup,    16, 1)) return 1;
-	if (0 != BurnLoadRom(NamcoSoundProm,            17, 1)) return 1;
-	if (0 != BurnLoadRom(NamcoSoundProm + 0x0100,   18, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette,          14, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,     15, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,       16, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm,               17, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm + 0x0100,      18, 1)) return 1;
 	
 	BurnFree(DrvTempRom);
-	//digdugmode = 1;
+
    machine.Game = NAMCO_DIGDUG;
 
 	DigDugMachineInit();
@@ -1442,7 +1413,8 @@ static void DigDugMachineInit()
 
 static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr)
 {
-	if ( (addr >= 0xb800) && (addr <= 0xb83f) ) // digdugmode) { // EAROM Read
+   // EAROM Read
+	if ( (addr >= 0xb800) && (addr <= 0xb83f) )
    {
 		return earom_read(addr - 0xb800);
 	}
@@ -1574,7 +1546,8 @@ void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data)
 
 static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta)
 {
-	if ( (addr >= 0xb800) && (addr <= 0xb83f) ) // EAROM Write
+   // EAROM Write
+	if ( (addr >= 0xb800) && (addr <= 0xb83f) ) 
    {
 		earom_write(addr - 0xb800, dta);
 		return;
@@ -1631,28 +1604,8 @@ static void DigDugCalcPalette()
 	
 	for (INT32 i = 0; i < 32; i ++) 
    {
-      /*
-		INT32 bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
-		INT32 bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
-		INT32 bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
-		INT32 r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-      */
       INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
-		
-      /*
-      bit0 =       (memory.PROM.Palette[i] >> 3) & 0x01;
-		bit1 =       (memory.PROM.Palette[i] >> 4) & 0x01;
-		bit2 =       (memory.PROM.Palette[i] >> 5) & 0x01;
-		INT32 g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-      */
       INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
-		
-      /*
-      bit0 =       0;
-		bit1 =       (memory.PROM.Palette[i] >> 6) & 0x01;
-		bit2 =       (memory.PROM.Palette[i] >> 7) & 0x01;
-		INT32 b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		*/
       INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
       
 		Palette[i] = BurnHighCol(r, g, b, 0);
@@ -1798,8 +1751,7 @@ static void DigDugRenderSprites()
 
 				if (xPos < 8) 
                xPos += 0x100; // that's a wrap!
-				//if ((xPos >= nScreenWidth) || (yPos >= nScreenHeight)) continue;
-				//if ((xPos < -15) || (yPos < -15)) continue; // crash preventer
+
 				if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
 				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
 
@@ -2342,7 +2294,8 @@ static void DrvMakeInputs()
 		input.Ports[2] -= (input.PortBits[2].Current[i] & 1) << i;
 	}
 
-	if (NAMCO_GALAGA == machine.Game) // !digdugmode) // galaga only - service mode
+   // galaga only - service mode
+	if (NAMCO_GALAGA == machine.Game) 
 		input.Ports[0] = (input.Ports[0] & ~0x80) | (input.Dip[0] & 0x80);
 }
 
@@ -2364,13 +2317,15 @@ static INT32 DrvFrame()
 	
 	ZetNewFrame();
 
-	for (INT32 i = 0; i < nInterleave; i++) {
+	for (INT32 i = 0; i < nInterleave; i++) 
+   {
 		INT32 nCurrentCPU;
 		
 		nCurrentCPU = 0;
 		ZetOpen(nCurrentCPU);
 		ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
-		if (i == (nInterleave-1) && cpus.CPU1.FireIRQ) {
+		if (i == (nInterleave-1) && cpus.CPU1.FireIRQ) 
+      {
 			ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		}
 		if ( (9 == (i % 10)) && 
@@ -2380,32 +2335,38 @@ static INT32 DrvFrame()
 		}
 		ZetClose();
 		
-		if (!cpus.CPU2.Halt) {
+		if (!cpus.CPU2.Halt) 
+      {
 			nCurrentCPU = 1;
 			ZetOpen(nCurrentCPU);
 			ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
-			if (i == (nInterleave-1) && cpus.CPU2.FireIRQ) {
+			if (i == (nInterleave-1) && cpus.CPU2.FireIRQ) 
+         {
 				ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 			}
 			ZetClose();
 		}
 		
-		if (!cpus.CPU3.Halt) {
+		if (!cpus.CPU3.Halt) 
+      {
 			nCurrentCPU = 2;
 			ZetOpen(nCurrentCPU);
 			ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
 			if (((i == ((64 + 000) * nInterleave) / 272) ||
-				 (i == ((64 + 128) * nInterleave) / 272)) && cpus.CPU3.FireIRQ) {
+				 (i == ((64 + 128) * nInterleave) / 272)) && cpus.CPU3.FireIRQ) 
+         {
 				ZetNmi();
 			}
 			ZetClose();
 		}
 
-		if (pBurnSoundOut) {
+		if (pBurnSoundOut) 
+      {
 			INT32 nSegmentLength = nBurnSoundLen / nInterleave;
 			INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
 			
-			if (nSegmentLength) {
+			if (nSegmentLength) 
+         {
 				NamcoSoundUpdate(pSoundBuf, nSegmentLength);
 				if (machine.bHasSamples)
 					BurnSampleRender(pSoundBuf, nSegmentLength);
@@ -2414,11 +2375,13 @@ static INT32 DrvFrame()
 		}
 	}
 	
-	if (pBurnSoundOut) {
+	if (pBurnSoundOut) 
+   {
 		INT32 nSegmentLength = nBurnSoundLen - nSoundBufferPos;
 		INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
 
-		if (nSegmentLength) {
+		if (nSegmentLength) 
+      {
 			NamcoSoundUpdate(pSoundBuf, nSegmentLength);
 			if (machine.bHasSamples)
 				BurnSampleRender(pSoundBuf, nSegmentLength);
@@ -2428,7 +2391,7 @@ static INT32 DrvFrame()
 	if (pBurnDraw)
 		BurnDrvRedraw();
 
-	if (NAMCO_GALAGA == machine.Game) // !digdugmode) 
+	if (NAMCO_GALAGA == machine.Game) 
    {
 		static const INT32 Speeds[8] = { -1, -2, -3, 0, 3, 2, 1, 0 };
 
@@ -2442,7 +2405,9 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 {
 	struct BurnArea ba;
 	
-	if (pnMin != NULL) {			// Return minimum compatible version
+	// Return minimum compatible version
+   if (pnMin != NULL) 
+   {
 		*pnMin = 0x029737;
 	}
 
@@ -2490,8 +2455,8 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(playcolor);
 	}
 
-	if (NAMCO_DIGDUG == machine.Game) //digdugmode)
-		earom_scan(nAction, pnMin); // here.
+	if (NAMCO_DIGDUG == machine.Game)
+		earom_scan(nAction, pnMin); 
 
 	return 0;
 }
