@@ -45,7 +45,7 @@ struct Graphics_Def
    UINT32 *Palette;
 };
 
-//static struct Graphics_Def graphics;
+static struct Graphics_Def graphics;
 
 struct Memory_Def
 {
@@ -74,14 +74,13 @@ struct Memory_Def
       UINT8 *Palette;
       UINT8 *CharLookup;
       UINT8 *SpriteLookup;
-      UINT8 *Sound;
    } PROM;
 };
 
-//static struct Memory_Def memory;
+static struct Memory_Def memory;
 
-//static UINT8 *DrvTempRom          = NULL;
-//static UINT8 *PlayFieldData; // digdug playfield data
+static UINT8 *DrvTempRom          = NULL;
+static UINT8 *PlayFieldData; // digdug playfield data
 
 struct CPU_Control_Def
 {
@@ -96,7 +95,7 @@ struct CPU_Def
    struct CPU_Control_Def CPU3;
 };
 
-//static struct CPU_Def cpus = { 0 };
+static struct CPU_Def cpus = { 0 };
 
 #define STARS_CTRL_NUM     6
 
@@ -107,7 +106,7 @@ struct Stars_Def
    UINT8 Control[STARS_CTRL_NUM];
 };
 
-//static struct Stars_Def stars = { 0 };
+static struct Stars_Def stars = { 0 };
 
 #define IOCHIP_BUF_SIZE       16
 
@@ -122,7 +121,7 @@ struct IOChip_Def
    UINT8 Buffer[IOCHIP_BUF_SIZE];
 };
 
-//static struct IOChip_Def ioChip = { 0 };
+static struct IOChip_Def ioChip = { 0 };
 
 #define NAMCO54XX_CFG1_SIZE   4
 #define NAMCO54XX_CFG2_SIZE   4
@@ -154,7 +153,7 @@ struct NAMCO54XX_Def
    UINT8 Config3[NAMCO54XX_CFG3_SIZE];
 };
 
-//static struct NAMCO54XX_Def namco54xx = { 0 };
+static struct NAMCO54XX_Def namco54xx = { 0 };
 
 enum GAMES_ON_MACHINE
 {
@@ -171,7 +170,7 @@ struct MachineDef
    UINT8 FlipScreen;
 };
 
-//static struct MachineDef machine = { 0 };
+static struct MachineDef machine = { 0 };
 
 struct Button_Def
 {
@@ -180,10 +179,10 @@ struct Button_Def
    INT32 Last;
 };
 
-//static struct Button_Def button = { 0 };
+static struct Button_Def button = { 0 };
 
 // Dig Dug playfield stuff
-//static INT32 playfield, alphacolor, playenable, playcolor;
+static INT32 playfield, alphacolor, playenable, playcolor;
 
 #define INP_GALAGA_COIN_TRIGGER     0x70
 #define INP_GALAGA_COIN_MASK        0x70
@@ -195,58 +194,44 @@ struct Button_Def
 #define INP_DIGDUG_START_1          0x10
 #define INP_DIGDUG_START_2          0x20
 
+static INT32 GalagaInit(void);
+static INT32 GallagInit(void);
+static INT32 GalagaMemIndex(void);
+static void GalagaMachineInit(void);
+static UINT8 __fastcall GalagaZ80ProgRead(UINT16 addr);
+static void __fastcall GalagaZ80ProgWrite(UINT16 addr, UINT8 dta);
+static INT32 GalagaDraw(void);
+static void GalagaCalcPalette(void);
+static void GalagaInitStars(void);
+static void GalagaRenderStars(void);
+static void GalagaRenderTilemap(void);
+static void GalagaRenderSprites(void);
 
-static UINT8 *Mem                 = NULL;
-static UINT8 *MemEnd              = NULL;
-static UINT8 *RamStart            = NULL;
-static UINT8 *RamEnd              = NULL;
-static UINT8 *DrvZ80Rom1          = NULL;
-static UINT8 *DrvZ80Rom2          = NULL;
-static UINT8 *DrvZ80Rom3          = NULL;
-static UINT8 *DrvVideoRam         = NULL;
-static UINT8 *DrvSharedRam1       = NULL;
-static UINT8 *DrvSharedRam2       = NULL;
-static UINT8 *DrvSharedRam3       = NULL;
-static UINT8 *DrvPromPalette      = NULL;
-static UINT8 *DrvPromCharLookup   = NULL;
-static UINT8 *DrvPromSpriteLookup = NULL;
-static UINT8 *DrvChars            = NULL;
-static UINT8 *DrvSprites          = NULL;
-static UINT8 *DrvGfx4             = NULL; // digdug playfield data
-static UINT8 *DrvDigdugChars      = NULL;
-static UINT8 *DrvTempRom          = NULL;
-static UINT32 *DrvPalette         = NULL;
+static INT32 DigdugInit(void);
+static INT32 DigDugMemIndex(void);
+static void DigDugMachineInit(void);
+static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr);
+void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data);
+static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta);
+static INT32 DigDugDraw(void);
+static void DigDugCalcPalette(void);
+static void DigDugRenderTiles(void);
+static void DigDugRenderSprites(void);
 
-static UINT8 DrvCPU1FireIRQ;
-static UINT8 DrvCPU2FireIRQ;
-static UINT8 DrvCPU3FireIRQ;
-static UINT8 DrvCPU2Halt;
-static UINT8 DrvCPU3Halt;
-static UINT8 DrvFlipScreen;
-static UINT8 DrvStarControl[6];
-static UINT32 DrvStarScrollX;
-static UINT32 DrvStarScrollY;
+static void machineReset(void);
+static INT32 DrvDoReset(void);
+static void Namco54XXWrite(INT32 Data);
+static UINT8 __fastcall NamcoZ80ProgRead(UINT16 addr);
+static UINT8 updateCoinAndCredit(UINT8 trigger, UINT8 mask, UINT8 start1, UINT8 start2);
+static UINT8 updateJoyAndButtons(UINT16 Offset, UINT8 jp);
+static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta);
+static INT32 DrvExit(void);
+static void DrvPreMakeInputs(void);
+static void DrvMakeInputs(void);
+static INT32 DrvFrame(void);
+static INT32 DrvScan(INT32 nAction, INT32 *pnMin);
 
-static UINT8 IOChipCustomCommand;
-static UINT8 IOChipCPU1FireIRQ;
-static UINT8 IOChipMode;
-static UINT8 IOChipCredits;
-static UINT8 IOChipCoinPerCredit;
-static UINT8 IOChipCreditPerCoin;
-static UINT8 IOChipCustom[16];
-static UINT8 PrevInValue;
-// Namco54XX Stuff
-static INT32 Fetch = 0;
-static INT32 FetchMode = 0;
-static UINT8 Config1[4], Config2[4], Config3[5];
-// Dig Dug playfield stuff
-static INT32 playfield, alphacolor, playenable, playcolor;
-static INT32 digdugmode;
-static UINT8 bHasSamples = 0;
-
-static INT32 DrvButtonHold[2] = { 0, 0 }; // Fire button must be held for 1 frame
-static INT32 DrvButtonHeld[2] = { 0, 0 }; // otherwise Dig Dug acts strangely.
-static INT32 DrvLastButtons;              // State of the last button press
+/* === Galaga === */
 
 static struct BurnInputInfo GalagaInputList[] =
 {
@@ -271,104 +256,6 @@ static struct BurnInputInfo GalagaInputList[] =
 };
 
 STDINPUTINFO(Galaga)
-
-static struct BurnInputInfo DigdugInputList[] =
-{
-	{"P1 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[0], "p1 coin"   },
-	{"P1 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[4], "p1 start"  },
-	{"P2 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[1], "p2 coin"   },
-	{"P2 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[5], "p2 start"  },
-
-	{"P1 Up"             , BIT_DIGITAL  , &input.PortBits[1].Current[0], "p1 up"     },
-	{"P1 Down"           , BIT_DIGITAL  , &input.PortBits[1].Current[2], "p1 down"   },
-	{"P1 Left"              , BIT_DIGITAL  , &input.PortBits[1].Current[3], "p1 left"   },
-	{"P1 Right"             , BIT_DIGITAL  , &input.PortBits[1].Current[1], "p1 right"  },
-	{"P1 Fire 1"            , BIT_DIGITAL  , &input.PortBits[1].Current[4], "p1 fire 1" },
-	
-	{"P2 Up"             , BIT_DIGITAL  , &input.PortBits[2].Current[0], "p2 up"     },
-	{"P2 Down"           , BIT_DIGITAL  , &input.PortBits[2].Current[2], "p2 down"   },
-	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &input.PortBits[2].Current[3], "p2 left"   },
-	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &input.PortBits[2].Current[1], "p2 right"  },
-	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.PortBits[2].Current[4], "p2 fire 1" },
-
-	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
-	{"Service"           , BIT_DIGITAL  , &input.PortBits[0].Current[7], "service"   },
-	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
-	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
-};
-
-STDINPUTINFO(Digdug)
-
-
-static struct BurnDIPInfo DigdugDIPList[]=
-{
-	{0x10, 0xff, 0xff, 0xa1, NULL		},
-	{0x11, 0xff, 0xff, 0x24, NULL		},
-
-	{0   , 0xfe, 0   ,    8, "Coin B"		},
-	{0x10, 0x01, 0x07, 0x07, "3 Coins 1 Credits"		},
-	{0x10, 0x01, 0x07, 0x03, "2 Coins 1 Credits"		},
-	{0x10, 0x01, 0x07, 0x01, "1 Coin  1 Credits"		},
-	{0x10, 0x01, 0x07, 0x05, "2 Coins 3 Credits"		},
-	{0x10, 0x01, 0x07, 0x06, "1 Coin  2 Credits"		},
-	{0x10, 0x01, 0x07, 0x02, "1 Coin  3 Credits"		},
-	{0x10, 0x01, 0x07, 0x04, "1 Coin  6 Credits"		},
-	{0x10, 0x01, 0x07, 0x00, "1 Coin  7 Credits"		},
-
-	{0   , 0xfe, 0   ,    16, "Bonus Life"		},
-	{0x10, 0x01, 0x38, 0x20, "10K, 40K, Every 40K"		},
-	{0x10, 0x01, 0x38, 0x10, "10K, 50K, Every 50K"		},
-	{0x10, 0x01, 0x38, 0x30, "20K, 60K, Every 60K"		},
-	{0x10, 0x01, 0x38, 0x08, "20K, 70K, Every 70K"		},
-	{0x10, 0x01, 0x38, 0x28, "10K and 40K Only"		},
-	{0x10, 0x01, 0x38, 0x18, "20K and 60K Only"		},
-	{0x10, 0x01, 0x38, 0x38, "10K Only"		},
-	{0x10, 0x01, 0x38, 0x00, "None"		},
-	{0x10, 0x01, 0x38, 0x20, "20K, 60K, Every 60K"		},
-	{0x10, 0x01, 0x38, 0x10, "30K, 80K, Every 80K"		},
-	{0x10, 0x01, 0x38, 0x30, "20K and 50K Only"		},
-	{0x10, 0x01, 0x38, 0x08, "20K and 60K Only"		},
-	{0x10, 0x01, 0x38, 0x28, "30K and 70K Only"		},
-	{0x10, 0x01, 0x38, 0x18, "20K Only"		},
-	{0x10, 0x01, 0x38, 0x38, "30K Only"		},
-	{0x10, 0x01, 0x38, 0x00, "None"		},
-
-	{0   , 0xfe, 0   ,    4, "Lives"		},
-	{0x10, 0x01, 0xc0, 0x00, "1"		},
-	{0x10, 0x01, 0xc0, 0x40, "2"		},
-	{0x10, 0x01, 0xc0, 0x80, "3"		},
-	{0x10, 0x01, 0xc0, 0xc0, "5"		},
-
-	{0   , 0xfe, 0   ,    4, "Coin A"		},
-	{0x11, 0x01, 0xc0, 0x40, "2 Coins 1 Credits"		},
-	{0x11, 0x01, 0xc0, 0x00, "1 Coin  1 Credits"		},
-	{0x11, 0x01, 0xc0, 0xc0, "2 Coins 3 Credits"		},
-	{0x11, 0x01, 0xc0, 0x80, "1 Coin  2 Credits"		},
-
-	{0   , 0xfe, 0   ,    2, "Freeze"		},
-	{0x11, 0x01, 0x20, 0x20, "Off"		},
-	{0x11, 0x01, 0x20, 0x00, "On"		},
-
-	{0   , 0xfe, 0   ,    2, "Demo Sounds"		},
-	{0x11, 0x01, 0x10, 0x10, "Off"		},
-	{0x11, 0x01, 0x10, 0x00, "On"		},
-
-	{0   , 0xfe, 0   ,    2, "Allow Continue"		},
-	{0x11, 0x01, 0x08, 0x08, "No"		},
-	{0x11, 0x01, 0x08, 0x00, "Yes"		},
-
-	{0   , 0xfe, 0   ,    2, "Cabinet"		},
-	{0x11, 0x01, 0x04, 0x04, "Upright"		},
-	{0x11, 0x01, 0x04, 0x00, "Cocktail"		},
-
-	{0   , 0xfe, 0   ,    4, "Difficulty"		},
-	{0x11, 0x01, 0x03, 0x00, "Easy"		},
-	{0x11, 0x01, 0x03, 0x02, "Medium"		},
-	{0x11, 0x01, 0x03, 0x01, "Hard"		},
-	{0x11, 0x01, 0x03, 0x03, "Hardest"		},
-};
-
-STDDIPINFO(Digdug)
 
 static struct BurnDIPInfo GalagaDIPList[]=
 {
@@ -683,6 +570,691 @@ static struct BurnRomInfo NebulbeeRomDesc[] = {
 STD_ROM_PICK(Nebulbee)
 STD_ROM_FN(Nebulbee)
 
+static struct BurnSampleInfo GalagaSampleDesc[] = {
+#if !defined (ROM_VERIFY)
+   { "bang", SAMPLE_NOLOOP },
+   { "init", SAMPLE_NOLOOP },
+#endif
+  { "", 0 }
+};
+
+STD_SAMPLE_PICK(Galaga)
+STD_SAMPLE_FN(Galaga)
+
+static INT32 CharPlaneOffsets[2]   = { 0, 4 };
+static INT32 CharXOffsets[8]       = { 64, 65, 66, 67, 0, 1, 2, 3 };
+static INT32 CharYOffsets[8]       = { 0, 8, 16, 24, 32, 40, 48, 56 };
+static INT32 SpritePlaneOffsets[2] = { 0, 4 };
+static INT32 SpriteXOffsets[16]    = { 0, 1, 2, 3, 64, 65, 66, 67, 128, 129, 130, 131, 192, 193, 194, 195 };
+static INT32 SpriteYOffsets[16]    = { 0, 8, 16, 24, 32, 40, 48, 56, 256, 264, 272, 280, 288, 296, 304, 312 };
+
+static INT32 GalagaInit()
+{
+	// Allocate and Blank all required memory
+	memory.All.Start = NULL;
+	GalagaMemIndex();
+	
+   memory.All.Start = (UINT8 *)BurnMalloc(memory.All.Size);
+	if (NULL == memory.All.Start) 
+      return 1;
+	memset(memory.All.Start, 0, memory.All.Size);
+	
+   GalagaMemIndex();
+
+	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
+
+	// Load Z80 #1 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
+	
+	// Load Z80 #2 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
+	
+	// Load Z80 #3 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  5, 1)) return 1;
+	
+	// Load and decode the chars
+	if (0 != BurnLoadRom(DrvTempRom,            6, 1)) return 1;
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
+	
+	// Load and decode the sprites
+	memset(DrvTempRom, 0, 0x02000);
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  7, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  8, 1)) return 1;
+	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
+
+	// Load the PROMs
+	if (0 != BurnLoadRom(memory.PROM.Palette,        9, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,    10, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  11, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm,            12, 1)) return 1;
+	
+	BurnFree(DrvTempRom);
+	
+	GalagaMachineInit();
+
+	return 0;
+}
+
+static INT32 GallagInit()
+{
+	// Allocate and Blank all required memory
+	memory.All.Start = NULL;
+	GalagaMemIndex();
+   
+	memory.All.Start = (UINT8 *)BurnMalloc(memory.All.Size);
+	if (NULL == memory.All.Start) 
+      return 1;
+	memset(memory.All.Start, 0, memory.All.Size);
+	
+   GalagaMemIndex();
+
+	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
+
+	// Load Z80 #1 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
+	
+	// Load Z80 #2 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
+	
+	// Load Z80 #3 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  5, 1)) return 1;
+	
+	// Load and decode the chars
+	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
+	
+	// Load and decode the sprites
+	memset(DrvTempRom, 0, 0x02000);
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  8, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
+	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
+
+	// Load the PROMs
+	if (0 != BurnLoadRom(memory.PROM.Palette,       10, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,    11, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  12, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm,            13, 1)) return 1;
+	
+	BurnFree(DrvTempRom);
+	
+	GalagaMachineInit();
+
+	return 0;
+}
+
+static INT32 GalagaMemIndex()
+{
+	UINT8 *Next = memory.All.Start;
+
+	memory.Z80.Rom1            = Next; Next += 0x04000;
+	memory.Z80.Rom2            = Next; Next += 0x04000;
+	memory.Z80.Rom3            = Next; Next += 0x04000;
+	memory.PROM.Palette        = Next; Next += 0x00020;
+	memory.PROM.CharLookup     = Next; Next += 0x00100;
+	memory.PROM.SpriteLookup   = Next; Next += 0x00100;
+	NamcoSoundProm             = Next; Next += 0x00200;
+	
+	memory.RAM.Start           = Next;
+
+	memory.RAM.Video           = Next; Next += 0x00800;
+	memory.RAM.Shared1         = Next; Next += 0x00400;
+	memory.RAM.Shared2         = Next; Next += 0x00400;
+	memory.RAM.Shared3         = Next; Next += 0x00400;
+
+	memory.RAM.Size            = Next - memory.RAM.Start;
+
+	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
+	PlayFieldData              = Next; Next += 0x01000;
+	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
+	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
+	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
+
+	memory.All.Size            = Next - memory.All.Start;
+
+	return 0;
+}
+
+static void GalagaMachineInit()
+{
+	ZetInit(0);
+	ZetOpen(0);
+	ZetSetReadHandler(GalagaZ80ProgRead);
+	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(1);
+	ZetOpen(1);
+	ZetSetReadHandler(GalagaZ80ProgRead);
+	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(2);
+	ZetOpen(2);
+	ZetSetReadHandler(GalagaZ80ProgRead);
+	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
+	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
+	BurnSampleInit(1);
+	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
+	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
+
+	GenericTilesInit();
+
+	earom_init();
+
+	// Reset the driver
+	DrvDoReset();
+}
+
+static UINT8 __fastcall GalagaZ80ProgRead(UINT16 addr)
+{
+	switch (addr) 
+   {
+		case 0x7000:
+      {
+			if ( (0x71 == ioChip.CustomCommand) ||
+              (0xb1 == ioChip.CustomCommand) )
+         {
+            if (ioChip.Mode) 
+            {
+               return input.Ports[0];
+            } 
+            else 
+            {
+               return updateCoinAndCredit(
+                  INP_GALAGA_COIN_TRIGGER, 
+                  INP_GALAGA_COIN_MASK,
+                  INP_GALAGA_START_1, 
+                  INP_GALAGA_START_2
+               );
+            }
+			}
+			
+			return 0xff;
+		}
+      
+		case 0x7001:
+		case 0x7002:
+      {
+         UINT32 Offset = addr - 0x7000;
+         
+			if ( (0x71 == ioChip.CustomCommand) ||
+              (0xb1 == ioChip.CustomCommand) )
+         {
+            UINT8 jp = input.Ports[Offset];
+
+            return updateJoyAndButtons(Offset, jp);
+			}
+			
+			return 0xff;
+		}
+		
+	}
+	
+	return NamcoZ80ProgRead(addr);
+}
+
+static void __fastcall GalagaZ80ProgWrite(UINT16 addr, UINT8 dta)
+{
+	switch (addr) 
+   {
+		case 0x7007:
+			if (0xe1 == ioChip.CustomCommand) 
+         {
+            ioChip.CoinPerCredit = ioChip.Buffer[1];
+            ioChip.CreditPerCoin = ioChip.Buffer[2];
+			}
+			
+			return;
+	
+		default: 
+      {
+		}
+	}
+   
+   return NamcoZ80ProgWrite(addr, dta);
+}
+
+static INT32 GalagaDraw()
+{
+	BurnTransferClear();
+	GalagaCalcPalette();
+	GalagaRenderTilemap();
+	GalagaRenderStars();
+	GalagaRenderSprites();	
+	BurnTransferCopy(graphics.Palette);
+	return 0;
+}
+
+static void GalagaCalcPalette()
+{
+	UINT32 Palette[96];
+	
+	for (INT32 i = 0; i < 32; i ++) 
+   {
+      /*
+		INT32 bit0, bit1, bit2, r, g, b;
+		
+		bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
+		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		bit0 = (memory.PROM.Palette[i] >> 3) & 0x01;
+		bit1 = (memory.PROM.Palette[i] >> 4) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 5) & 0x01;
+		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		bit0 = 0;
+		bit1 = (memory.PROM.Palette[i] >> 6) & 0x01;
+		bit2 = (memory.PROM.Palette[i] >> 7) & 0x01;
+		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		*/
+      
+      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
+      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
+      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
+      
+		Palette[i] = BurnHighCol(r, g, b, 0);
+	}
+	
+	for (INT32 i = 0; i < 64; i ++) 
+   {
+		/*
+		INT32 bits = (i >> 0) & 0x03;
+		INT32 r = map[bits];
+		bits =       (i >> 2) & 0x03;
+		INT32 g = map[bits];
+		bits =       (i >> 4) & 0x03;
+		INT32 b = map[bits];
+		*/
+      INT32 r = Colour2Bit[(i >> 0) & 0x03];
+      INT32 g = Colour2Bit[(i >> 2) & 0x03];
+      INT32 b = Colour2Bit[(i >> 4) & 0x03];
+      
+		Palette[32 + i] = BurnHighCol(r, g, b, 0);
+	}
+	
+	for (INT32 i = 0; i < 256; i ++) 
+   {
+		graphics.Palette[i] =       Palette[((memory.PROM.CharLookup[i]) & 0x0f) + 0x10];
+	}
+	
+	for (INT32 i = 0; i < 256; i ++) 
+   {
+		graphics.Palette[0x100 + i] = Palette[  memory.PROM.SpriteLookup[i] & 0x0f];
+	}
+	
+	for (INT32 i = 0; i < 64; i ++) 
+   {
+		graphics.Palette[0x200 + i] = Palette[32 + i];
+	}
+
+	GalagaInitStars();
+}
+
+struct Star_Def 
+{
+	UINT16 x;
+   UINT16 y;
+	UINT8 Colour;
+   UINT8 Set;
+};
+
+#define MAX_STARS 252
+static struct Star_Def StarSeedTable[MAX_STARS];
+
+static void GalagaInitStars()
+{
+	/*
+	  Galaga star line and pixel locations pulled directly from
+	  a clocked stepping of the 05 starfield. The chip was clocked
+	  on a test rig with hblank and vblank simulated, each X & Y
+	  location of a star being recorded along with it's color value.
+
+	  The lookup table is generated using a reverse engineered
+	  linear feedback shift register + XOR boolean expression.
+
+	  Because the starfield begins generating stars at the point
+	  in time it's enabled the exact horiz location of the stars
+	  on Galaga depends on the length of time of the POST for the
+	  original board.
+
+	  Two control bits determine which of two sets are displayed
+	  set 0 or 1 and simultaneously 2 or 3.
+
+	  There are 63 stars in each set, 126 displayed at any one time
+	  Code: jmakovicka, based on info from http://www.pin4.at/pro_custom_05xx.php
+	*/
+
+	const UINT16 feed = 0x9420;
+
+	INT32 idx = 0;
+	for (UINT32 sf = 0; sf < 4; ++ sf)
+	{
+		// starfield select flags
+		UINT16 sf1 = (sf >> 1) & 1;
+		UINT16 sf2 = sf & 1;
+
+		UINT16 i = 0x70cc;
+		for (UINT32 cnt = 0; cnt < 65535; ++ cnt)
+		{
+			// output enable lookup
+			UINT16 xor1 = i    ^ (i >> 3);
+			UINT16 xor2 = xor1 ^ (i >> 2);
+			UINT16 oe = (sf1 ? 0 : 0x4000) | ((sf1 ^ sf2) ? 0 : 0x1000);
+			if ( ( 0x8007             == ( i   & 0x8007) ) && 
+              ( 0x2008             == (~i   & 0x2008) ) && 
+              ( (sf1 ? 0 : 0x0100) == (xor1 & 0x0100) ) && 
+              ( (sf2 ? 0 : 0x0040) == (xor2 & 0x0040) ) && 
+              ( oe                 == (i    & 0x5000) ) && 
+              ( cnt                >= (256 * 4)       ) )
+			{
+				// color lookup
+				UINT16 xor3 = (i >> 1) ^ (i >> 6);
+				UINT16 clr  = ( 
+                 (          (i >> 9)             & 0x07)
+               | ( ( xor3 ^ (i >> 4) ^ (i >> 7)) & 0x08)
+               |   (~xor3                        & 0x10)
+               | (        ( (i >> 2) ^ (i >> 5)) & 0x20) )
+					^ ( (i & 0x4000) ? 0 : 0x24)
+					^ ( ( ((i >> 2) ^ i) & 0x1000) ? 0x21 : 0);
+
+				StarSeedTable[idx].x = cnt % 256;
+				StarSeedTable[idx].y = cnt / 256;
+				StarSeedTable[idx].Colour = clr;
+				StarSeedTable[idx].Set = sf;
+				++ idx;
+			}
+
+			// update the LFSR
+			if (i & 1)
+				i = (i >> 1) ^ feed;
+			else
+				i = (i >> 1);
+		}
+	}
+}
+
+static void GalagaRenderStars()
+{
+	if (1 == stars.Control[5]) 
+   {
+		INT32 SetA = stars.Control[3];
+		INT32 SetB = stars.Control[4] | 0x02;
+
+		for (INT32 StarCounter = 0; StarCounter < MAX_STARS; StarCounter ++) 
+      {
+			if ( (SetA == StarSeedTable[StarCounter].Set) || 
+              (SetB == StarSeedTable[StarCounter].Set) ) 
+         {
+				INT32 x = (                      StarSeedTable[StarCounter].x + stars.ScrollX) % 256 + 16;
+				INT32 y = ((nScreenHeight / 2) + StarSeedTable[StarCounter].y + stars.ScrollY) % 256;
+
+				if ( (x >= 0) && (x < nScreenWidth)  && 
+                 (y >= 0) && (y < nScreenHeight) ) 
+            {
+					pTransDraw[(y * nScreenWidth) + x] = StarSeedTable[StarCounter].Colour + 512;
+				}
+			}
+
+		}
+	}
+}
+
+static void GalagaRenderTilemap()
+{
+	INT32 TileIndex;
+
+	for (INT32 mx = 0; mx < 28; mx ++) 
+   {
+		for (INT32 my = 0; my < 36; my ++) 
+      {
+			INT32 Row = mx + 2;
+			INT32 Col = my - 2;
+			if (Col & 0x20) {
+				TileIndex = Row + ((Col & 0x1f) << 5);
+			} else {
+				TileIndex = Col + (Row << 5);
+			}
+			
+			INT32 Code   = memory.RAM.Video[TileIndex + 0x000] & 0x7f;
+			INT32 Colour = memory.RAM.Video[TileIndex + 0x400] & 0x3f;
+
+			INT32 y = 8 * mx;
+			INT32 x = 8 * my;
+			
+			if (machine.FlipScreen) {
+				x = 280 - x;
+				y = 216 - y;
+			}
+			
+			if (x > 8 && x < 280 && y > 8 && y < 216) {
+				if (machine.FlipScreen) {
+					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				} else {
+					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				}
+			} else {
+				if (machine.FlipScreen) {
+					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				} else {
+					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+				}
+			}
+		}
+	}
+}
+
+static void GalagaRenderSprites()
+{
+	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
+	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
+	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
+
+	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
+		static const INT32 GfxOffset[2][2] = {
+			{ 0, 1 },
+			{ 2, 3 }
+		};
+		INT32 Sprite =    SpriteRam1[Offset + 0] & 0x7f;
+		INT32 Colour =    SpriteRam1[Offset + 1] & 0x3f;
+		INT32 sx =        SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
+		INT32 sy = 256 -  SpriteRam2[Offset + 0] + 1;
+		INT32 xFlip =    (SpriteRam3[Offset + 0] & 0x01);
+		INT32 yFlip =    (SpriteRam3[Offset + 0] & 0x02) >> 1;
+		INT32 xSize =    (SpriteRam3[Offset + 0] & 0x04) >> 2;
+		INT32 ySize =    (SpriteRam3[Offset + 0] & 0x08) >> 3;
+      INT32 Orient =    SpriteRam3[Offset + 0] & 0x03;
+		sy -= 16 * ySize;
+		sy = (sy & 0xff) - 32;
+
+		if (machine.FlipScreen) 
+      {
+			xFlip = !xFlip;
+			yFlip = !yFlip;
+         Orient = 3 - Orient;
+		}
+
+		for (INT32 y = 0; y <= ySize; y ++) 
+      {
+			for (INT32 x = 0; x <= xSize; x ++) 
+         {
+				INT32 Code = Sprite + GfxOffset[y ^ (ySize * yFlip)][x ^ (xSize * xFlip)];
+				INT32 xPos = sx + 16 * x;
+				INT32 yPos = sy + 16 * y;
+
+            /*
+				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
+				if (xPos < -15 || yPos < -15) continue; // crash preventer
+            */
+            if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
+				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
+
+				if ((xPos > 16) && (xPos < 272) && 
+                (yPos > 16) && (yPos < 208) ) 
+            {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+               }
+				} else {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, graphics.Sprites);
+                     break;
+               }
+				}
+			}
+		}
+	}
+}
+
+/* === Dig Dug === */
+
+static struct BurnInputInfo DigdugInputList[] =
+{
+	{"P1 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[0], "p1 coin"   },
+	{"P1 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[4], "p1 start"  },
+	{"P2 Coin"            , BIT_DIGITAL  , &input.PortBits[0].Current[1], "p2 coin"   },
+	{"P2 Start"           , BIT_DIGITAL  , &input.PortBits[0].Current[5], "p2 start"  },
+
+	{"P1 Up"             , BIT_DIGITAL  , &input.PortBits[1].Current[0], "p1 up"     },
+	{"P1 Down"           , BIT_DIGITAL  , &input.PortBits[1].Current[2], "p1 down"   },
+	{"P1 Left"              , BIT_DIGITAL  , &input.PortBits[1].Current[3], "p1 left"   },
+	{"P1 Right"             , BIT_DIGITAL  , &input.PortBits[1].Current[1], "p1 right"  },
+	{"P1 Fire 1"            , BIT_DIGITAL  , &input.PortBits[1].Current[4], "p1 fire 1" },
+	
+	{"P2 Up"             , BIT_DIGITAL  , &input.PortBits[2].Current[0], "p2 up"     },
+	{"P2 Down"           , BIT_DIGITAL  , &input.PortBits[2].Current[2], "p2 down"   },
+	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &input.PortBits[2].Current[3], "p2 left"   },
+	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &input.PortBits[2].Current[1], "p2 right"  },
+	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.PortBits[2].Current[4], "p2 fire 1" },
+
+	{"Reset"             , BIT_DIGITAL  , &input.Reset        , "reset"     },
+	{"Service"           , BIT_DIGITAL  , &input.PortBits[0].Current[7], "service"   },
+	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0]       , "dip"       },
+	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1]       , "dip"       },
+//	{"Dip 3"             , BIT_DIPSWITCH, DrvDip + 2       , "dip"       },
+};
+
+STDINPUTINFO(Digdug)
+
+
+static struct BurnDIPInfo DigdugDIPList[]=
+{
+	{0x10, 0xff, 0xff, 0xa1, NULL		},
+	{0x11, 0xff, 0xff, 0x24, NULL		},
+
+	{0   , 0xfe, 0   ,    8, "Coin B"		},
+	{0x10, 0x01, 0x07, 0x07, "3 Coins 1 Credits"		},
+	{0x10, 0x01, 0x07, 0x03, "2 Coins 1 Credits"		},
+	{0x10, 0x01, 0x07, 0x01, "1 Coin  1 Credits"		},
+	{0x10, 0x01, 0x07, 0x05, "2 Coins 3 Credits"		},
+	{0x10, 0x01, 0x07, 0x06, "1 Coin  2 Credits"		},
+	{0x10, 0x01, 0x07, 0x02, "1 Coin  3 Credits"		},
+	{0x10, 0x01, 0x07, 0x04, "1 Coin  6 Credits"		},
+	{0x10, 0x01, 0x07, 0x00, "1 Coin  7 Credits"		},
+
+	{0   , 0xfe, 0   ,    16, "Bonus Life"		},
+	{0x10, 0x01, 0x38, 0x20, "10K, 40K, Every 40K"		},
+	{0x10, 0x01, 0x38, 0x10, "10K, 50K, Every 50K"		},
+	{0x10, 0x01, 0x38, 0x30, "20K, 60K, Every 60K"		},
+	{0x10, 0x01, 0x38, 0x08, "20K, 70K, Every 70K"		},
+	{0x10, 0x01, 0x38, 0x28, "10K and 40K Only"		},
+	{0x10, 0x01, 0x38, 0x18, "20K and 60K Only"		},
+	{0x10, 0x01, 0x38, 0x38, "10K Only"		},
+	{0x10, 0x01, 0x38, 0x00, "None"		},
+	{0x10, 0x01, 0x38, 0x20, "20K, 60K, Every 60K"		},
+	{0x10, 0x01, 0x38, 0x10, "30K, 80K, Every 80K"		},
+	{0x10, 0x01, 0x38, 0x30, "20K and 50K Only"		},
+	{0x10, 0x01, 0x38, 0x08, "20K and 60K Only"		},
+	{0x10, 0x01, 0x38, 0x28, "30K and 70K Only"		},
+	{0x10, 0x01, 0x38, 0x18, "20K Only"		},
+	{0x10, 0x01, 0x38, 0x38, "30K Only"		},
+	{0x10, 0x01, 0x38, 0x00, "None"		},
+
+	{0   , 0xfe, 0   ,    4, "Lives"		},
+	{0x10, 0x01, 0xc0, 0x00, "1"		},
+	{0x10, 0x01, 0xc0, 0x40, "2"		},
+	{0x10, 0x01, 0xc0, 0x80, "3"		},
+	{0x10, 0x01, 0xc0, 0xc0, "5"		},
+
+	{0   , 0xfe, 0   ,    4, "Coin A"		},
+	{0x11, 0x01, 0xc0, 0x40, "2 Coins 1 Credits"		},
+	{0x11, 0x01, 0xc0, 0x00, "1 Coin  1 Credits"		},
+	{0x11, 0x01, 0xc0, 0xc0, "2 Coins 3 Credits"		},
+	{0x11, 0x01, 0xc0, 0x80, "1 Coin  2 Credits"		},
+
+	{0   , 0xfe, 0   ,    2, "Freeze"		},
+	{0x11, 0x01, 0x20, 0x20, "Off"		},
+	{0x11, 0x01, 0x20, 0x00, "On"		},
+
+	{0   , 0xfe, 0   ,    2, "Demo Sounds"		},
+	{0x11, 0x01, 0x10, 0x10, "Off"		},
+	{0x11, 0x01, 0x10, 0x00, "On"		},
+
+	{0   , 0xfe, 0   ,    2, "Allow Continue"		},
+	{0x11, 0x01, 0x08, 0x08, "No"		},
+	{0x11, 0x01, 0x08, 0x00, "Yes"		},
+
+	{0   , 0xfe, 0   ,    2, "Cabinet"		},
+	{0x11, 0x01, 0x04, 0x04, "Upright"		},
+	{0x11, 0x01, 0x04, 0x00, "Cocktail"		},
+
+	{0   , 0xfe, 0   ,    4, "Difficulty"		},
+	{0x11, 0x01, 0x03, 0x00, "Easy"		},
+	{0x11, 0x01, 0x03, 0x02, "Medium"		},
+	{0x11, 0x01, 0x03, 0x01, "Hard"		},
+	{0x11, 0x01, 0x03, 0x03, "Hardest"		},
+};
+
+STDDIPINFO(Digdug)
+
 // Dig Dug (rev 2)
 
 static struct BurnRomInfo digdugRomDesc[] = {
@@ -718,99 +1290,256 @@ static struct BurnRomInfo digdugRomDesc[] = {
 STD_ROM_PICK(digdug)
 STD_ROM_FN(digdug)
 
-static struct BurnSampleInfo GalagaSampleDesc[] = {
-#if !defined (ROM_VERIFY)
-   { "bang", SAMPLE_NOLOOP },
-   { "init", SAMPLE_NOLOOP },
-#endif
-  { "", 0 }
-};
+static INT32 DigdugCharPlaneOffsets[2] = { 0 };
+static INT32 DigdugCharXOffsets[8] = { STEP8(7,-1) };
+static INT32 DigdugCharYOffsets[8] = { STEP8(0,8) };
 
-STD_SAMPLE_PICK(Galaga)
-STD_SAMPLE_FN(Galaga)
-
-static INT32 MemIndex()
+static INT32 DigdugInit()
 {
-	UINT8 *Next; Next = Mem;
-
-	DrvZ80Rom1             = Next; Next += 0x04000;
-	DrvZ80Rom2             = Next; Next += 0x04000;
-	DrvZ80Rom3             = Next; Next += 0x04000;
-	DrvPromPalette         = Next; Next += 0x00020;
-	DrvPromCharLookup      = Next; Next += 0x00100;
-	DrvPromSpriteLookup    = Next; Next += 0x00100;
-	NamcoSoundProm         = Next; Next += 0x00200;
+	// Allocate and Blank all required memory
+	memory.All.Start = NULL;
+	DigDugMemIndex();
 	
-	RamStart               = Next;
+   memory.All.Start = (UINT8 *)BurnMalloc(memory.All.Size);
+	if (NULL == memory.All.Start) 
+      return 1;
+	memset(memory.All.Start, 0, memory.All.Size);
+	
+   DigDugMemIndex();
 
-	DrvVideoRam            = Next; Next += 0x00800;
-	DrvSharedRam1          = Next; Next += 0x00400;
-	DrvSharedRam1          = Next; Next += 0x04000;
-	DrvSharedRam2          = Next; Next += 0x00400;
-	DrvSharedRam3          = Next; Next += 0x00400;
+	DrvTempRom = (UINT8 *)BurnMalloc(0x10000);
 
-	RamEnd                 = Next;
+	// Load Z80 #1 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3, 1)) return 1;
+	
+	// Load Z80 #2 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4, 1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x01000,  5, 1)) return 1;
+	
+	// Load Z80 #3 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  6, 1)) return 1;
 
-	DrvDigdugChars         = Next; Next += 0x00180 * 8 * 8;
-	DrvGfx4                = Next; Next += 0x01000;
-	DrvChars               = Next; Next += 0x01100 * 8 * 8;
-	DrvSprites             = Next; Next += 0x01100 * 16 * 16;
-	DrvPalette             = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
+	memset(DrvTempRom, 0, 0x10000);
+	// Load and decode the chars 8x8 (in digdug)
+	if (0 != BurnLoadRom(DrvTempRom,            7, 1)) return 1;
+	GfxDecode(0x80, 1, 8, 8, DigdugCharPlaneOffsets, DigdugCharXOffsets, DigdugCharYOffsets, 0x40, DrvTempRom, graphics.Chars2);
+	
+	// Load and decode the sprites
+	memset(DrvTempRom, 0, 0x10000);
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,  8, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,  9, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x02000, 10, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x03000, 11, 1)) return 1;
+	GfxDecode(0x80 + 0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, graphics.Sprites);
 
-	MemEnd                 = Next;
+	memset(DrvTempRom, 0, 0x10000);
+	// Load and decode the chars 2bpp
+	if (0 != BurnLoadRom(DrvTempRom,           12, 1)) return 1;
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
+
+	// Load gfx4 - the playfield data
+	if (0 != BurnLoadRom(PlayFieldData,             13, 1)) return 1;
+
+	// Load the PROMs
+	if (0 != BurnLoadRom(memory.PROM.Palette,       14, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup,  15, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup,    16, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm,            17, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm + 0x0100,   18, 1)) return 1;
+	
+	BurnFree(DrvTempRom);
+	//digdugmode = 1;
+   machine.Game = NAMCO_DIGDUG;
+
+	DigDugMachineInit();
 
 	return 0;
 }
 
-static INT32 DrvDoReset()
+static INT32 DigDugMemIndex()
 {
-	for (INT32 i = 0; i < 3; i++) {
-		ZetOpen(i);
-		ZetReset();
-		ZetClose();
-	}
+	UINT8 *Next = memory.All.Start;
+
+	memory.Z80.Rom1            = Next; Next += 0x04000;
+	memory.Z80.Rom2            = Next; Next += 0x04000;
+	memory.Z80.Rom3            = Next; Next += 0x04000;
+	memory.PROM.Palette        = Next; Next += 0x00020;
+	memory.PROM.CharLookup     = Next; Next += 0x00100;
+	memory.PROM.SpriteLookup   = Next; Next += 0x00100;
+	NamcoSoundProm             = Next; Next += 0x00200;
 	
-	BurnSampleReset();
-	NamcoSoundReset();
+	memory.RAM.Start           = Next;
 
-	DrvCPU1FireIRQ = 0;
-	DrvCPU2FireIRQ = 0;
-	DrvCPU3FireIRQ = 0;
-	DrvCPU2Halt = 0;
-	DrvCPU3Halt = 0;
-	DrvFlipScreen = 0;
-	for (INT32 i = 0; i < 6; i++) {
-		DrvStarControl[i] = 0;
-	}
-	DrvStarScrollX = 0;
-	DrvStarScrollY = 0;
-	
-	IOChipCustomCommand = 0;
-	IOChipCPU1FireIRQ = 0;
-	IOChipMode = 0;
-	IOChipCredits = 0;
-	IOChipCoinPerCredit = 0;
-	IOChipCreditPerCoin = 0;
-	for (INT32 i = 0; i < 16; i++) {
-		IOChipCustom[i] = 0;
-	}
-	PrevInValue = 0xff;
+	memory.RAM.Video           = Next; Next += 0x00800;
+	memory.RAM.Shared1         = Next; Next += 0x00400;
+	memory.RAM.Shared2         = Next; Next += 0x00400;
+	memory.RAM.Shared3         = Next; Next += 0x00400;
 
-	Fetch = 0;
-	FetchMode = 0;
-	memset(&Config1, 0, sizeof(Config1));
-	memset(&Config2, 0, sizeof(Config2));
-	memset(&Config3, 0, sizeof(Config3));
-	playfield = 0;
-	alphacolor = 0;
-	playenable = 0;
-	playcolor = 0;
+	memory.RAM.Size            = Next - memory.RAM.Start;
 
-	earom_reset();
+	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
+	PlayFieldData              = Next; Next += 0x01000;
+	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
+	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
+	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
 
-	HiscoreReset();
+	memory.All.Size            = Next - memory.All.Start;
 
 	return 0;
+}
+
+static void DigDugMachineInit()
+{
+	ZetInit(0);
+	ZetOpen(0);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(1);
+	ZetOpen(1);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(2);
+	ZetOpen(2);
+	ZetSetReadHandler(DigDugZ80ProgRead);
+	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x93ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
+	ZetClose();
+	
+	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
+	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
+	BurnSampleInit(1);
+	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
+	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
+
+	GenericTilesInit();
+
+	earom_init();
+
+	// Reset the driver
+	DrvDoReset();
+}
+
+static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr)
+{
+	if ( (addr >= 0xb800) && (addr <= 0xb83f) ) // digdugmode) { // EAROM Read
+   {
+		return earom_read(addr - 0xb800);
+	}
+
+	switch (addr) 
+   {
+		case 0x7000:
+		case 0x7001:
+		case 0x7002:
+		case 0x7003:
+		case 0x7004:
+		case 0x7005:
+		case 0x7006:
+		case 0x7007:
+		case 0x7008:
+		case 0x7009:
+		case 0x700a:
+		case 0x700b:
+		case 0x700c:
+		case 0x700d:
+		case 0x700e:
+		case 0x700f: 
+      {
+			INT32 Offset = addr - 0x7000;
+			
+			switch (ioChip.CustomCommand) 
+         {
+				case 0xd2: 
+            {
+               if ( (0 == Offset) || (1 == Offset) )
+						return input.Dip[Offset];
+					break;
+				}
+            
+				case 0x71:
+				case 0xb1: 
+            {
+					if (0xb1 == ioChip.CustomCommand)
+               {
+						if (Offset <= 2) // status
+							return 0;
+						else
+							return 0xff;
+					}
+					
+               if (0 == Offset) 
+               {
+						if (ioChip.Mode) 
+                  {
+							return input.Ports[0];
+						} 
+                  else 
+                  {
+                     return updateCoinAndCredit(
+                        INP_DIGDUG_COIN_TRIGGER,
+                        INP_DIGDUG_COIN_MASK,
+                        INP_DIGDUG_START_1,
+                        INP_DIGDUG_START_2
+                     );
+                  }
+					}
+					
+					if ( (1 == Offset) || (2 == Offset) ) 
+               {
+						INT32 jp = input.Ports[Offset];
+
+						if (0 == ioChip.Mode)
+                  {
+							/* check directions, according to the following 8-position rule */
+							/*         0          */
+							/*        7 1         */
+							/*       6 8 2        */
+							/*        5 3         */
+							/*         4          */
+							if ((jp & 0x01) == 0)		/* up */
+								jp = (jp & ~0x0f) | 0x00;
+							else if ((jp & 0x02) == 0)	/* right */
+								jp = (jp & ~0x0f) | 0x02;
+							else if ((jp & 0x04) == 0)	/* down */
+								jp = (jp & ~0x0f) | 0x04;
+							else if ((jp & 0x08) == 0) /* left */
+								jp = (jp & ~0x0f) | 0x06;
+							else
+								jp = (jp & ~0x0f) | 0x08;
+						}
+
+						return updateJoyAndButtons(Offset, jp);
+					}
+				}
+			}
+			
+			return 0xff;
+		}
+		
+	}
+	
+	return NamcoZ80ProgRead(addr);
 }
 
 void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data)
@@ -843,87 +1572,437 @@ void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data)
 	}
 }
 
+static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta)
+{
+	if ( (addr >= 0xb800) && (addr <= 0xb83f) ) // EAROM Write
+   {
+		earom_write(addr - 0xb800, dta);
+		return;
+	}
 
+	switch (addr) 
+   {
+		case 0xb840:
+         earom_ctrl_write(0xb840, dta);
+			return;
+
+		case 0x7008:
+			if (0xc1 == ioChip.CustomCommand) 
+         {
+            ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
+            ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
+         }
+         break;
+	
+      case 0xa000:
+      case 0xa001:
+      case 0xa002:
+      case 0xa003:
+      case 0xa004:
+      case 0xa005:
+		case 0xa006: 
+      {
+			digdug_pf_latch_w(addr - 0xa000, dta);
+			break;
+		}
+
+		default: 
+      {
+         break;
+		}
+	}
+   
+   return NamcoZ80ProgWrite(addr, dta);
+}
+
+static INT32 DigDugDraw()
+{
+	BurnTransferClear();
+	DigDugCalcPalette();
+	DigDugRenderTiles();
+	DigDugRenderSprites();
+	BurnTransferCopy(graphics.Palette);
+	return 0;
+}
+
+static void DigDugCalcPalette()
+{
+	UINT32 Palette[96];
+	
+	for (INT32 i = 0; i < 32; i ++) 
+   {
+      /*
+		INT32 bit0 = (memory.PROM.Palette[i] >> 0) & 0x01;
+		INT32 bit1 = (memory.PROM.Palette[i] >> 1) & 0x01;
+		INT32 bit2 = (memory.PROM.Palette[i] >> 2) & 0x01;
+		INT32 r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+      */
+      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
+		
+      /*
+      bit0 =       (memory.PROM.Palette[i] >> 3) & 0x01;
+		bit1 =       (memory.PROM.Palette[i] >> 4) & 0x01;
+		bit2 =       (memory.PROM.Palette[i] >> 5) & 0x01;
+		INT32 g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+      */
+      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
+		
+      /*
+      bit0 =       0;
+		bit1 =       (memory.PROM.Palette[i] >> 6) & 0x01;
+		bit2 =       (memory.PROM.Palette[i] >> 7) & 0x01;
+		INT32 b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+		*/
+      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
+      
+		Palette[i] = BurnHighCol(r, g, b, 0);
+	}
+
+	/* characters - direct mapping */
+	for (INT32 i = 0; i < 16; i ++)
+	{
+		graphics.Palette[i*2+0] = Palette[0];
+		graphics.Palette[i*2+1] = Palette[i];
+	}
+
+	/* sprites */
+	for (INT32 i = 0; i < 0x100; i ++) 
+   {
+		graphics.Palette[0x200 + i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
+	}
+
+	/* bg_select */
+	for (INT32 i = 0; i < 0x100; i ++) 
+   {
+		graphics.Palette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
+	}
+}
+
+static void DigDugRenderTiles()
+{
+	INT32 TileIndex;
+	UINT8 *pf = PlayFieldData + (playfield << 10);
+	UINT8 pfval;
+	UINT32 pfcolor = playcolor << 4;
+
+	if (playenable != 0)
+		pf = NULL;
+
+	for (INT32 mx = 0; mx < 28; mx ++) 
+   {
+		for (INT32 my = 0; my < 36; my ++) 
+      {
+			INT32 Row = mx + 2;
+			INT32 Col = my - 2;
+			if (Col & 0x20) 
+         {
+				TileIndex = Row + ((Col & 0x1f) << 5);
+			} else {
+				TileIndex = Col + (Row << 5);
+			}
+
+			INT32 Code = memory.RAM.Video[TileIndex];
+			INT32 Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
+			Code &= 0x7f;
+
+			INT32 y = 8 * mx;
+			INT32 x = 8 * my;
+			
+			if (machine.FlipScreen) 
+         {
+				x = 280 - x;
+				y = 216 - y;
+			}
+
+			if (pf) 
+         {
+				// Draw playfield / background
+				pfval = pf[TileIndex & 0xfff];
+				INT32 pfColour = (pfval >> 4) + pfcolor;
+				if (x > 8 && x < 280 && y > 8 && y < 216) 
+            {
+					if (machine.FlipScreen) {
+						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					} else {
+						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					}
+				} else {
+					if (machine.FlipScreen) {
+						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					} else {
+						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					}
+				}
+			}
+
+			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
+         {
+				if (machine.FlipScreen) {
+					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				} else {
+					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				}
+			} else {
+				if (machine.FlipScreen) {
+					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				} else {
+					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				}
+			}
+		}
+	}
+}
+
+static void DigDugRenderSprites()
+{
+	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
+	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
+	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
+	
+	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
+   {
+		static const INT32 GfxOffset[2][2] = {
+			{ 0, 1 },
+			{ 2, 3 }
+		};
+		INT32 Sprite =   SpriteRam1[Offset + 0];
+		INT32 Colour =   SpriteRam1[Offset + 1] & 0x3f;
+		INT32 sx =       SpriteRam2[Offset + 1] - 40 + 1;
+		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
+		INT32 xFlip =   (SpriteRam3[Offset + 0] & 0x01);
+		INT32 yFlip =   (SpriteRam3[Offset + 0] & 0x02) >> 1;
+      UINT32 Orient =  SpriteRam3[Offset + 0] & 0x03;
+		
+      INT32 sSize = (Sprite & 0x80) >> 7;
+
+		sy -= 16 * sSize;
+		sy = (sy & 0xff) - 32;
+
+		if (sSize)
+			Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
+
+		if (machine.FlipScreen) 
+      {
+			xFlip = !xFlip;
+			yFlip = !yFlip;
+         Orient = 3 - Orient;
+		}
+
+		for (INT32 y = 0; y <= sSize; y ++) 
+      {
+			for (INT32 x = 0; x <= sSize; x ++) 
+         {
+				INT32 Code = Sprite + GfxOffset[y ^ (sSize * yFlip)][x ^ (sSize * xFlip)];
+				INT32 xPos = (sx + 16 * x);
+				INT32 yPos =  sy + 16 * y;
+
+				if (xPos < 8) 
+               xPos += 0x100; // that's a wrap!
+				//if ((xPos >= nScreenWidth) || (yPos >= nScreenHeight)) continue;
+				//if ((xPos < -15) || (yPos < -15)) continue; // crash preventer
+				if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
+				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
+
+				if ( ((xPos > 0) && (xPos < nScreenWidth-16)) && 
+                 ((yPos > 0) && (yPos < nScreenHeight-16)) ) 
+            {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+               }
+				} else 
+            {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+               }
+				}
+			}
+		}
+	}
+}
+
+
+/* === Common === */
+
+static void machineReset()
+{
+	cpus.CPU1.FireIRQ = 0;
+	cpus.CPU2.FireIRQ = 0;
+	cpus.CPU3.FireIRQ = 0;
+	cpus.CPU2.Halt = 0;
+	cpus.CPU3.Halt = 0;
+   
+	machine.FlipScreen = 0;
+	
+   for (INT32 i = 0; i < STARS_CTRL_NUM; i++) {
+		stars.Control[i] = 0;
+	}
+	stars.ScrollX = 0;
+	stars.ScrollY = 0;
+	
+	ioChip.CustomCommand = 0;
+	ioChip.CPU1FireIRQ = 0;
+	ioChip.Mode = 0;
+	ioChip.Credits = 0;
+	ioChip.CoinPerCredit = 0;
+	ioChip.CreditPerCoin = 0;
+	for (INT32 i = 0; i < IOCHIP_BUF_SIZE; i ++) 
+   {
+		ioChip.Buffer[i] = 0;
+	}
+   
+}
+
+static INT32 DrvDoReset()
+{
+	for (INT32 i = 0; i < NAMCO_BRD_CPU_COUNT; i ++) 
+   {
+		ZetOpen(i);
+		ZetReset();
+		ZetClose();
+	}
+	
+	BurnSampleReset();
+	NamcoSoundReset();
+
+   machineReset();
+   
+	input.PrevInValue = 0xff;
+
+   memset(&namco54xx, 0, sizeof(namco54xx));
+   
+	playfield = 0;
+	alphacolor = 0;
+	playenable = 0;
+	playcolor = 0;
+
+	earom_reset();
+
+	HiscoreReset();
+
+	return 0;
+}
 
 static void Namco54XXWrite(INT32 Data)
 {
-	if (Fetch) {
-		switch (FetchMode) {
-			default:
-			case 1:
-				Config1[4 - (Fetch--)] = Data;
+	if (namco54xx.Fetch) 
+   {
+		switch (namco54xx.FetchMode) 
+      {
+			case NAMCO54_WR_CFG3:
+				namco54xx.Config3[NAMCO54XX_CFG3_SIZE - (namco54xx.Fetch --)] = Data;
+				break;
+            
+			case NAMCO54_WR_CFG2:
+				namco54xx.Config2[NAMCO54XX_CFG2_SIZE - (namco54xx.Fetch --)] = Data;
 				break;
 
-			case 2:
-				Config2[4 - (Fetch--)] = Data;
+			case NAMCO54_WR_CFG1:
+				namco54xx.Config1[NAMCO54XX_CFG1_SIZE - (namco54xx.Fetch --)] = Data;
 				break;
-
-			case 3:
-				Config3[5 - (Fetch--)] = Data;
-				break;
+            
+         default:
+            if (NAMCO54XX_CFG1_SIZE <= namco54xx.Fetch)
+            {
+               namco54xx.Fetch = 1;
+            }
+            namco54xx.FetchMode = NAMCO54_WR_CFG1;
+				namco54xx.Config1[NAMCO54XX_CFG1_SIZE - (namco54xx.Fetch --)] = Data;
+            break;
 		}
-	} else {			
-		switch (Data & 0xf0) {
-			case 0x00:	// nop
+	} 
+   else 
+   {
+		switch (Data & 0xf0) 
+      {
+			case NAMCO54_CMD_NOP:
 				break;
 
-			case 0x10:	// output sound on pins 4-7 only
-				if (memcmp(Config1,"\x40\x00\x02\xdf",4) == 0)
+			case NAMCO54_CMD_SND4_7:	// output sound on pins 4-7 only
+				if (0 == memcmp(namco54xx.Config1,"\x40\x00\x02\xdf",NAMCO54XX_CFG1_SIZE))
 					// bosco
 					// galaga
 					// xevious
 					BurnSamplePlay(0);
-//				else if (memcmp(Config1,"\x10\x00\x80\xff",4) == 0)
+//				else if (memcmp(namco54xx.Config1,"\x10\x00\x80\xff",4) == 0)
 					// xevious
 //					sample_start(0, 1, 0);
-//				else if (memcmp(Config1,"\x80\x80\x01\xff",4) == 0)
+//				else if (memcmp(namco54xx.Config1,"\x80\x80\x01\xff",4) == 0)
 					// xevious
 //					sample_start(0, 2, 0);
 				break;
 
-			case 0x20:	// output sound on pins 8-11 only
-//				if (memcmp(Config2,"\x40\x40\x01\xff",4) == 0)
+			case NAMCO54_CMD_SND8_11:	// output sound on pins 8-11 only
+//				if (memcmp(namco54xx.Config2,"\x40\x40\x01\xff",4) == 0)
 					// xevious
 //					sample_start(1, 3, 0);
 //					BurnSamplePlay(1);
-				/*else*/ if (memcmp(Config2,"\x30\x30\x03\xdf",4) == 0)
+				/*else*/ if (0 == memcmp(namco54xx.Config2,"\x30\x30\x03\xdf",NAMCO54XX_CFG2_SIZE))
 					// bosco
 					// galaga
 					BurnSamplePlay(1);
-//				else if (memcmp(Config2,"\x60\x30\x03\x66",4) == 0)
+//				else if (memcmp(namco54xx.Config2,"\x60\x30\x03\x66",4) == 0)
 					// polepos
 //					sample_start( 0, 0, 0 );
 				break;
 
-			case 0x30:
-				Fetch = 4;
-				FetchMode = 1;
+			case NAMCO54_CMD_CFG1_WR:
+				namco54xx.Fetch = NAMCO54XX_CFG1_SIZE;
+				namco54xx.FetchMode = NAMCO54_WR_CFG1;
 				break;
 
-			case 0x40:
-				Fetch = 4;
-				FetchMode = 2;
+			case NAMCO54_CMD_CFG2_WR:
+				namco54xx.Fetch = NAMCO54XX_CFG2_SIZE;
+				namco54xx.FetchMode = NAMCO54_WR_CFG2;
 				break;
 
-			case 0x50:	// output sound on pins 17-20 only
-//				if (memcmp(Config3,"\x08\x04\x21\x00\xf1",5) == 0)
+			case NAMCO54_CMD_SND17_20:	// output sound on pins 17-20 only
+//				if (memcmp(namco54xx.Config3,"\x08\x04\x21\x00\xf1",5) == 0)
 					// bosco
 //					sample_start(2, 2, 0);
 				break;
 
-			case 0x60:
-				Fetch = 5;
-				FetchMode = 3;
+			case NAMCO54_CMD_CFG3_WR:
+				namco54xx.Fetch = NAMCO54XX_CFG3_SIZE;
+				namco54xx.FetchMode = NAMCO54_WR_CFG3;
 				break;
 
-			case 0x70:
+			case NAMCO54_CMD_FRQ_OUT:
 				// polepos
 				/* 0x7n = Screech sound. n = pitch (if 0 then no sound) */
 				/* followed by 0x60 command? */
-				if (( Data & 0x0f ) == 0) {
+				if (0 == ( Data & 0x0f )) 
+            {
 //					if (sample_playing(1))
 //						sample_stop(1);
-				} else {
+				} 
+            else 
+            {
 //					INT32 freq = (INT32)( ( 44100.0f / 10.0f ) * (float)(Data & 0x0f) );
 
 //					if (!sample_playing(1))
@@ -931,17 +2010,17 @@ static void Namco54XXWrite(INT32 Data)
 //					sample_set_freq(1, freq);
 				}
 				break;
+            
+         default:
+            break;
 		}
 	}
 }
 
-static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
+static UINT8 __fastcall NamcoZ80ProgRead(UINT16 addr)
 {
-	if (a >= 0xb800 && a <= 0xb83f && digdugmode) { // EAROM Read
-		return earom_read(a - 0xb800);
-	}
-
-	switch (a) {
+	switch (addr) 
+   {
 		case 0x6800:
 		case 0x6801:
 		case 0x6802:
@@ -949,127 +2028,20 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 		case 0x6804:
 		case 0x6805:
 		case 0x6806:
-		case 0x6807: {
-			INT32 Offset = a - 0x6800;
+		case 0x6807: 
+      {
+			INT32 Offset = addr - 0x6800;
 			INT32 Bit0 = (input.Dip[2] >> Offset) & 0x01;
 			INT32 Bit1 = (input.Dip[1] >> Offset) & 0x01;
 
-			return Bit0 | (Bit1 << 1);
+			return (Bit1 << 1) | Bit0;
 		}
 		
-		case 0x7000:
-		case 0x7001:
-		case 0x7002:
-		case 0x7003:
-		case 0x7004:
-		case 0x7005:
-		case 0x7006:
-		case 0x7007:
-		case 0x7008:
-		case 0x7009:
-		case 0x700a:
-		case 0x700b:
-		case 0x700c:
-		case 0x700d:
-		case 0x700e:
-		case 0x700f: {
-			INT32 Offset = a - 0x7000;
-			
-			switch (IOChipCustomCommand) {
-				case 0xd2: {// digdug dips
-					if (digdugmode && ((Offset == 0) || (Offset == 1)))
-						return input.Dip[Offset];
-					break;
-				}
-				case 0x71:
-				case 0xb1: {
-					if (IOChipCustomCommand == 0xb1 && digdugmode) {
-						if (Offset <= 2) // status
-							return 0;
-						else
-							return 0xff;
-					}
-					if (Offset == 0) {
-						if (IOChipMode) {
-							return input.Ports[0];
-						} else {
-							UINT8 In;
-							static UINT8 CoinInserted;
-							
-							In = input.Ports[0];
-							if (In != PrevInValue) {
-								if (IOChipCoinPerCredit > 0) {
-									if (((((In & 0x70) != 0x70) && !digdugmode) || (((In & 0x01) == 0) && digdugmode)) && (IOChipCredits < 99)) {
-										CoinInserted++;
-										if (CoinInserted >= IOChipCoinPerCredit) {
-											IOChipCredits += IOChipCreditPerCoin;
-											CoinInserted = 0;
-										}
-									}
-								} else {
-									IOChipCredits = 2;
-								}
-								
-								if (((In & 0x04) == 0 && !digdugmode) || ((In & 0x10) == 0 && digdugmode)) {
-									if (IOChipCredits >= 1) IOChipCredits--;
-								}
-							
-								if (((In & 0x08) == 0 && !digdugmode) || ((In & 0x20) == 0 && digdugmode)) {
-									if (IOChipCredits >= 2) IOChipCredits -= 2;
-								}
-							}
-							
-							PrevInValue = In;
-							
-							return (IOChipCredits / 10) * 16 + IOChipCredits % 10;
-						}
-					}
-					
-					if (Offset == 1 || Offset == 2) {
-						INT32 jp = input.Ports[Offset];
-
-						if (IOChipMode == 0 && digdugmode) {
-							/* check directions, according to the following 8-position rule */
-							/*         0          */
-							/*        7 1         */
-							/*       6 8 2        */
-							/*        5 3         */
-							/*         4          */
-							if ((jp & 0x01) == 0)		/* up */
-								jp = (jp & ~0x0f) | 0x00;
-							else if ((jp & 0x02) == 0)	/* right */
-								jp = (jp & ~0x0f) | 0x02;
-							else if ((jp & 0x04) == 0)	/* down */
-								jp = (jp & ~0x0f) | 0x04;
-							else if ((jp & 0x08) == 0) /* left */
-								jp = (jp & ~0x0f) | 0x06;
-							else
-								jp = (jp & ~0x0f) | 0x08;
-						}
-
-						INT32 joy = jp & 0x0f;
-						INT32 in, toggle;
-
-						in = ~((jp & 0xf0) >> 4);
-
-						toggle = in ^ DrvLastButtons;
-						DrvLastButtons = (DrvLastButtons & 2) | (in & 1);
-
-						/* fire */
-						joy |= ((toggle & in & 0x01)^1) << 4;
-						joy |= ((in & 0x01)^1) << 5;
-
-						return joy;
-					}
-				}
-			}
-			
-			return 0xff;
+		case 0x7100: 
+      {
+			return ioChip.CustomCommand;
 		}
-		
-		case 0x7100: {
-			return IOChipCustomCommand;
-		}
+      
 		case 0xa000:
 		case 0xa001:
 		case 0xa002:
@@ -1079,36 +2051,88 @@ static UINT8 __fastcall GalagaZ80ProgRead(UINT16 a)
 		case 0xa006: break; // (ignore) spurious reads when playfield latch written to
 
 		default: {
-			bprintf(PRINT_NORMAL, _T("Z80 #%i Read %04x\n"), ZetGetActive(), a);
+			bprintf(PRINT_NORMAL, _T("Z80 #%i Read %04x\n"), ZetGetActive(), addr);
 		}
 	}
 	
 	return 0;
 }
 
-static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
+static UINT8 updateCoinAndCredit(UINT8 trigger, UINT8 mask, UINT8 start1, UINT8 start2)
 {
-	if (a >= 0x6800 && a <= 0x681f) {
-		NamcoSoundWrite(a - 0x6800, d);
-		return;
-	}
+   static UINT8 CoinInserted;
+   
+   UINT8 In = input.Ports[0];
+   if (In != input.PrevInValue) 
+   {
+      if (0 < ioChip.CoinPerCredit) 
+      {
+         if ( (trigger != (In & mask) ) && 
+              (99 > ioChip.Credits) ) 
+         {
+            CoinInserted ++;
+            if (CoinInserted >= ioChip.CoinPerCredit) 
+            {
+               ioChip.Credits += ioChip.CreditPerCoin;
+               CoinInserted = 0;
+            }
+         }
+      } 
+      else 
+      {
+         ioChip.Credits = 2;
+      }
+      
+      if ( 0 == (In & start1) ) 
+      {
+         if (ioChip.Credits >= 1) ioChip.Credits --;
+      }
+      
+      if ( 0 == (In & start2) ) 
+      {
+         if (ioChip.Credits >= 2) ioChip.Credits -= 2;
+      }
+   }
+   
+   input.PrevInValue = In;
+   
+   return (ioChip.Credits / 10) * 16 + ioChip.Credits % 10;
+}
 
-	if (a >= 0xb800 && a <= 0xb83f && digdugmode) { // EAROM Write
-		earom_write(a - 0xb800, d);
+static UINT8 updateJoyAndButtons(UINT16 Offset, UINT8 jp)
+{
+   UINT8 joy = jp & 0x0f;
+   UINT8 in, toggle;
+
+   in = ~((jp & 0xf0) >> 4);
+
+   toggle = in ^ button.Last;
+   button.Last = (button.Last & 2) | (in & 1);
+
+   /* fire */
+   joy |= ((toggle & in & 0x01)^1) << 4;
+   joy |= ((in & 0x01)^1) << 5;
+
+   return joy;
+}
+
+static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta)
+{
+	if ( (addr >= 0x6800) && (addr <= 0x681f) ) 
+   {
+		NamcoSoundWrite(addr - 0x6800, dta);
 		return;
 	}
 
 //	bprintf(PRINT_NORMAL, _T("54XX z80 #%i Write %X, %X nbs %X\n"), ZetGetActive(), a, d, nBurnSoundLen);
 
-	switch (a) {
-		case 0xb840:
-			if (digdugmode)
-				earom_ctrl_write(0xb840, d);
-			return;
-
-		case 0x6820: {
-			DrvCPU1FireIRQ = d & 0x01;
-			if (!DrvCPU1FireIRQ) {
+	switch (addr) 
+   {
+		case 0x6820: 
+      {
+			cpus.CPU1.FireIRQ = dta & 0x01;
+			if (!cpus.CPU1.FireIRQ) 
+         {
 				INT32 nActive = ZetGetActive();
 				ZetClose();
 				ZetOpen(0);
@@ -1119,9 +2143,11 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 			return;
 		}
 		
-		case 0x6821: {
-			DrvCPU2FireIRQ = d & 0x01;
-			if (!DrvCPU2FireIRQ) {
+		case 0x6821: 
+      {
+			cpus.CPU2.FireIRQ = dta & 0x01;
+			if (!cpus.CPU2.FireIRQ) 
+         {
 				INT32 nActive = ZetGetActive();
 				ZetClose();
 				ZetOpen(1);
@@ -1132,13 +2158,16 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 			return;
 		}
 		
-		case 0x6822: {
-			DrvCPU3FireIRQ = !(d & 0x01);
+		case 0x6822: 
+      {
+			cpus.CPU3.FireIRQ = !(dta & 0x01);
 			return;
 		}
 		
-		case 0x6823: {
-			if (!(d & 0x01)) {
+		case 0x6823: 
+      {
+			if (!(dta & 0x01)) 
+         {
 				INT32 nActive = ZetGetActive();
 				ZetClose();
 				ZetOpen(1);
@@ -1148,16 +2177,19 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 				ZetReset();
 				ZetClose();
 				ZetOpen(nActive);
-				DrvCPU2Halt = 1;
-				DrvCPU3Halt = 1;
+				cpus.CPU2.Halt = 1;
+				cpus.CPU3.Halt = 1;
 				return;
-			} else {
-				DrvCPU2Halt = 0;
-				DrvCPU3Halt = 0;
+			} 
+         else 
+         {
+				cpus.CPU2.Halt = 0;
+				cpus.CPU3.Halt = 0;
 			}
 		}
 		
-		case 0x6830: {
+		case 0x6830: 
+      {
 			// watchdog write
 			return;
 		}
@@ -1177,53 +2209,43 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		case 0x700c:
 		case 0x700d:
 		case 0x700e:
-		case 0x700f: {
-			INT32 Offset = a - 0x7000;
-			IOChipCustom[Offset] = d;
-			Namco54XXWrite(d);
-			
-			switch (IOChipCustomCommand) {
-				case 0xe1: {
-					if (Offset == 7 && !digdugmode) { // galaga
-						IOChipCoinPerCredit = IOChipCustom[1];
-						IOChipCreditPerCoin = IOChipCustom[2];
-					}
-					break;
-				}
-				case 0xc1: {
-					if (Offset == 8 && digdugmode) { // digdug
-						IOChipCoinPerCredit = IOChipCustom[2] & 0x0f;
-						IOChipCreditPerCoin = IOChipCustom[3] & 0x0f;
-					}
-					break;
-				}
-			}
+		case 0x700f: 
+      {
+			INT32 Offset = addr - 0x7000;
+			ioChip.Buffer[Offset] = dta;
+			Namco54XXWrite(dta);
 			
 			return;
 		}
 	
-		case 0x7100: {
-			IOChipCustomCommand = d;
-			IOChipCPU1FireIRQ = 1;
+		case 0x7100: 
+      {
+			ioChip.CustomCommand = dta;
+			ioChip.CPU1FireIRQ = 1;
 			
-			switch (IOChipCustomCommand) {
-				case 0x10: {
-					IOChipCPU1FireIRQ = 0;
+			switch (ioChip.CustomCommand) 
+         {
+				case 0x10: 
+            {
+					ioChip.CPU1FireIRQ = 0;
 					return;
 				}
 				
-				case 0xa1: {
-					IOChipMode = 1;
+				case 0xa1: 
+            {
+					ioChip.Mode = 1;
 					return;
 				}
-				case 0xb1: {
-					IOChipCredits = 0;
+				case 0xb1: 
+            {
+					ioChip.Credits = 0;
 					return;
 				}
 				case 0xc1:
-				case 0xe1: {
-					IOChipCredits = 0;
-					IOChipMode = 0;
+				case 0xe1: 
+            {
+					ioChip.Credits = 0;
+					ioChip.Mode = 0;
 					return;
 				}
 			}
@@ -1237,243 +2259,22 @@ static void __fastcall GalagaZ80ProgWrite(UINT16 a, UINT8 d)
 		case 0xa003:
 		case 0xa004:
 		case 0xa005:
-		case 0xa006: {
-			if (a != 0xa006)
-				DrvStarControl[a - 0xa000] = d & 0x01;
-			digdug_pf_latch_w(a - 0xa000, d);
+      {
+         stars.Control[addr - 0xa000] = dta & 0x01;
 			return;
 		}
 		
-		case 0xa007: {
-			DrvFlipScreen = d & 0x01;
+		case 0xa007: 
+      {
+			machine.FlipScreen = dta & 0x01;
 			return;
 		}
 		
-		default: {
+		default: 
+      {
 			//bprintf(PRINT_NORMAL, _T("Z80 #%i Write %04x, %02x\n"), ZetGetActive(), a, d);
 		}
 	}
-}
-
-static INT32 CharPlaneOffsets[2]   = { 0, 4 };
-static INT32 CharXOffsets[8]       = { 64, 65, 66, 67, 0, 1, 2, 3 };
-static INT32 CharYOffsets[8]       = { 0, 8, 16, 24, 32, 40, 48, 56 };
-static INT32 SpritePlaneOffsets[2] = { 0, 4 };
-static INT32 SpriteXOffsets[16]    = { 0, 1, 2, 3, 64, 65, 66, 67, 128, 129, 130, 131, 192, 193, 194, 195 };
-static INT32 SpriteYOffsets[16]    = { 0, 8, 16, 24, 32, 40, 48, 56, 256, 264, 272, 280, 288, 296, 304, 312 };
-
-static INT32 DigdugCharPlaneOffsets[2] = { 0 };
-static INT32 DigdugCharXOffsets[8] = { STEP8(7,-1) };
-static INT32 DigdugCharYOffsets[8] = { STEP8(0,8) };
-
-static void MachineInit()
-{
-	ZetInit(0);
-	ZetOpen(0);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(DrvZ80Rom1,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(DrvVideoRam,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	ZetInit(1);
-	ZetOpen(1);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(DrvZ80Rom2,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(DrvVideoRam,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	ZetInit(2);
-	ZetOpen(2);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
-	ZetMapMemory(DrvZ80Rom3,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(DrvVideoRam,   0x8000, 0x87ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam1, 0x8800, 0x8bff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam2, 0x9000, 0x93ff, MAP_RAM);
-	ZetMapMemory(DrvSharedRam3, 0x9800, 0x9bff, MAP_RAM);
-	ZetClose();
-	
-	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
-	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
-	BurnSampleInit(1);
-	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
-	bHasSamples = BurnSampleGetStatus(0) != -1;
-
-	GenericTilesInit();
-
-	earom_init();
-
-	// Reset the driver
-	DrvDoReset();
-}
-
-static INT32 GalagaInit()
-{
-	INT32 nRet = 0, nLen;
-
-	// Allocate and Blank all required memory
-	Mem = NULL;
-	MemIndex();
-	nLen = MemEnd - (UINT8 *)0;
-	if ((Mem = (UINT8 *)BurnMalloc(nLen)) == NULL) return 1;
-	memset(Mem, 0, nLen);
-	MemIndex();
-
-	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
-
-	// Load Z80 #1 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x00000,  0, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x01000,  1, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x02000,  2, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x03000,  3, 1); if (nRet != 0) return 1;
-	
-	// Load Z80 #2 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x00000,  4, 1); if (nRet != 0) return 1;
-	
-	// Load Z80 #3 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom3 + 0x00000,  5, 1); if (nRet != 0) return 1;
-	
-	// Load and decode the chars
-	nRet = BurnLoadRom(DrvTempRom,            6, 1); if (nRet != 0) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
-	
-	// Load and decode the sprites
-	memset(DrvTempRom, 0, 0x02000);
-	nRet = BurnLoadRom(DrvTempRom + 0x00000,  7, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x01000,  8, 1); if (nRet != 0) return 1;
-	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
-
-	// Load the PROMs
-	nRet = BurnLoadRom(DrvPromPalette,        9, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromCharLookup,    10, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromSpriteLookup,  11, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm,       12, 1); if (nRet != 0) return 1;
-	
-	BurnFree(DrvTempRom);
-	
-	MachineInit();
-
-	return 0;
-}
-
-static INT32 GallagInit()
-{
-	INT32 nRet = 0, nLen;
-
-	// Allocate and Blank all required memory
-	Mem = NULL;
-	MemIndex();
-	nLen = MemEnd - (UINT8 *)0;
-	if ((Mem = (UINT8 *)BurnMalloc(nLen)) == NULL) return 1;
-	memset(Mem, 0, nLen);
-	MemIndex();
-
-	DrvTempRom = (UINT8 *)BurnMalloc(0x02000);
-
-	// Load Z80 #1 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x00000,  0, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x01000,  1, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x02000,  2, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x03000,  3, 1); if (nRet != 0) return 1;
-	
-	// Load Z80 #2 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x00000,  4, 1); if (nRet != 0) return 1;
-	
-	// Load Z80 #3 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom3 + 0x00000,  5, 1); if (nRet != 0) return 1;
-	
-	// Load and decode the chars
-	nRet = BurnLoadRom(DrvTempRom,            7, 1); if (nRet != 0) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
-	
-	// Load and decode the sprites
-	memset(DrvTempRom, 0, 0x02000);
-	nRet = BurnLoadRom(DrvTempRom + 0x00000,  8, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x01000,  9, 1); if (nRet != 0) return 1;
-	GfxDecode(0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
-
-	// Load the PROMs
-	nRet = BurnLoadRom(DrvPromPalette,       10, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromCharLookup,    11, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromSpriteLookup,  12, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm,       13, 1); if (nRet != 0) return 1;
-	
-	BurnFree(DrvTempRom);
-	
-	MachineInit();
-
-	return 0;
-}
-
-static INT32 DigdugInit()
-{
-	INT32 nRet = 0, nLen;
-
-	// Allocate and Blank all required memory
-	Mem = NULL;
-	MemIndex();
-	nLen = MemEnd - (UINT8 *)0;
-	if ((Mem = (UINT8 *)BurnMalloc(nLen)) == NULL) return 1;
-	memset(Mem, 0, nLen);
-	MemIndex();
-
-	DrvTempRom = (UINT8 *)BurnMalloc(0x10000);
-
-	// Load Z80 #1 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x00000,  0, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x01000,  1, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x02000,  2, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom1 + 0x03000,  3, 1); if (nRet != 0) return 1;
-	
-	// Load Z80 #2 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x00000,  4, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvZ80Rom2 + 0x01000,  5, 1); if (nRet != 0) return 1;
-	
-	// Load Z80 #3 Program Roms
-	nRet = BurnLoadRom(DrvZ80Rom3 + 0x00000,  6, 1); if (nRet != 0) return 1;
-
-	memset(DrvTempRom, 0, 0x10000);
-	// Load and decode the chars 8x8 (in digdug)
-	nRet = BurnLoadRom(DrvTempRom,            7, 1); if (nRet != 0) return 1;
-	GfxDecode(0x80, 1, 8, 8, DigdugCharPlaneOffsets, DigdugCharXOffsets, DigdugCharYOffsets, 0x40, DrvTempRom, DrvDigdugChars);
-	
-	// Load and decode the sprites
-	memset(DrvTempRom, 0, 0x10000);
-	nRet = BurnLoadRom(DrvTempRom + 0x00000,  8, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x01000,  9, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x02000, 10, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvTempRom + 0x03000, 11, 1); if (nRet != 0) return 1;
-	GfxDecode(0x80 + 0x80, 2, 16, 16, SpritePlaneOffsets, SpriteXOffsets, SpriteYOffsets, 0x200, DrvTempRom, DrvSprites);
-
-	memset(DrvTempRom, 0, 0x10000);
-	// Load and decode the chars 2bpp
-	nRet = BurnLoadRom(DrvTempRom,           12, 1); if (nRet != 0) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, DrvChars);
-
-	// Load gfx4 - the playfield data
-	nRet = BurnLoadRom(DrvGfx4,              13, 1); if (nRet != 0) return 1;
-
-	// Load the PROMs
-	nRet = BurnLoadRom(DrvPromPalette,       14, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromSpriteLookup,  15, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(DrvPromCharLookup,    16, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm,       17, 1); if (nRet != 0) return 1;
-	nRet = BurnLoadRom(NamcoSoundProm + 0x0100, 18, 1); if (nRet != 0) return 1;
-	
-	BurnFree(DrvTempRom);
-	digdugmode = 1;
-
-	MachineInit();
-
-	return 0;
 }
 
 static INT32 DrvExit()
@@ -1485,537 +2286,44 @@ static INT32 DrvExit()
 
 	earom_exit();
 
-	BurnFree(Mem);
+   machineReset();
+   
+	BurnFree(memory.All.Start);
 	
-	DrvCPU1FireIRQ = 0;
-	DrvCPU2FireIRQ = 0;
-	DrvCPU3FireIRQ = 0;
-	DrvCPU2Halt = 0;
-	DrvCPU3Halt = 0;
-	DrvFlipScreen = 0;
-	for (INT32 i = 0; i < 6; i++) {
-		DrvStarControl[i] = 0;
-	}
-	DrvStarScrollX = 0;
-	DrvStarScrollY = 0;
-	
-	IOChipCustomCommand = 0;
-	IOChipCPU1FireIRQ = 0;
-	IOChipMode = 0;
-	IOChipCredits = 0;
-	IOChipCoinPerCredit = 0;
-	IOChipCreditPerCoin = 0;
-	for (INT32 i = 0; i < 16; i++) {
-		IOChipCustom[i] = 0;
-	}
-	digdugmode = 0;
+	machine.Game = NAMCO_GALAGA; // digdugmode = 0;
 
-	return 0;
-}
-
-struct Star {
-	UINT16 x, y;
-	UINT8 Colour, Set;
-};
-
-#define MAX_STARS 252
-static struct Star StarSeedTab[MAX_STARS];
-
-static void DrvInitStars()
-{
-	/*
-	  Galaga star line and pixel locations pulled directly from
-	  a clocked stepping of the 05 starfield. The chip was clocked
-	  on a test rig with hblank and vblank simulated, each X & Y
-	  location of a star being recorded along with it's color value.
-
-	  The lookup table is generated using a reverse engineered
-	  linear feedback shift register + XOR boolean expression.
-
-	  Because the starfield begins generating stars at the point
-	  in time it's enabled the exact horiz location of the stars
-	  on Galaga depends on the length of time of the POST for the
-	  original board.
-
-	  Two control bits determine which of two sets are displayed
-	  set 0 or 1 and simultaneously 2 or 3.
-
-	  There are 63 stars in each set, 126 displayed at any one time
-	  Code: jmakovicka, based on info from http://www.pin4.at/pro_custom_05xx.php
-	*/
-
-	const UINT16 feed = 0x9420;
-
-	INT32 idx = 0;
-	for (UINT16 sf = 0; sf < 4; ++sf)
-	{
-		// starfield select flags
-		UINT16 sf1 = (sf >> 1) & 1;
-		UINT16 sf2 = sf & 1;
-
-		UINT16 i = 0x70cc;
-		for (INT32 cnt = 0; cnt < 65535; ++cnt)
-		{
-			// output enable lookup
-			UINT16 xor1 = i ^ (i >> 3);
-			UINT16 xor2 = xor1 ^ (i >> 2);
-			UINT16 oe = (sf1 ? 0 : 0x4000) | ((sf1 ^ sf2) ? 0 : 0x1000);
-			if ((i & 0x8007) == 0x8007
-			    && (~i & 0x2008) == 0x2008
-			    && (xor1 & 0x0100) == (sf1 ? 0 : 0x0100)
-			    && (xor2 & 0x0040) == (sf2 ? 0 : 0x0040)
-			    && (i & 0x5000) == oe
-			    && cnt >= 256 * 4)
-			{
-				// color lookup
-				UINT16 xor3 = (i >> 1) ^ (i >> 6);
-				UINT16 clr =
-					(((i >> 9) & 0x07)
-					 | ((xor3 ^ (i >> 4) ^ (i >> 7)) & 0x08)
-					 | (~xor3 & 0x10)
-					 | (((i >> 2) ^ (i >> 5)) & 0x20))
-					^ ((i & 0x4000) ? 0 : 0x24)
-					^ ((((i >> 2) ^ i) & 0x1000) ? 0x21 : 0);
-
-				StarSeedTab[idx].x = cnt % 256;
-				StarSeedTab[idx].y = cnt / 256;
-				StarSeedTab[idx].Colour = clr;
-				StarSeedTab[idx].Set = sf;
-				++idx;
-			}
-
-			// update the LFSR
-			if (i & 1)
-				i = (i >> 1) ^ feed;
-			else
-				i = (i >> 1);
-		}
-	}
-}
-
-static void DrvCalcPalette()
-{
-	INT32 i;
-	UINT32 Palette[96];
-	
-	for (i = 0; i < 32; i++) {
-		INT32 bit0, bit1, bit2, r, g, b;
-		
-		bit0 = (DrvPromPalette[i] >> 0) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 1) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 2) & 0x01;
-		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = (DrvPromPalette[i] >> 3) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 4) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 5) & 0x01;
-		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = 0;
-		bit1 = (DrvPromPalette[i] >> 6) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 7) & 0x01;
-		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		
-		Palette[i] = BurnHighCol(r, g, b, 0);
-	}
-	
-	for (i = 0; i < 64; i++) {
-		INT32 bits, r, g, b;
-		static const INT32 map[4] = { 0x00, 0x47, 0x97, 0xde };
-		
-		bits = (i >> 0) & 0x03;
-		r = map[bits];
-		bits = (i >> 2) & 0x03;
-		g = map[bits];
-		bits = (i >> 4) & 0x03;
-		b = map[bits];
-		
-		Palette[32 + i] = BurnHighCol(r, g, b, 0);
-	}
-	
-	for (i = 0; i < 256; i++) {
-		DrvPalette[i] = Palette[((DrvPromCharLookup[i]) & 0x0f) + 0x10];
-	}
-	
-	for (i = 0; i < 256; i++) {
-		DrvPalette[256 + i] = Palette[DrvPromSpriteLookup[i] & 0x0f];
-	}
-	
-	for (i = 0; i < 64; i++) {
-		DrvPalette[512 + i] = Palette[32 + i];
-	}
-
-	DrvInitStars();
-}
-
-static void DrvCalcPaletteDigdug()
-{
-	INT32 i;
-	UINT32 Palette[96];
-	
-	for (i = 0; i < 32; i++) {
-		INT32 bit0, bit1, bit2, r, g, b;
-		
-		bit0 = (DrvPromPalette[i] >> 0) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 1) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 2) & 0x01;
-		r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = (DrvPromPalette[i] >> 3) & 0x01;
-		bit1 = (DrvPromPalette[i] >> 4) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 5) & 0x01;
-		g = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		bit0 = 0;
-		bit1 = (DrvPromPalette[i] >> 6) & 0x01;
-		bit2 = (DrvPromPalette[i] >> 7) & 0x01;
-		b = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
-		
-		Palette[i] = BurnHighCol(r, g, b, 0);
-	}
-
-	/* characters - direct mapping */
-	for (i = 0; i < 16; i++)
-	{
-		DrvPalette[i*2+0] = Palette[0];
-		DrvPalette[i*2+1] = Palette[i];
-	}
-
-	/* sprites */
-	for (i = 0; i < 0x100; i++) {
-		DrvPalette[0x200+i] = Palette[(DrvPromSpriteLookup[i] & 0x0f) + 0x10];
-	}
-
-	/* bg_select */
-	for (i = 0; i < 0x100; i++) {
-		DrvPalette[0x100 + i] = Palette[DrvPromCharLookup[i] & 0x0f];
-	}
-}
-
-static void DrvRenderStars()
-{
-	if (DrvStarControl[5] == 1) {
-  		INT32 StarCounter;
-		INT32 SetA, SetB;
-
-		SetA = DrvStarControl[3];
-		SetB = DrvStarControl[4] | 0x02;
-
-		for (StarCounter = 0; StarCounter < 252; StarCounter++) {
-			INT32 x, y;
-
-			if ((SetA == StarSeedTab[StarCounter].Set) || (SetB == StarSeedTab[StarCounter].Set)) {
-				x = (StarSeedTab[StarCounter].x + DrvStarScrollX) % 256 + 16;
-				y = (112 + StarSeedTab[StarCounter].y + DrvStarScrollY) % 256;
-
-				if (x >= 0 && x < 288 && y >= 0 && y < 224) {
-					pTransDraw[(y * nScreenWidth) + x] = StarSeedTab[StarCounter].Colour + 512;
-				}
-			}
-
-		}
-	}
-}
-
-static void DrvRenderTilemap()
-{
-	INT32 mx, my, Code, Colour, x, y, TileIndex, Row, Col;
-
-	for (mx = 0; mx < 28; mx++) {
-		for (my = 0; my < 36; my++) {
-			Row = mx + 2;
-			Col = my - 2;
-			if (Col & 0x20) {
-				TileIndex = Row + ((Col & 0x1f) << 5);
-			} else {
-				TileIndex = Col + (Row << 5);
-			}
-			
-			Code = DrvVideoRam[TileIndex + 0x000] & 0x7f;
-			Colour = DrvVideoRam[TileIndex + 0x400] & 0x3f;
-
-			y = 8 * mx;
-			x = 8 * my;
-			
-			if (DrvFlipScreen) {
-				x = 280 - x;
-				y = 216 - y;
-			}
-			
-			if (x > 8 && x < 280 && y > 8 && y < 216) {
-				if (DrvFlipScreen) {
-					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
-				} else {
-					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
-				}
-			} else {
-				if (DrvFlipScreen) {
-					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
-				} else {
-					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, DrvChars);
-				}
-			}
-		}
-	}
-}
-
-static void digdugchars()
-{
-	INT32 mx, my, Code, Colour, x, y, TileIndex, Row, Col;
-	UINT8 *pf = DrvGfx4 + (playfield << 10);
-	UINT8 pfval;
-	UINT32 pfcolor = playcolor << 4;
-
-	if (playenable != 0)
-		pf = NULL;
-
-	for (mx = 0; mx < 28; mx++) {
-		for (my = 0; my < 36; my++) {
-			Row = mx + 2;
-			Col = my - 2;
-			if (Col & 0x20) {
-				TileIndex = Row + ((Col & 0x1f) << 5);
-			} else {
-				TileIndex = Col + (Row << 5);
-			}
-
-			Code = DrvVideoRam[TileIndex];
-			Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
-			Code &= 0x7f;
-
-			y = 8 * mx;
-			x = 8 * my;
-			
-			if (DrvFlipScreen) {
-				x = 280 - x;
-				y = 216 - y;
-			}
-
-			if (pf) {
-				// Draw playfield / background
-				pfval = pf[TileIndex&0xfff];
-				INT32 pfColour = (pfval >> 4) + pfcolor;
-				if (x > 8 && x < 280 && y > 8 && y < 216) {
-					if (DrvFlipScreen) {
-						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
-					} else {
-						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
-					}
-				} else {
-					if (DrvFlipScreen) {
-						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
-					} else {
-						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, DrvChars);
-					}
-				}
-			}
-
-			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) {
-				if (DrvFlipScreen) {
-					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
-				} else {
-					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
-				}
-			} else {
-				if (DrvFlipScreen) {
-					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
-				} else {
-					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, DrvDigdugChars);
-				}
-			}
-		}
-	}
-}
-
-static void DrvRenderSprites()
-{
-	UINT8 *SpriteRam1 = DrvSharedRam1 + 0x380;
-	UINT8 *SpriteRam2 = DrvSharedRam2 + 0x380;
-	UINT8 *SpriteRam3 = DrvSharedRam3 + 0x380;
-
-	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
-		static const INT32 GfxOffset[2][2] = {
-			{ 0, 1 },
-			{ 2, 3 }
-		};
-		INT32 Sprite = SpriteRam1[Offset + 0] & 0x7f;
-		INT32 Colour = SpriteRam1[Offset + 1] & 0x3f;
-		INT32 sx = SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
-		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
-		INT32 xFlip = (SpriteRam3[Offset + 0] & 0x01);
-		INT32 yFlip = (SpriteRam3[Offset + 0] & 0x02) >> 1;
-		INT32 xSize = (SpriteRam3[Offset + 0] & 0x04) >> 2;
-		INT32 ySize = (SpriteRam3[Offset + 0] & 0x08) >> 3;
-
-		sy -= 16 * ySize;
-		sy = (sy & 0xff) - 32;
-
-		if (DrvFlipScreen) {
-			xFlip = !xFlip;
-			yFlip = !yFlip;
-		}
-
-		for (INT32 y = 0; y <= ySize; y++) {
-			for (INT32 x = 0; x <= xSize; x++) {
-				INT32 Code = Sprite + GfxOffset[y ^ (ySize * yFlip)][x ^ (xSize * xFlip)];
-				INT32 xPos = sx + 16 * x;
-				INT32 yPos = sy + 16 * y;
-
-				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
-				if (xPos < -15 || yPos < -15) continue; // crash preventer
-
-				if (xPos > 16 && xPos < 272 && yPos > 16 && yPos < 208) {
-					if (xFlip) {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					}
-				} else {
-					if (xFlip) {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 256, DrvSprites);
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-static void digdug_Sprites()
-{
-	UINT8 *SpriteRam1 = DrvSharedRam1 + 0x380;
-	UINT8 *SpriteRam2 = DrvSharedRam2 + 0x380;
-	UINT8 *SpriteRam3 = DrvSharedRam3 + 0x380;
-	
-	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) {
-		static const INT32 GfxOffset[2][2] = {
-			{ 0, 1 },
-			{ 2, 3 }
-		};
-		INT32 Sprite = SpriteRam1[Offset + 0];
-		INT32 Colour = SpriteRam1[Offset + 1] & 0x3f;
-		INT32 sx = SpriteRam2[Offset + 1] - 40 + 1;
-		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
-		INT32 xFlip = (SpriteRam3[Offset + 0] & 0x01);
-		INT32 yFlip = (SpriteRam3[Offset + 0] & 0x02) >> 1;
-		INT32 sSize = (Sprite & 0x80) >> 7;
-
-		sy -= 16 * sSize;
-		sy = (sy & 0xff) - 32;
-
-		if (sSize)
-			Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
-
-		if (DrvFlipScreen) {
-			xFlip = !xFlip;
-			yFlip = !yFlip;
-		}
-
-		for (INT32 y = 0; y <= sSize; y++) {
-			for (INT32 x = 0; x <= sSize; x++) {
-				INT32 Code = Sprite + GfxOffset[y ^ (sSize * yFlip)][x ^ (sSize * xFlip)];
-				INT32 xPos = (sx + 16 * x);
-				INT32 yPos = sy + 16 * y;
-
-				if (xPos < 8) xPos += 0x100; // that's a wrap!
-				if (xPos >= nScreenWidth || yPos >= nScreenHeight) continue;
-				if (xPos < -15 || yPos < -15) continue; // crash preventer
-
-				if (xPos > 0 && xPos < 288-16 && yPos > 0 && yPos < 224-16) {
-					if (xFlip) {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					}
-				} else {
-					if (xFlip) {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					} else {
-						if (yFlip) {
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						} else {
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, DrvSprites);
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-static INT32 DrvDraw()
-{
-	BurnTransferClear();
-	DrvCalcPalette();
-	DrvRenderTilemap();
-	DrvRenderStars();
-	DrvRenderSprites();	
-	BurnTransferCopy(DrvPalette);
-	return 0;
-}
-
-static INT32 DrvDigdugDraw()
-{
-	BurnTransferClear();
-	DrvCalcPaletteDigdug();
-	digdugchars();
-	digdug_Sprites();
-	BurnTransferCopy(DrvPalette);
 	return 0;
 }
 
 static void DrvPreMakeInputs() {
 	// silly bit of code to keep the joystick button pressed for only 1 frame
 	// needed for proper pumping action in digdug & highscore name entry.
-	memcpy(input.PortBits[1].Last, input.PortBits[1].Current, sizeof(input.PortBits[1].Current));
-	memcpy(input.PortBits[2].Last, input.PortBits[2].Current, sizeof(input.PortBits[2].Current));
+	memcpy(&input.PortBits[1].Last[0], &input.PortBits[1].Current[0], sizeof(input.PortBits[1].Current));
+	memcpy(&input.PortBits[2].Last[0], &input.PortBits[2].Current[0], sizeof(input.PortBits[2].Current));
 
 	{
 		input.PortBits[1].Last[4] = 0;
 		input.PortBits[2].Last[4] = 0;
 		for (INT32 i = 0; i < 2; i++) {
-			if(((!i) ? input.PortBits[1].Current[4] : input.PortBits[2].Current[4]) && !DrvButtonHeld[i]) {
-				DrvButtonHold[i] = 2; // number of frames to be held + 1.
-				DrvButtonHeld[i] = 1;
+			if(((!i) ? input.PortBits[1].Current[4] : input.PortBits[2].Current[4]) && !button.Held[i]) 
+         {
+				button.Hold[i] = 2; // number of frames to be held + 1.
+				button.Held[i] = 1;
 			} else {
 				if (((!i) ? !input.PortBits[1].Current[4] : !input.PortBits[2].Current[4])) {
-					DrvButtonHeld[i] = 0;
+					button.Held[i] = 0;
 				}
 			}
 
-			if(DrvButtonHold[i]) {
-				DrvButtonHold[i]--;
-				((!i) ? input.PortBits[1].Last[4] : input.PortBits[2].Last[4]) = ((DrvButtonHold[i]) ? 1 : 0);
+			if(button.Hold[i]) 
+         {
+				button.Hold[i] --;
+				((!i) ? input.PortBits[1].Current[4] : input.PortBits[2].Current[4]) = ((button.Hold[i]) ? 1 : 0);
 			} else {
-				(!i) ? input.PortBits[1].Last[4] : input.PortBits[2].Last[4] = 0;
+				(!i) ? input.PortBits[1].Current[4] : input.PortBits[2].Current[4] = 0;
 			}
 		}
-		//bprintf(0, _T("%X:%X,"), input.PortBits[1].Last[4], DrvButtonHold[0]);
+		//bprintf(0, _T("%X:%X,"), DrvInputPort1r[4], DrvButtonHold[0]);
 	}
 }
 
@@ -2027,13 +2335,14 @@ static void DrvMakeInputs()
 	input.Ports[2] = 0xff;
 
 	// Compile Digital Inputs
-	for (INT32 i = 0; i < 8; i++) {
+	for (INT32 i = 0; i < 8; i ++) 
+   {
 		input.Ports[0] -= (input.PortBits[0].Current[i] & 1) << i;
-		input.Ports[1] -= (input.PortBits[1].Last[i] & 1) << i;
-		input.Ports[2] -= (input.PortBits[2].Last[i] & 1) << i;
+		input.Ports[1] -= (input.PortBits[1].Current[i] & 1) << i;
+		input.Ports[2] -= (input.PortBits[2].Current[i] & 1) << i;
 	}
 
-	if (!digdugmode) // galaga only - service mode
+	if (NAMCO_GALAGA == machine.Game) // !digdugmode) // galaga only - service mode
 		input.Ports[0] = (input.Ports[0] & ~0x80) | (input.Dip[0] & 0x80);
 }
 
@@ -2061,30 +2370,32 @@ static INT32 DrvFrame()
 		nCurrentCPU = 0;
 		ZetOpen(nCurrentCPU);
 		ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
-		if (i == (nInterleave-1) && DrvCPU1FireIRQ) {
+		if (i == (nInterleave-1) && cpus.CPU1.FireIRQ) {
 			ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		}
-		if ((i % 10==9) && IOChipCPU1FireIRQ) {
+		if ( (9 == (i % 10)) && 
+           ioChip.CPU1FireIRQ ) 
+      {
 			ZetNmi();
 		}
 		ZetClose();
 		
-		if (!DrvCPU2Halt) {
+		if (!cpus.CPU2.Halt) {
 			nCurrentCPU = 1;
 			ZetOpen(nCurrentCPU);
 			ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
-			if (i == (nInterleave-1) && DrvCPU2FireIRQ) {
+			if (i == (nInterleave-1) && cpus.CPU2.FireIRQ) {
 				ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 			}
 			ZetClose();
 		}
 		
-		if (!DrvCPU3Halt) {
+		if (!cpus.CPU3.Halt) {
 			nCurrentCPU = 2;
 			ZetOpen(nCurrentCPU);
 			ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
 			if (((i == ((64 + 000) * nInterleave) / 272) ||
-				 (i == ((64 + 128) * nInterleave) / 272)) && DrvCPU3FireIRQ) {
+				 (i == ((64 + 128) * nInterleave) / 272)) && cpus.CPU3.FireIRQ) {
 				ZetNmi();
 			}
 			ZetClose();
@@ -2096,7 +2407,7 @@ static INT32 DrvFrame()
 			
 			if (nSegmentLength) {
 				NamcoSoundUpdate(pSoundBuf, nSegmentLength);
-				if (bHasSamples)
+				if (machine.bHasSamples)
 					BurnSampleRender(pSoundBuf, nSegmentLength);
 			}
 			nSoundBufferPos += nSegmentLength;
@@ -2109,7 +2420,7 @@ static INT32 DrvFrame()
 
 		if (nSegmentLength) {
 			NamcoSoundUpdate(pSoundBuf, nSegmentLength);
-			if (bHasSamples)
+			if (machine.bHasSamples)
 				BurnSampleRender(pSoundBuf, nSegmentLength);
 		}
 	}
@@ -2117,10 +2428,11 @@ static INT32 DrvFrame()
 	if (pBurnDraw)
 		BurnDrvRedraw();
 
-	if (!digdugmode) {
+	if (NAMCO_GALAGA == machine.Game) // !digdugmode) 
+   {
 		static const INT32 Speeds[8] = { -1, -2, -3, 0, 3, 2, 1, 0 };
 
-		DrvStarScrollX += Speeds[DrvStarControl[0] + (DrvStarControl[1] * 2) + (DrvStarControl[2] * 4)];
+		stars.ScrollX += Speeds[stars.Control[0] + (stars.Control[1] * 2) + (stars.Control[2] * 4)];
 	}
 
 	return 0;
@@ -2134,10 +2446,11 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		*pnMin = 0x029737;
 	}
 
-	if (nAction & ACB_MEMORY_RAM) {
+	if (nAction & ACB_MEMORY_RAM) 
+   {
 		memset(&ba, 0, sizeof(ba));
-		ba.Data	  = RamStart;
-		ba.nLen	  = RamEnd-RamStart;
+		ba.Data	  = memory.RAM.Start;
+		ba.nLen	  = memory.RAM.Size;
 		ba.szName = "All Ram";
 		BurnAcb(&ba);
 	}
@@ -2148,118 +2461,382 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		BurnSampleScan(nAction, pnMin);
 
 		// Scan critical driver variables
-		SCAN_VAR(DrvCPU1FireIRQ);
-		SCAN_VAR(DrvCPU2FireIRQ);
-		SCAN_VAR(DrvCPU3FireIRQ);
-		SCAN_VAR(DrvCPU2Halt);
-		SCAN_VAR(DrvCPU3Halt);
-		SCAN_VAR(DrvFlipScreen);
-		SCAN_VAR(DrvStarScrollX);
-		SCAN_VAR(DrvStarScrollY);
-		SCAN_VAR(IOChipCustomCommand);
-		SCAN_VAR(IOChipCPU1FireIRQ);
-		SCAN_VAR(IOChipMode);
-		SCAN_VAR(IOChipCredits);
-		SCAN_VAR(IOChipCoinPerCredit);
-		SCAN_VAR(IOChipCreditPerCoin);
-		SCAN_VAR(PrevInValue);
-		SCAN_VAR(DrvStarControl);
-		SCAN_VAR(IOChipCustom);
+		SCAN_VAR(cpus.CPU1.FireIRQ);
+		SCAN_VAR(cpus.CPU2.FireIRQ);
+		SCAN_VAR(cpus.CPU3.FireIRQ);
+		SCAN_VAR(cpus.CPU2.Halt);
+		SCAN_VAR(cpus.CPU3.Halt);
+		SCAN_VAR(machine.FlipScreen);
+		SCAN_VAR(stars.ScrollX);
+		SCAN_VAR(stars.ScrollY);
+		SCAN_VAR(ioChip.CustomCommand);
+		SCAN_VAR(ioChip.CPU1FireIRQ);
+		SCAN_VAR(ioChip.Mode);
+		SCAN_VAR(ioChip.Credits);
+		SCAN_VAR(ioChip.CoinPerCredit);
+		SCAN_VAR(ioChip.CreditPerCoin);
+		SCAN_VAR(input.PrevInValue);
+		SCAN_VAR(stars.Control);
+		SCAN_VAR(ioChip.Buffer);
 
-		SCAN_VAR(Fetch);
-		SCAN_VAR(FetchMode);
-		SCAN_VAR(Config1);
-		SCAN_VAR(Config2);
-		SCAN_VAR(Config3);
+		SCAN_VAR(namco54xx.Fetch);
+		SCAN_VAR(namco54xx.FetchMode);
+		SCAN_VAR(namco54xx.Config1);
+		SCAN_VAR(namco54xx.Config2);
+		SCAN_VAR(namco54xx.Config3);
 		SCAN_VAR(playfield);
 		SCAN_VAR(alphacolor);
 		SCAN_VAR(playenable);
 		SCAN_VAR(playcolor);
 	}
 
-	if (digdugmode)
+	if (NAMCO_DIGDUG == machine.Game) //digdugmode)
 		earom_scan(nAction, pnMin); // here.
 
 	return 0;
 }
 
-struct BurnDriver BurnDrvGalaga = {
-	"galaga", NULL, NULL, "galaga", "1981",
-	"Galaga (Namco rev. B)\0", NULL, "Namco", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_VERSHOOT, 0,
-	NULL, GalagaRomInfo, GalagaRomName, NULL, NULL, GalagaSampleInfo, GalagaSampleName, GalagaInputInfo, GalagaDIPInfo,
-	GalagaInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 576,
-	224, 288, 3, 4
+
+struct BurnDriver BurnDrvGalaga = 
+{
+   /* filename of zip without extension = */    "galaga", 
+   /* filename of parent, no extension = */     NULL, 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */              "galaga", 
+	/* date = */                                 "1981",
+   /* FullName = */                             "Galaga (Namco rev. B)\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "Namco", 
+   /* System = */                               "Miscellaneous",
+   /* FullName = */                          	NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                             	BDF_GAME_WORKING | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED | 
+                                                BDF_HISCORE_SUPPORTED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT, 
+   /* Family = */                               0,
+   /* GetZipName func = */                   	NULL, 
+   /* GetROMInfo func = */                      GalagaRomInfo, 
+   /* GetROMName func = */                      GalagaRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   GalagaSampleInfo, 
+   /* GetSampleName func = */                   GalagaSampleName, 
+   /* GetInputInfo func = */                    GalagaInputInfo, 
+   /* GetDIPInfo func = */                      GalagaDIPInfo,
+   /* Init func = */                         	GalagaInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          GalagaDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                576,
+   /* Width, Height, xAspect, yAspect = */   	224, 288, 3, 4
 };
 
-struct BurnDriver BurnDrvGalagao = {
-	"galagao", "galaga", NULL, "galaga", "1981",
-	"Galaga (Namco)\0", NULL, "Namco", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_VERSHOOT, 0,
-	NULL, GalagaoRomInfo, GalagaoRomName, NULL, NULL, GalagaSampleInfo, GalagaSampleName, GalagaInputInfo, GalagaDIPInfo,
-	GalagaInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 576,
-	224, 288, 3, 4
+struct BurnDriver BurnDrvGalagao = 
+{
+	/* filename of zip without extension = */    "galagao", 
+   /* filename of parent, no extension = */     "galaga", 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */              "galaga", 
+	/* date = */                                 "1981",
+   /* FullName = */                             "Galaga (Namco)\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "Namco", 
+   /* System = */                               "Miscellaneous",
+   /* FullName = */                             NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                                BDF_GAME_WORKING | 
+                                                BDF_CLONE | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED | 
+                                                BDF_HISCORE_SUPPORTED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT, 
+   /* Family = */                               0,
+   /* GetZipName func = */                      NULL, 
+   /* GetROMInfo func = */                      GalagaoRomInfo, 
+   /* GetROMName func = */                      GalagaoRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   GalagaSampleInfo, 
+   /* GetSampleName func = */                   GalagaSampleName, 
+   /* GetInputInfo func = */                    GalagaInputInfo, 
+   /* GetDIPInfo func = */                      GalagaDIPInfo,
+   /* Init func = */                            GalagaInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          GalagaDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                576,
+   /* Width, Height, xAspect, yAspect = */     	224, 288, 3, 4
 };
 
-struct BurnDriver BurnDrvGalagamw = {
-	"galagamw", "galaga", NULL, "galaga", "1981",
-	"Galaga (Midway set 1)\0", NULL, "Namco (Midway License)", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_VERSHOOT, 0,
-	NULL, GalagamwRomInfo, GalagamwRomName, NULL, NULL, GalagaSampleInfo, GalagaSampleName, GalagaInputInfo, GalagamwDIPInfo,
-	GalagaInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 576,
-	224, 288, 3, 4
+struct BurnDriver BurnDrvGalagamw = 
+{
+	/* filename of zip without extension = */    "galagamw", 
+   /* filename of parent, no extension = */     "galaga", 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */           	"galaga", 
+   /* date = */                                 "1981",
+   /* FullName = */                             "Galaga (Midway set 1)\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "Namco (Midway License)", 
+   /* System = */                               "Miscellaneous",
+   /* FullName = */                          	NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                             	BDF_GAME_WORKING | 
+                                                BDF_CLONE | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED | 
+                                                BDF_HISCORE_SUPPORTED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT, 
+   /* Family = */                               0,
+   /* GetZipName func = */                   	NULL, 
+   /* GetROMInfo func = */                      GalagamwRomInfo, 
+   /* GetROMName func = */                      GalagamwRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   GalagaSampleInfo, 
+   /* GetSampleName func = */                   GalagaSampleName, 
+   /* GetInputInfo func = */                    GalagaInputInfo, 
+   /* GetDIPInfo func = */                      GalagamwDIPInfo,
+   /* Init func = */                         	GalagaInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          GalagaDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                576,
+   /* Width, Height, xAspect, yAspect = */	   224, 288, 3, 4
 };
 
-struct BurnDriver BurnDrvGalagamk = {
-	"galagamk", "galaga", NULL, "galaga", "1981",
-	"Galaga (Midway set 2)\0", NULL, "Namco (Midway License)", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_VERSHOOT, 0,
-	NULL, GalagamkRomInfo, GalagamkRomName, NULL, NULL, GalagaSampleInfo, GalagaSampleName, GalagaInputInfo, GalagaDIPInfo,
-	GalagaInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 576,
-	224, 288, 3, 4
+struct BurnDriver BurnDrvGalagamk = 
+{
+	/* filename of zip without extension = */ 	"galagamk", 
+   /* filename of parent, no extension = */     "galaga", 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */           	"galaga", 
+   /* date = */                                 "1981",
+   /* FullName = */                             "Galaga (Midway set 2)\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "Namco (Midway License)", 
+   /* System = */                               "Miscellaneous",
+	/* FullName = */                             NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+	/* Flags = */                                BDF_GAME_WORKING | 
+                                                BDF_CLONE | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED | 
+                                                BDF_HISCORE_SUPPORTED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT, 
+   /* Family = */                               0,
+	/* GetZipName func = */                      NULL, 
+   /* GetROMInfo func = */                      GalagamkRomInfo, 
+   /* GetROMName func = */                      GalagamkRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   GalagaSampleInfo, 
+   /* GetSampleName func = */                   GalagaSampleName, 
+   /* GetInputInfo func = */                    GalagaInputInfo, 
+   /* GetDIPInfo func = */                      GalagaDIPInfo,
+	/* Init func = */                            GalagaInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          GalagaDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                576,
+	/* Width, Height, xAspect, yAspect = */   	224, 288, 3, 4
 };
 
-struct BurnDriver BurnDrvGalagamf = {
-	"galagamf", "galaga", NULL, "galaga", "1981",
-	"Galaga (Midway set 1 with fast shoot hack)\0", NULL, "Namco (Midway License)", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_VERSHOOT, 0,
-	NULL, GalagamfRomInfo, GalagamfRomName, NULL, NULL, GalagaSampleInfo, GalagaSampleName, GalagaInputInfo, GalagaDIPInfo,
-	GalagaInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 576,
-	224, 288, 3, 4
+struct BurnDriver BurnDrvGalagamf = 
+{
+	/* filename of zip without extension = */    "galagamf", 
+   /* filename of parent, no extension = */     "galaga", 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */              "galaga",
+	/* date = */                                 "1981",
+   /* FullName = */                          	"Galaga (Midway set 1 with fast shoot hack)\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "Namco (Midway License)", 
+   /* System = */                               "Miscellaneous",
+   /* FullName = */                             NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                             	BDF_GAME_WORKING | 
+                                                BDF_CLONE | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED | 
+                                                BDF_HISCORE_SUPPORTED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT, 
+   /* Family = */                               0,
+   /* GetZipName func = */                   	NULL, 
+   /* GetROMInfo func = */                      GalagamfRomInfo, 
+   /* GetROMName func = */                      GalagamfRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   GalagaSampleInfo, 
+   /* GetSampleName func = */                   GalagaSampleName, 
+   /* GetInputInfo func = */                    GalagaInputInfo, 
+   /* GetDIPInfo func = */                      GalagaDIPInfo,
+   /* Init func = */                            GalagaInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          GalagaDraw, 
+   /* Areascan func = */                        DrvScan,
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                576,
+   /* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
 };
 
-struct BurnDriver BurnDrvGallag = {
-	"gallag", "galaga", NULL, "galaga", "1981",
-	"Gallag\0", NULL, "bootleg", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED | BDF_BOOTLEG | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_VERSHOOT, 0,
-	NULL, GallagRomInfo, GallagRomName, NULL, NULL, GalagaSampleInfo, GalagaSampleName, GalagaInputInfo, GalagaDIPInfo,
-	GallagInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 576,
-	224, 288, 3, 4
+struct BurnDriver BurnDrvGallag = 
+{
+	/* filename of zip without extension = */    "gallag", 
+   /* filename of parent, no extension = */     "galaga", 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */              "galaga", 
+   /* date = */                                 "1981",
+   /* FullName = */                             "Gallag\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "bootleg", 
+   /* System = */                               "Miscellaneous",
+   /* FullName = */                             NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                                BDF_GAME_WORKING | 
+                                                BDF_CLONE | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED | 
+                                                BDF_BOOTLEG | 
+                                                BDF_HISCORE_SUPPORTED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT, 
+   /* Family = */                               0,
+   /* GetZipName func = */                      NULL, 
+   /* GetROMInfo func = */                      GallagRomInfo, 
+   /* GetROMName func = */                      GallagRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   GalagaSampleInfo, 
+   /* GetSampleName func = */                   GalagaSampleName, 
+   /* GetInputInfo func = */                    GalagaInputInfo, 
+   /* GetDIPInfo func = */                      GalagaDIPInfo,
+   /* Init func = */                            GallagInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          GalagaDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                576,
+	/* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
 };
 
-struct BurnDriver BurnDrvNebulbee = {
-	"nebulbee", "galaga", NULL, "galaga", "1981",
-	"Nebulous Bee\0", NULL, "bootleg", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED | BDF_BOOTLEG | BDF_HISCORE_SUPPORTED, 2, HARDWARE_MISC_PRE90S, GBF_VERSHOOT, 0,
-	NULL, NebulbeeRomInfo, NebulbeeRomName, NULL, NULL, GalagaSampleInfo, GalagaSampleName, GalagaInputInfo, GalagaDIPInfo,
-	GallagInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 576,
-	224, 288, 3, 4
+struct BurnDriver BurnDrvNebulbee = 
+{
+	/* filename of zip without extension = */    "nebulbee", 
+   /* filename of parent, no extension = */     "galaga", 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */              "galaga", 
+   /* date = */                                 "1981",
+   /* FullName = */                             "Nebulous Bee\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "bootleg", 
+   /* System = */                               "Miscellaneous",
+	/* FullName = */                             NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                                BDF_GAME_WORKING | 
+                                                BDF_CLONE | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED | 
+                                                BDF_BOOTLEG | 
+                                                BDF_HISCORE_SUPPORTED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT, 
+   /* Family = */                               0,
+	/* GetZipName func = */                      NULL, 
+   /* GetROMInfo func = */                      NebulbeeRomInfo, 
+   /* GetROMName func = */                      NebulbeeRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   GalagaSampleInfo, 
+   /* GetSampleName func = */                   GalagaSampleName, 
+   /* GetInputInfo func = */                    GalagaInputInfo, 
+   /* GetDIPInfo func = */                      GalagaDIPInfo,
+   /* Init func = */                            GallagInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          GalagaDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                576,
+   /* Width, Height, xAspect, yAspect = */	   224, 288, 3, 4
 };
 
-struct BurnDriver BurnDrvDigdug = {
-	"digdug", NULL, NULL, NULL, "1982",
-	"Dig Dug (rev 2)\0", NULL, "Namco", "Miscellaneous",
-	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED, 2, HARDWARE_MISC_PRE90S, GBF_MAZE | GBF_ACTION, 0,
-    NULL, digdugRomInfo, digdugRomName, NULL, NULL, NULL, NULL, DigdugInputInfo, DigdugDIPInfo,
-	DigdugInit, DrvExit, DrvFrame, DrvDigdugDraw, DrvScan, NULL, 0x300,
-	224, 288, 3, 4
+struct BurnDriver BurnDrvDigdug = 
+{
+	/* filename of zip without extension = */    "digdug", 
+   /* filename of parent, no extension = */     NULL, 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */              NULL, 
+   /* date = */                                 "1982",
+   /* FullName = */                             "Dig Dug (rev 2)\0", 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "Namco", 
+   /* System = */                               "Miscellaneous",
+   /* FullName = */                             NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                                BDF_GAME_WORKING | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_MAZE | GBF_ACTION, 
+   /* Family = */                               0,
+	/* GetZipName func = */                      NULL, 
+   /* GetROMInfo func = */                      digdugRomInfo, 
+   /* GetROMName func = */                      digdugRomName, 
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   NULL, 
+   /* GetSampleName func = */                   NULL, 
+   /* GetInputInfo func = */                    DigdugInputInfo, 
+   /* GetDIPInfo func = */                      DigdugDIPInfo,
+   /* Init func = */                            DigdugInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          DigDugDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                0x300,
+   /* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
 };
 
