@@ -66,6 +66,7 @@ static INT32 nPrevScreenPos = 0;
 static INT32 nScreenOffsets[2] = { 0, 0 }; // x,y (ppan)
 
 static UINT16 m92_video_reg = 0;
+static INT32 m92_ok_to_blank = 0;
 
 static INT32 msm6295_bank;
 
@@ -1375,14 +1376,6 @@ UINT8 __fastcall m92ReadPort(UINT32 port)
 	return 0;
 }
 
-static void clear_pf_scroll(INT32 layer)
-{
-	pf_control[layer][0] = 0; // scrolly
-	pf_control[layer][1] = 0; // "
-	pf_control[layer][4] = 0; // scrollx
-	pf_control[layer][5] = 0; // "
-}
-
 static void set_pf_info(INT32 layer, INT32 data)
 {
 	struct _m92_layer *ptr = m92_layers[layer];
@@ -1394,10 +1387,7 @@ static void set_pf_info(INT32 layer, INT32 data)
 		ptr->wide = (data & 0x04) ? 128 : 64;
 	}
 
-	int oldrowscroll = ptr->enable_rowscroll;
 	ptr->enable_rowscroll = data & 0x40;
-	if (ptr->enable_rowscroll != oldrowscroll)
-		clear_pf_scroll(layer); //clear scrollx/scrolly on change, fixes skewed background problems (f. ex. inthunt)
 
 	ptr->vram = (UINT16*)(DrvVidRAM + ((data & 0x03) * 0x4000));
 }
@@ -1429,7 +1419,7 @@ void __fastcall m92WritePort(UINT32 port, UINT8 data)
 
 		case 0x02:
 		case 0x03:
-			//m92_coincounter_w
+			//coin counter
 			return;
 
 		case 0x10: // ppan
@@ -1447,7 +1437,6 @@ void __fastcall m92WritePort(UINT32 port, UINT8 data)
 
 		case 0x20:
 	//	case 0x21:
-			// m92_bankswitch_w
 			if (m92_kludge != 1) { // lethalth
 				VezMapArea(0xa0000, 0xbffff, 0, DrvV33ROM + 0x100000 + (data&0x7)*0x10000);
 				VezMapArea(0xa0000, 0xbffff, 2, DrvV33ROM + 0x100000 + (data&0x7)*0x10000);
@@ -1521,7 +1510,6 @@ UINT8 __fastcall m92SndReadByte(UINT32 address)
 			return BurnYM2151Read();
 
 		case 0xa8044:
-			//VezSetIRQLineAndVector(NEC_INPUT_LINE_INTP1, 0xff/*default*/, CPU_IRQSTATUS_NONE);
 			return sound_latch[0];
 
 		case 0xa8045:
@@ -1844,6 +1832,7 @@ static INT32 DrvExit()
 	m92_kludge = 0;
 	m92_raster_irq_position = 0;
 	nScreenOffsets[0] = nScreenOffsets[1] = 0;
+	m92_ok_to_blank = 0;
 
 	return 0;
 }
@@ -1937,7 +1926,7 @@ static void draw_layer_byline(INT32 start, INT32 finish, INT32 layer, INT32 forc
 
 	INT32 wide = ptr->wide;
 	INT32 scrolly = (ptr->scrolly + 136 - nScreenOffsets[1]) & 0x1ff;
-	INT32 scrollx = ((ptr->scrollx - nScreenOffsets[0]) - (2 * layer - ((wide & 0x80)<<1))) + 80;
+	INT32 scrollx = ((((ptr->enable_rowscroll) ? 0 : ptr->scrollx) - nScreenOffsets[0]) - (2 * layer - ((wide & 0x80)<<1))) + 80;
 
 	const UINT16 transmask[3][3][2] = { // layer, group, value
 		{ { 0xffff, 0x0001 }, { 0x00ff, 0xff01 }, { 0x0001, 0xffff } },
@@ -2025,7 +2014,7 @@ static INT32 DrvDraw()
 
 	if (nSpriteEnable & 1) draw_sprites();
 
-	if (m92_video_reg & 0x80) BurnTransferClear(0x800); // most-likely probably screen disable (fixes bad fades in nbbatman)
+	if (m92_ok_to_blank && m92_video_reg & 0x80) BurnTransferClear(0x800); // most-likely probably screen disable (fixes bad fades in nbbatman, rtypeleo)
 
 	BurnTransferCopy(DrvPalette);
 
@@ -2660,6 +2649,7 @@ static INT32 rtypeleoInit()
 {
 	m92_kludge = 4+1; // fix for sporatic tilemap corruption in the first attract-mode stage (stage 2)
 	// same as nbbatman, but without scroll offset.
+	m92_ok_to_blank = 1;
 
 	return DrvInit(rtypeleoRomLoad, rtypeleo_decryption_table, 1, 0x200000, 0x400000);
 }
@@ -3331,6 +3321,7 @@ static INT32 nbbatmanInit()
 	const UINT8 *decrtab = leagueman_decryption_table;
 
 	m92_kludge = 4; // tilemap offset(for the "roz"-like map at beginning of stage) + cycle hacks
+	m92_ok_to_blank = 1;
 
 	if (DrvInput[8] & 1) // dip option, use old soundCPU emulation "style", for weirdos! :)
 		decrtab = leagueman_OLD_decryption_table;
