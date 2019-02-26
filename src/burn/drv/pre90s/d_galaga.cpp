@@ -158,7 +158,8 @@ static struct NAMCO54XX_Def namco54xx = { 0 };
 enum GAMES_ON_MACHINE
 {
    NAMCO_GALAGA = 0,
-   NAMCO_DIGDUG
+   NAMCO_DIGDUG,
+   NAMCO_XEVIOUS
 };
 
 //static UINT8 DrvFlipScreen;
@@ -217,6 +218,16 @@ static INT32 DigDugDraw(void);
 static void DigDugCalcPalette(void);
 static void DigDugRenderTiles(void);
 static void DigDugRenderSprites(void);
+
+static INT32 XeviousInit(void);
+static INT32 XeviousMemIndex(void);
+static void XeviousMachineInit(void);
+static UINT8 __fastcall XeviousZ80ProgRead(UINT16 addr);
+static void __fastcall XeviousZ80ProgWrite(UINT16 addr, UINT8 dta);
+static INT32 XeviousDraw(void);
+static void XeviousCalcPalette(void);
+static void XeviousRenderTiles(void);
+static void XeviousRenderSprites(void);
 
 static void machineReset(void);
 static INT32 DrvDoReset(void);
@@ -1798,6 +1809,737 @@ static void DigDugRenderSprites()
 	}
 }
 
+/* === XEVIOUS === */
+
+static struct BurnInputInfo XeviousInputList[] =
+{
+	{"Dip 1"             , BIT_DIPSWITCH,  &input.Dip[0],                 "dip"       },
+	{"Dip 2"             , BIT_DIPSWITCH,  &input.Dip[1],                 "dip"       },
+
+	{"Reset"             , BIT_DIGITAL,    &input.Reset,                  "reset"     },
+
+	{"Up"                , BIT_DIGITAL,    &input.PortBits[0].Current[0], "p1 up"     },
+	{"Right"             , BIT_DIGITAL,    &input.PortBits[0].Current[1], "p1 right"  },
+	{"Down"              , BIT_DIGITAL,    &input.PortBits[0].Current[2], "p1 down"   },
+	{"Left"              , BIT_DIGITAL,    &input.PortBits[0].Current[3], "p1 left"   },
+	{"Fire 1"            , BIT_DIGITAL,    &input.PortBits[0].Current[4], "p1 fire 1" },
+	{"Fire 2"            , BIT_DIGITAL,    &input.PortBits[0].Current[5], "p1 fire 2" },
+	
+	{"Up (Cocktail)"     , BIT_DIGITAL,    &input.PortBits[1].Current[0], "p2 up"     },
+	{"Right (Cocktail)"  , BIT_DIGITAL,    &input.PortBits[1].Current[1], "p2 right"  },
+	{"Down (Cocktail)"   , BIT_DIGITAL,    &input.PortBits[1].Current[2], "p2 down"   },
+	{"Left (Cocktail)"   , BIT_DIGITAL,    &input.PortBits[1].Current[3], "p2 left"   },
+	{"Fire 1 (Cocktail)" , BIT_DIGITAL,    &input.PortBits[1].Current[4], "p2 fire 1" },
+	{"Fire 2 (Cocktail)" , BIT_DIGITAL,    &input.PortBits[1].Current[5], "p2 fire 2" },
+
+	{"Coin 1"            , BIT_DIGITAL,    &input.PortBits[2].Current[4], "p1 coin"   },
+	{"Start 1"           , BIT_DIGITAL,    &input.PortBits[2].Current[2], "p1 start"  },
+	{"Coin 2"            , BIT_DIGITAL,    &input.PortBits[2].Current[5], "p2 coin"   },
+	{"Start 2"           , BIT_DIGITAL,    &input.PortBits[2].Current[3], "p2 start"  },
+	{"Service"           , BIT_DIGITAL,    &input.PortBits[2].Current[6], "service"   },
+
+};
+
+STDINPUTINFO(Xevious)
+
+static struct BurnDIPInfo XeviousDIPList[]=
+{
+	// Default Values
+   // nInput, nFlags, nMask, nSettings, szInfo
+	{0x0c, 0xff, 0xff, 0xFF, NULL                     },
+	{0x0d, 0xff, 0xff, 0xFF, NULL                     },
+	
+	// Dip 1
+	{0   , 0x01, 0   , 2   , "Button 2"               },
+	{0x0c, 0x01, 0x01, 0x01, "Released"               },
+	{0x0c, 0x01, 0x01, 0x00, "Held"                   },
+
+	{0   , 0x02, 0   , 2   , "Flags Award Bonus Life" },
+	{0x0c, 0x01, 0x02, 0x02, "Yes"                    },
+	{0x0c, 0x01, 0x02, 0x00, "No"                     },
+
+	{0   , 0x0C, 0   , 4   , "Coin B"                 },
+	{0x0c, 0x02, 0x0C, 0x04, "2 Coins 1 Play"         },
+	{0x0c, 0x02, 0x0C, 0x0C, "1 Coin  1 Play"         },
+	{0x0c, 0x02, 0x0C, 0x00, "2 Coins 3 Plays"        },
+	{0x0c, 0x02, 0x0C, 0x08, "1 Coin  2 Plays"        },
+
+	{0   , 0x10, 0   , 2   , "Button 2 (Cocktail)"    },
+	{0x0c, 0x01, 0x10, 0x10, "Released"               },
+	{0x0c, 0x01, 0x10, 0x00, "Held"                   },
+
+	{0   , 0x60, 0   , 4   , "Difficulty"             },
+	{0x0c, 0x02, 0x60, 0x40, "Easy"                   },
+	{0x0c, 0x02, 0x60, 0x60, "Normal"                 },
+	{0x0c, 0x02, 0x60, 0x20, "Hard"                   },
+	{0x0c, 0x02, 0x60, 0x00, "Hardest"                },
+	
+	{0   , 0x80, 0   , 2   , "Freeze"                 },
+	{0x0c, 0x01, 0x80, 0x80, "Off"                    },
+	{0x0c, 0x01, 0x80, 0x00, "On"                     },
+	
+	// Dip 2	
+	{0   , 0x03, 0   , 4   , "Coin A"                 },
+	{0x0d, 0x02, 0x03, 0x01, "2 Coins 1 Play"         },
+	{0x0d, 0x02, 0x03, 0x03, "1 Coin  1 Play"         },
+	{0x0d, 0x02, 0x03, 0x00, "2 Coins 3 Plays"        },
+	{0x0d, 0x02, 0x03, 0x02, "1 Coin  2 Plays"        },
+	
+	{0   , 0x1C, 0   , 8   , "Bonus Life"             },
+	{0x0d, 0x03, 0x1C, 0x18, "10k  40k  40k"          },
+	{0x0d, 0x03, 0x1C, 0x14, "10k  50k  50k"          },
+	{0x0d, 0x03, 0x1C, 0x10, "20k  50k  50k"          },
+	{0x0d, 0x03, 0x1C, 0x1C, "20k  60k  60k"          },
+	{0x0d, 0x03, 0x1C, 0x0C, "20k  70k  70k"          },
+	{0x0d, 0x03, 0x1C, 0x08, "20k  80k  80k"          },
+	{0x0d, 0x03, 0x1C, 0x04, "20k  60k"               },
+	{0x0d, 0x03, 0x1C, 0x00, "None"                   },
+	
+	{0   , 0x60, 0   , 4   , "Lives"                  },
+	{0x0d, 0x02, 0x60, 0x40, "1"                      },
+	{0x0d, 0x02, 0x60, 0x20, "2"                      },
+	{0x0d, 0x02, 0x60, 0x60, "3"                      },
+	{0x0d, 0x02, 0x60, 0x00, "5"                      },
+
+	{0   , 0x80, 0   , 2   , "Cabinet"                },
+	{0x0d, 0x01, 0x80, 0x80, "Upright"                },
+	{0x0d, 0x01, 0x80, 0x00, "Cocktail"               },
+	
+
+/*	{0   , 0xfe, 0   , 2   , "Demo Sounds"            },
+	{0x0c, 0x01, 0x08, 0x08, "Off"                    },
+	{0x0c, 0x01, 0x08, 0x00, "On"                     },
+	
+	{0   , 0xfe, 0   , 2   , "Rack Test"              },
+	{0x0c, 0x01, 0x20, 0x20, "Off"                    },
+	{0x0c, 0x01, 0x20, 0x00, "On"                     },
+*/	
+};
+
+STDDIPINFO(Xevious)
+
+static struct BurnRomInfo XeviousRomDesc[] = {
+	{ "xvi_1.3p",      0x01000, 0x09964dda, BRF_ESS | BRF_PRG   }, //  0	Z80 #1 Program Code
+	{ "xvi_2.3m",      0x01000, 0x60ecce84, BRF_ESS | BRF_PRG   }, //  1
+	{ "xvi_3.2m",      0x01000, 0x79754b7d, BRF_ESS | BRF_PRG   }, //  2
+	{ "xvi_4.2l",      0x01000, 0xc7d4bbf0, BRF_ESS | BRF_PRG   }, //  3
+	
+	{ "xvi_5.3f",      0x01000, 0xc85b703f, BRF_ESS | BRF_PRG   }, //  4	Z80 #2 Program Code
+	{ "xvi_6.3j",      0x01000, 0xe18cdaad, BRF_ESS | BRF_PRG   }, //  5	
+	
+	{ "xvi_7.2c",      0x01000, 0xdd35cf1c, BRF_ESS | BRF_PRG   }, //  6	Z80 #3 Program Code
+	
+	{ "xvi_12.3b",     0x01000, 0x088c8b26, BRF_GRA             }, /*  7 background characters */
+	{ "xvi_13.3c",     0x01000, 0xde60ba25, BRF_GRA             },	/*  8 bg pattern B0 */
+	{ "xvi_14.3d",     0x01000, 0x535cdbbc, BRF_GRA             },	/*  9 bg pattern B1 */
+	
+	{ "xvi_15.4m",     0x02000, 0xdc2c0ecb, BRF_GRA             }, /* 10 sprite set #1, planes 0/1 */
+	{ "xvi_18.4r",     0x02000, 0x02417d19, BRF_GRA             }, /* 11 sprite set #1, plane 2, set #2, plane 0 */
+	{ "xvi_17.4p",     0x02000, 0xdfb587ce, BRF_GRA             }, /* 12 sprite set #2, planes 1/2 */
+	{ "xvi_16.4n",     0x01000, 0x605ca889, BRF_GRA             },	/* 13 sprite set #3, planes 0/1 */
+
+	{ "xvi_9.2a",      0x01000, 0x57ed9879, BRF_GRA             }, /* 14 */
+	{ "xvi_10.2b",     0x02000, 0xae3ba9e5, BRF_GRA             }, /* 15 */
+	{ "xvi_11.2c",     0x01000, 0x31e244dd, BRF_GRA             }, /* 16 */
+
+	{ "xvi_8bpr.6a",   0x00100, 0x5cc2727f, BRF_GRA             }, /* 17 palette red component */
+	{ "xvi_9bpr.6d",   0x00100, 0x5c8796cc, BRF_GRA             }, /* 18 palette green component */
+	{ "xvi10bpr.6e",   0x00100, 0x3cb60975, BRF_GRA             }, /* 19 palette blue component */
+	{ "xvi_7bpr.4h",   0x00200, 0x22d98032, BRF_GRA             }, /* 20 bg tiles lookup table low bits */
+	{ "xvi_6bpr.4f",   0x00200, 0x3a7599f0, BRF_GRA             }, /* 21 bg tiles lookup table high bits */
+	{ "xvi_4bpr.3l",   0x00200, 0xfd8b9d91, BRF_GRA             }, /* 22 sprite lookup table low bits */
+	{ "xvi_5bpr.3m",   0x00200, 0xbf906d82, BRF_GRA             }, /* 23 sprite lookup table high bits */
+
+	{ "xvi_2bpr.7n",   0x00100, 0x550f06bc, BRF_GRA             }, /* 24 */
+	{ "xvi_1bpr.5n",   0x00100, 0x77245b66, BRF_GRA             }, /* 25 timing - not used */
+};
+
+STD_ROM_PICK(Xevious)
+STD_ROM_FN(Xevious)
+
+static struct BurnSampleInfo XeviousSampleDesc[] = {
+#if !defined (ROM_VERIFY)
+	{ "explo1.wav", SAMPLE_NOLOOP },	/* ground target explosion */
+	{ "explo2.wav", SAMPLE_NOLOOP },	/* Solvalou explosion */
+	{ "explo3.wav", SAMPLE_NOLOOP },	/* credit */
+	{ "explo4.wav", SAMPLE_NOLOOP },	/* Garu Zakato explosion */
+#endif
+   { "",           0 }
+};
+
+STD_SAMPLE_PICK(Xevious)
+STD_SAMPLE_FN(Xevious)
+
+/* foreground characters */
+static INT32 XeviousFGCharPlaneOffsets[2] = { 0 }; 
+
+/* background tiles */
+static INT32 XeviousBGCharPlaneOffsets[2] = { 0, 512*8*8 };
+
+static INT32 XeviousCharXOffsets[8] = 	{ 0, 1, 2, 3, 4, 5, 6, 7 };
+static INT32 XeviousCharYOffsets[8] = 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 };
+
+/* sprite set #1 */
+static INT32 XeviousSprite1PlaneOffsets[3] = { 128*64*8+4, 0, 4 };
+
+/* sprite set #2 */
+static INT32 XeviousSprite2PlaneOffsets[3] = { 0, 128*64*8, 128*64*8+4 };
+
+/* sprite set #3 */
+static INT32 XeviousSprite3PlaneOffsets[3] = { 64*64*8, 0, 4 };
+
+static INT32 XeviousInit()
+{
+	bprintf(PRINT_NORMAL, _T("Xevious: Init\n"));
+
+	// Allocate and Blank all required memory
+	memory.All.Start = NULL;
+	XeviousMemIndex();
+	
+   memory.All.Start = (UINT8 *)BurnMalloc(memory.All.Size);
+	if (NULL == memory.All.Start) 
+      return 1;
+	
+   memset(memory.All.Start, 0, memory.All.Size);
+	XeviousMemIndex();
+
+	bprintf(PRINT_NORMAL, _T("Xevious Memory Allocated\n"));
+
+	DrvTempRom = (UINT8 *)BurnMalloc(0x08000);
+   if (NULL == DrvTempRom) 
+      return 1;
+   
+	// Load Z80 #1 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x00000,  0,  1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x01000,  1,  1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x02000,  2,  1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom1 + 0x03000,  3,  1)) return 1;
+	
+	bprintf(PRINT_NORMAL, _T("Xevious: Z80-1 ROM loaded\n"));
+
+	// Load Z80 #2 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x00000,  4,  1)) return 1;
+	if (0 != BurnLoadRom(memory.Z80.Rom2 + 0x01000,  5,  1)) return 1;
+	
+	bprintf(PRINT_NORMAL, _T("Xevious: Z80-2 ROM loaded\n"));
+
+	// Load Z80 #3 Program Roms
+	if (0 != BurnLoadRom(memory.Z80.Rom3 + 0x00000,  6,  1)) return 1;
+	
+	bprintf(PRINT_NORMAL, _T("Xevious: Z80-3 ROM loaded\n"));
+
+	// Load and decode the chars
+   /* foreground characters: */
+   /* 512 characters */
+   /* 1 bit per pixel */
+   /* 8 x 8 characters */
+   /* every char takes 8 consecutive bytes */
+	/*
+   if (0 != BurnLoadRom(DrvTempRom,                      7,  1)) return 1;
+	GfxDecode(0x200, 1, 8, 8, XeviousFGCharPlaneOffsets, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars);
+
+	bprintf(PRINT_NORMAL, _T("Xevious: 1bit Chars decoded\n"));
+	*/
+
+   /* background tiles */
+   /* 512 characters */
+   /* 2 bits per pixel */
+   /* 8 x 8 characters */
+   /* every char takes 8 consecutive bytes */
+	memset(DrvTempRom, 0, 0x02000);
+/*
+	if (0 != BurnLoadRom(DrvTempRom,                      8,  1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x01000,            9,  1)) return 1;
+	GfxDecode(0x200, 2, 8, 8, XeviousBGCharPlaneOffsets, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars2);
+
+	bprintf(PRINT_NORMAL, _T("Xevious: 2bit chars decoded\n"));
+*/
+	// Load and decode the sprites
+	memset(DrvTempRom, 0, 0x08000);
+/*
+	if (0 != BurnLoadRom(DrvTempRom + 0x00000,            10, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x02000,            11, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x04000,            12, 1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom + 0x06000,            13, 1)) return 1;
+*/
+   /* sprite set #1 */
+   /* 128 sprites */
+   /* 3 bits per pixel */
+   /* 16 x 16 sprites */
+   /* every sprite takes 128 (64?) consecutive bytes */
+//	GfxDecode(0x80, 3, 16, 16, XeviousSprite1PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom, graphics.Sprites);
+
+   /* sprite set #2 */
+   /* 128 sprites */
+   /* 3 bits per pixel */
+   /* 16 x 16 sprites */
+   /* every sprite takes 128 (64?) consecutive bytes */
+//	GfxDecode(0x80, 3, 16, 16, XeviousSprite2PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + 128*64, graphics.Sprites + 128*64);
+
+   /* sprite set #3 */
+   /* 64 sprites */
+   /* 3 bits per pixel (one is always 0) */
+   /* 16 x 16 sprites */
+   /* every sprite takes 64 consecutive bytes */
+//	GfxDecode(0x40, 3, 16, 16, XeviousSprite3PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + 128*64 + 128*64, graphics.Sprites + 128*64 + 128*64);
+
+//	bprintf(PRINT_NORMAL, _T("Xevious: Sprites decoded\n"));
+
+   // Load PlayFieldData
+
+	if (0 != BurnLoadRom(PlayFieldData + 0x00000,  14,  1)) return 1;
+	if (0 != BurnLoadRom(PlayFieldData + 0x01000,  15,  1)) return 1;
+	if (0 != BurnLoadRom(PlayFieldData + 0x03000,  16,  1)) return 1;
+   
+	bprintf(PRINT_NORMAL, _T("Xevious: Playfield loaded\n"));
+
+	// Load the PROMs
+	if (0 != BurnLoadRom(memory.PROM.Palette,    17, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette + 0x100, 18, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.Palette + 0x200, 19, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup, 20, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.CharLookup + 0x200, 21, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup, 22, 1)) return 1;
+	if (0 != BurnLoadRom(memory.PROM.SpriteLookup + 0x200, 23, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm,          24, 1)) return 1;
+	if (0 != BurnLoadRom(NamcoSoundProm + 0x100,  25, 1)) return 1;
+	
+	bprintf(PRINT_NORMAL, _T("Xevious: PROM loaded\n"));
+
+   if (NULL != DrvTempRom)
+   {
+      BurnFree(DrvTempRom);
+	
+      bprintf(PRINT_NORMAL, _T("Xevious: temp mem freed\n"));
+   }
+   
+   machine.Game = NAMCO_XEVIOUS;
+   
+	XeviousMachineInit();
+
+	bprintf(PRINT_NORMAL, _T("Xevious: Machine Init completed\n"));
+
+	return 0;
+}
+
+static INT32 XeviousMemIndex()
+{
+	UINT8 *Next = memory.All.Start;
+
+	memory.Z80.Rom1 = Next;             Next += 0x04000;
+	memory.Z80.Rom2 = Next;             Next += 0x04000;
+	memory.Z80.Rom3 = Next;             Next += 0x04000;
+	memory.PROM.Palette = Next;         Next += 0x00300;
+	memory.PROM.CharLookup = Next;      Next += 0x00400;
+	memory.PROM.SpriteLookup = Next;    Next += 0x00400;
+	NamcoSoundProm = Next;              Next += 0x00200;
+	
+	memory.RAM.Start = Next;
+
+	memory.RAM.Video = Next;            Next += 0x00800;
+	memory.RAM.Shared1 = Next;          Next += 0x00800;
+	memory.RAM.Shared2 = Next;          Next += 0x00800;
+	memory.RAM.Shared3 = Next;          Next += 0x00800;
+
+	memory.RAM.Size = Next - memory.RAM.Start;
+
+	graphics.Chars2 = Next;             Next += 0x00200 * 2 * 8;
+	PlayFieldData = Next;               Next += 0x04000;
+	graphics.Chars = Next;              Next += 0x00200 * 8;
+	graphics.Sprites = Next;            Next += 0x00140 * 6 * 16;
+	graphics.Palette = (UINT32*)Next;   Next += 0x300 * sizeof(UINT32);
+
+	memory.All.Size = Next - memory.All.Start;
+
+   return 0;
+}
+
+static void XeviousMachineInit()
+{
+	ZetInit(0);
+	ZetOpen(0);
+	ZetSetReadHandler(XeviousZ80ProgRead);
+	ZetSetWriteHandler(XeviousZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xa7ff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(1);
+	ZetOpen(1);
+	ZetSetReadHandler(XeviousZ80ProgRead);
+	ZetSetWriteHandler(XeviousZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xa7ff, MAP_RAM);
+	ZetClose();
+	
+	ZetInit(2);
+	ZetOpen(2);
+	ZetSetReadHandler(XeviousZ80ProgRead);
+	ZetSetWriteHandler(XeviousZ80ProgWrite);
+	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
+	ZetMapMemory(memory.RAM.Video,   0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xa7ff, MAP_RAM);
+	ZetClose();
+	
+	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
+	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
+	BurnSampleInit(1);
+	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
+	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
+
+	GenericTilesInit();
+
+	// Reset the driver
+	DrvDoReset();
+}
+
+static UINT8 __fastcall XeviousZ80ProgRead(UINT16 addr)
+{
+	switch (addr) 
+   {
+		case 0x7000:
+		case 0x7001:
+		case 0x7002:
+		case 0x7003:
+		case 0x7004:
+		case 0x7005:
+		case 0x7006:
+		case 0x7007:
+		case 0x7008:
+		case 0x7009:
+		case 0x700a:
+		case 0x700b:
+		case 0x700c:
+		case 0x700d:
+		case 0x700e:
+		case 0x700f: 
+      {
+			INT32 Offset = addr - 0x7000;
+			
+			switch (ioChip.CustomCommand) 
+         {
+				case 0xd2: 
+            {
+               if ( (0 == Offset) || (1 == Offset) )
+						return input.Dip[Offset];
+					break;
+				}
+            
+				case 0x71:
+				case 0xb1: 
+            {
+					if (0xb1 == ioChip.CustomCommand)
+               {
+						if (Offset <= 2) // status
+							return 0;
+						else
+							return 0xff;
+					}
+					
+               if (0 == Offset) 
+               {
+						if (ioChip.Mode) 
+                  {
+							return input.Ports[0];
+						} 
+                  else 
+                  {
+                     return updateCoinAndCredit(
+                        INP_DIGDUG_COIN_TRIGGER,
+                        INP_DIGDUG_COIN_MASK,
+                        INP_DIGDUG_START_1,
+                        INP_DIGDUG_START_2
+                     );
+                  }
+					}
+					
+					if ( (1 == Offset) || (2 == Offset) ) 
+               {
+						INT32 jp = input.Ports[Offset];
+
+						if (0 == ioChip.Mode)
+                  {
+							/* check directions, according to the following 8-position rule */
+							/*         0          */
+							/*        7 1         */
+							/*       6 8 2        */
+							/*        5 3         */
+							/*         4          */
+							if ((jp & 0x01) == 0)		/* up */
+								jp = (jp & ~0x0f) | 0x00;
+							else if ((jp & 0x02) == 0)	/* right */
+								jp = (jp & ~0x0f) | 0x02;
+							else if ((jp & 0x04) == 0)	/* down */
+								jp = (jp & ~0x0f) | 0x04;
+							else if ((jp & 0x08) == 0) /* left */
+								jp = (jp & ~0x0f) | 0x06;
+							else
+								jp = (jp & ~0x0f) | 0x08;
+						}
+
+						return updateJoyAndButtons(Offset, jp);
+					}
+				}
+			}
+			
+			return 0xff;
+		}
+		
+	}
+	
+	return NamcoZ80ProgRead(addr);
+}
+
+static void __fastcall XeviousZ80ProgWrite(UINT16 addr, UINT8 dta)
+{
+	switch (addr) 
+   {
+		case 0x7008:
+			if (0xc1 == ioChip.CustomCommand) 
+         {
+            ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
+            ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
+         }
+         break;
+	
+      case 0xa000:
+      case 0xa001:
+      case 0xa002:
+      case 0xa003:
+      case 0xa004:
+      case 0xa005:
+		case 0xa006: 
+      {
+			break;
+		}
+
+		default: 
+      {
+         break;
+		}
+	}
+   
+   return NamcoZ80ProgWrite(addr, dta);
+}
+
+static INT32 XeviousDraw()
+{
+	BurnTransferClear();
+	XeviousCalcPalette();
+	XeviousRenderTiles();
+	XeviousRenderSprites();
+	BurnTransferCopy(graphics.Palette);
+	return 0;
+}
+
+static void XeviousCalcPalette()
+{
+	UINT32 Palette[96];
+	
+	for (INT32 i = 0; i < 32; i ++) 
+   {
+      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
+      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
+      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
+      
+		Palette[i] = BurnHighCol(r, g, b, 0);
+	}
+
+	/* characters - direct mapping */
+	for (INT32 i = 0; i < 16; i ++)
+	{
+		graphics.Palette[i*2+0] = Palette[0];
+		graphics.Palette[i*2+1] = Palette[i];
+	}
+
+	/* sprites */
+	for (INT32 i = 0; i < 0x100; i ++) 
+   {
+		graphics.Palette[0x200 + i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
+	}
+
+	/* bg_select */
+	for (INT32 i = 0; i < 0x100; i ++) 
+   {
+		graphics.Palette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
+	}
+}
+
+static void XeviousRenderTiles()
+{
+	INT32 TileIndex;
+	UINT8 *pf = PlayFieldData + (playfield << 10);
+	UINT8 pfval;
+	UINT32 pfcolor = playcolor << 4;
+
+	if (playenable != 0)
+		pf = NULL;
+
+	for (INT32 mx = 0; mx < 28; mx ++) 
+   {
+		for (INT32 my = 0; my < 36; my ++) 
+      {
+			INT32 Row = mx + 2;
+			INT32 Col = my - 2;
+			if (Col & 0x20) 
+         {
+				TileIndex = Row + ((Col & 0x1f) << 5);
+			} else {
+				TileIndex = Col + (Row << 5);
+			}
+
+			INT32 Code = memory.RAM.Video[TileIndex];
+			INT32 Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
+			Code &= 0x7f;
+
+			INT32 y = 8 * mx;
+			INT32 x = 8 * my;
+			
+			if (machine.FlipScreen) 
+         {
+				x = 280 - x;
+				y = 216 - y;
+			}
+
+			if (pf) 
+         {
+				// Draw playfield / background
+				pfval = pf[TileIndex & 0xfff];
+				INT32 pfColour = (pfval >> 4) + pfcolor;
+				if (x > 8 && x < 280 && y > 8 && y < 216) 
+            {
+					if (machine.FlipScreen) {
+						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					} else {
+						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					}
+				} else {
+					if (machine.FlipScreen) {
+						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					} else {
+						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+					}
+				}
+			}
+
+			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
+         {
+				if (machine.FlipScreen) {
+					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				} else {
+					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				}
+			} else {
+				if (machine.FlipScreen) {
+					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				} else {
+					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+				}
+			}
+		}
+	}
+}
+
+static void XeviousRenderSprites()
+{
+	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
+	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
+	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
+	
+	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
+   {
+		static const INT32 GfxOffset[2][2] = {
+			{ 0, 1 },
+			{ 2, 3 }
+		};
+		INT32 Sprite =   SpriteRam1[Offset + 0];
+		INT32 Colour =   SpriteRam1[Offset + 1] & 0x3f;
+		INT32 sx =       SpriteRam2[Offset + 1] - 40 + 1;
+		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
+		INT32 xFlip =   (SpriteRam3[Offset + 0] & 0x01);
+		INT32 yFlip =   (SpriteRam3[Offset + 0] & 0x02) >> 1;
+      UINT32 Orient =  SpriteRam3[Offset + 0] & 0x03;
+		
+      INT32 sSize = (Sprite & 0x80) >> 7;
+
+		sy -= 16 * sSize;
+		sy = (sy & 0xff) - 32;
+
+		if (sSize)
+			Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
+
+		if (machine.FlipScreen) 
+      {
+			xFlip = !xFlip;
+			yFlip = !yFlip;
+         Orient = 3 - Orient;
+		}
+
+		for (INT32 y = 0; y <= sSize; y ++) 
+      {
+			for (INT32 x = 0; x <= sSize; x ++) 
+         {
+				INT32 Code = Sprite + GfxOffset[y ^ (sSize * yFlip)][x ^ (sSize * xFlip)];
+				INT32 xPos = (sx + 16 * x);
+				INT32 yPos =  sy + 16 * y;
+
+				if (xPos < 8) 
+               xPos += 0x100; // that's a wrap!
+
+				if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
+				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
+
+				if ( ((xPos > 0) && (xPos < nScreenWidth-16)) && 
+                 ((yPos > 0) && (yPos < nScreenHeight-16)) ) 
+            {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+               }
+				} else 
+            {
+               switch (Orient)
+               {
+                  case 3:
+							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 2:
+							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 1:
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+                  case 0:
+                  default:
+							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+                     break;
+               }
+				}
+			}
+		}
+	}
+}
+
 
 /* === Common === */
 
@@ -2799,6 +3541,47 @@ struct BurnDriver BurnDrvDigdug =
    /* Exit func = */                            DrvExit, 
    /* Frame func = */                           DrvFrame, 
    /* Redraw func = */                          DigDugDraw, 
+   /* Areascan func = */                        DrvScan, 
+   /* Recalc Palette = */                       NULL, 
+   /* Palette Entries count = */                0x300,
+   /* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
+};
+
+struct BurnDriver BurnDrvXevious = 
+{
+	/* filename of zip without extension = */    "xevious",
+   /* filename of parent, no extension = */     NULL, 
+   /* filename of board ROMs = */               NULL, 
+   /* filename of samples ZIP = */              NULL, 
+   /* date = */                                 "1982",
+   /* FullName = */                             "Xevious (Namco)\0",
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         "Namco", 
+   /* System = */                               "Miscellaneous",
+   /* FullName = */                             NULL, 
+   /* Comment = */                              NULL, 
+   /* Manufacturer = */                         NULL, 
+   /* System = */                               NULL,
+   /* Flags = */                                BDF_GAME_WORKING | 
+                                                BDF_ORIENTATION_VERTICAL | 
+                                                BDF_ORIENTATION_FLIPPED, 
+   /* No of Players = */                        2, 
+   /* Hardware Type = */                        HARDWARE_MISC_PRE90S, 
+   /* Genre = */                                GBF_VERSHOOT,
+   /* Family = */                               0,
+	/* GetZipName func = */                      NULL, 
+   /* GetROMInfo func = */                      XeviousRomInfo, 
+   /* GetROMName func = */                      XeviousRomName,
+   /* GetHDDInfo func = */                      NULL, 
+   /* GetHDDName func = */                      NULL, 
+   /* GetSampleInfo func = */                   XeviousSampleInfo, 
+   /* GetSampleName func = */                   XeviousSampleName, 
+   /* GetInputInfo func = */                    XeviousInputInfo, 
+   /* GetDIPInfo func = */                      XeviousDIPInfo,
+   /* Init func = */                            XeviousInit, 
+   /* Exit func = */                            DrvExit, 
+   /* Frame func = */                           DrvFrame, 
+   /* Redraw func = */                          XeviousDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
    /* Palette Entries count = */                0x300,
