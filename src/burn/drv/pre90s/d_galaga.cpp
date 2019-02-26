@@ -20,6 +20,13 @@ static const INT32 Colour3Bit[8] = {
    0x97, 0xb8, 0xde, 0xff 
 };
 
+static const INT32 Colour4Bit[16] = {
+   0x00, 0x0e, 0x1f, 0x2d,
+   0x43, 0x51, 0x62, 0x70,
+   0x8f, 0x9d, 0xae, 0xbc,
+   0xd2, 0xe0, 0xf1, 0xff
+};
+
 struct PortBits_Def
 {
    UINT8 Current[8];
@@ -1970,23 +1977,48 @@ static struct BurnSampleInfo XeviousSampleDesc[] = {
 STD_SAMPLE_PICK(Xevious)
 STD_SAMPLE_FN(Xevious)
 
+#define XEVIOUS_FG_COLOR_CODES      64
+#define XEVIOUS_FG_COLOR_PLANES     1
+#define XEVIOUS_FG_COLOR_GRAN       1 << (XEVIOUS_FG_COLOR_PLANES - 1)
+#define XEVIOUS_BG_COLOR_CODES      128
+#define XEVIOUS_BG_COLOR_PLANES     2
+#define XEVIOUS_BG_COLOR_GRAN       1 << (XEVIOUS_BG_COLOR_PLANES - 1)
+#define XEVIOUS_SPRITE_COLOR_CODES  64
+#define XEVIOUS_SPRITE_COLOR_PLANES 3
+#define XEVIOUS_SPRITE_COLOR_GRAN   1 << (XEVIOUS_SPRITE_COLOR_PLANES - 1)
+
 /* foreground characters */
-static INT32 XeviousFGCharPlaneOffsets[2] = { 0 }; 
+static INT32 XeviousFGCharPlaneOffsets[XEVIOUS_FG_COLOR_PLANES] = { 0 }; 
 
 /* background tiles */
-static INT32 XeviousBGCharPlaneOffsets[2] = { 0, 512*8*8 };
+static INT32 XeviousBGCharPlaneOffsets[XEVIOUS_BG_COLOR_PLANES] = { 
+   0, 
+   XEVIOUS_BG_COLOR_CODES * XEVIOUS_BG_COLOR_GRAN 
+};
 
 static INT32 XeviousCharXOffsets[8] = 	{ 0, 1, 2, 3, 4, 5, 6, 7 };
 static INT32 XeviousCharYOffsets[8] = 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 };
 
 /* sprite set #1 */
-static INT32 XeviousSprite1PlaneOffsets[3] = { 128*64*8+4, 0, 4 };
+static INT32 XeviousSprite1PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
+   128*64*8+4, 
+   0, 
+   4 
+};
 
 /* sprite set #2 */
-static INT32 XeviousSprite2PlaneOffsets[3] = { 0, 128*64*8, 128*64*8+4 };
+static INT32 XeviousSprite2PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
+   0, 
+   128*64*8, 
+   128*64*8+4 
+};
 
 /* sprite set #3 */
-static INT32 XeviousSprite3PlaneOffsets[3] = { 64*64*8, 0, 4 };
+static INT32 XeviousSprite3PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
+   64*64*8, 
+   0, 
+   4 
+};
 
 static INT32 XeviousInit()
 {
@@ -2136,8 +2168,8 @@ static INT32 XeviousMemIndex()
 	
 	memory.RAM.Start = Next;
 
-	memory.RAM.Video = Next;            Next += 0x00800;
-	memory.RAM.Shared1 = Next;          Next += 0x00800;
+	memory.RAM.Video = Next;            Next += 0x02000;
+	memory.RAM.Shared1 = Next;          Next += 0x01000;
 	memory.RAM.Shared2 = Next;          Next += 0x00800;
 	memory.RAM.Shared3 = Next;          Next += 0x00800;
 
@@ -2161,10 +2193,10 @@ static void XeviousMachineInit()
 	ZetSetReadHandler(XeviousZ80ProgRead);
 	ZetSetWriteHandler(XeviousZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x7800, 0x7fff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xa7ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
 	ZetClose();
 	
 	ZetInit(1);
@@ -2172,10 +2204,10 @@ static void XeviousMachineInit()
 	ZetSetReadHandler(XeviousZ80ProgRead);
 	ZetSetWriteHandler(XeviousZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x7800, 0x7fff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xa7ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
 	ZetClose();
 	
 	ZetInit(2);
@@ -2183,10 +2215,10 @@ static void XeviousMachineInit()
 	ZetSetReadHandler(XeviousZ80ProgRead);
 	ZetSetWriteHandler(XeviousZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Video,   0x7800, 0x7fff, MAP_RAM);
-	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x87ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xa7ff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
 	ZetClose();
 	
 	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
@@ -2342,35 +2374,46 @@ static INT32 XeviousDraw()
 
 static void XeviousCalcPalette()
 {
-	UINT32 Palette[96];
+	UINT32 Palette[129];
+   UINT32 color = 0;
 	
-	for (INT32 i = 0; i < 32; i ++) 
+	for (INT32 i = 0; i < 128; i ++) 
    {
-      INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
-      INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
-      INT32 b = Colour3Bit[(memory.PROM.Palette[i] >> 5) & 0x06];
+      INT32 r = Colour4Bit[(memory.PROM.Palette[0x0000 + i]) & 0x0f];
+      INT32 g = Colour4Bit[(memory.PROM.Palette[0x0100 + i]) & 0x0f];
+      INT32 b = Colour4Bit[(memory.PROM.Palette[0x0200 + i]) & 0x0f];
       
 		Palette[i] = BurnHighCol(r, g, b, 0);
 	}
+   
+   Palette[128] = BurnHighCol(0, 0, 0, 0); // Transparency Colour for Sprites
 
-	/* characters - direct mapping */
-	for (INT32 i = 0; i < 16; i ++)
-	{
-		graphics.Palette[i*2+0] = Palette[0];
-		graphics.Palette[i*2+1] = Palette[i];
+	/* bg_select */
+	for (INT32 i = 0; i < XEVIOUS_BG_COLOR_CODES * XEVIOUS_BG_COLOR_GRAN; i ++) 
+   {
+      c = memory.PROM.CharLookup[                         i] & 0x0f      | 
+          memory.PROM.CharLookup[XEVIOUS_BG_COLOR_CODES + i] & 0x0f << 4;
+		graphics.Palette[0x100 + i] = Palette[c];
 	}
 
 	/* sprites */
-	for (INT32 i = 0; i < 0x100; i ++) 
+	for (INT32 i = 0; i < XEVIOUS_SPRITE_COLOR_CODES * XEVIOUS_SPRITE_COLOR_GRAN; i ++) 
    {
-		graphics.Palette[0x200 + i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
+      c = memory.PROM.SpriteLookup[i                             ] & 0x0f      |
+          memory.PROM.SpriteLookup[XEVIOUS_SPRITE_COLOR_CODES + i] & 0x0f << 4;
+      if (c & 0x80)
+         graphics.Palette[0x200 + i] = Palette[c & 0x7f]
+      else
+         graphics.Palette[0x200 + i] = Palette[0x80];
 	}
 
-	/* bg_select */
-	for (INT32 i = 0; i < 0x100; i ++) 
-   {
-		graphics.Palette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
+	/* characters - direct mapping */
+	for (INT32 i = 0; i < XEVIOUS_FG_COLOR_CODES * XEVIOUS_FG_COLOR_GRAN; i += 2)
+	{
+		graphics.Palette[i+0] = Palette[0x80];
+		graphics.Palette[i+1] = Palette[i / 2];
 	}
+
 }
 
 static void XeviousRenderTiles()
