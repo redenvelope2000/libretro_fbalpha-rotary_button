@@ -1991,33 +1991,41 @@ STD_SAMPLE_FN(Xevious)
 static INT32 XeviousFGCharPlaneOffsets[XEVIOUS_FG_COLOR_PLANES] = { 0 }; 
 
 /* background tiles */
+   /* 512 characters */
+   /* 2 bits per pixel */
+   /* 8 x 8 characters */
+   /* every char takes 8 consecutive bytes */
 static INT32 XeviousBGCharPlaneOffsets[XEVIOUS_BG_COLOR_PLANES] = { 
    0, 
-   XEVIOUS_BG_COLOR_CODES * XEVIOUS_BG_COLOR_GRAN 
+   512 * 8 * 8 
 };
 
 static INT32 XeviousCharXOffsets[8] = 	{ 0, 1, 2, 3, 4, 5, 6, 7 };
 static INT32 XeviousCharYOffsets[8] = 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 };
 
 /* sprite set #1 */
+   /* 128 sprites */
+   /* 3 bits per pixel */
+   /* 16 x 16 sprites */
+   /* every sprite takes 128 (64?) consecutive bytes */
 static INT32 XeviousSprite1PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
-   128*64*8+4, 
-   0, 
-   4 
+   0x0000, //0, 
+   0x0004, //4, 
+   0x2000 // 128*16*16 
 };
 
 /* sprite set #2 */
 static INT32 XeviousSprite2PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
-   0, 
-   128*64*8, 
-   128*64*8+4 
+   0x2004, // 128*16*16+4, 
+   0x4000, // 256*16*16, 
+   0x4004, // 256*16*16+4 
 };
 
 /* sprite set #3 */
 static INT32 XeviousSprite3PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
-   64*64*8, 
-   0, 
-   4 
+   0x6000, // (128+128), 
+   0x6004, // 0, 
+   0       //4 
 };
 
 static INT32 XeviousInit()
@@ -2066,56 +2074,53 @@ static INT32 XeviousInit()
    /* 1 bit per pixel */
    /* 8 x 8 characters */
    /* every char takes 8 consecutive bytes */
-	/*
-   if (0 != BurnLoadRom(DrvTempRom,                      7,  1)) return 1;
+	if (0 != BurnLoadRom(DrvTempRom,                      7,  1)) return 1;
 	GfxDecode(0x200, 1, 8, 8, XeviousFGCharPlaneOffsets, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars);
 
 	bprintf(PRINT_NORMAL, _T("Xevious: 1bit Chars decoded\n"));
-	*/
-
+	
    /* background tiles */
    /* 512 characters */
    /* 2 bits per pixel */
    /* 8 x 8 characters */
    /* every char takes 8 consecutive bytes */
 	memset(DrvTempRom, 0, 0x02000);
-/*
 	if (0 != BurnLoadRom(DrvTempRom,                      8,  1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x01000,            9,  1)) return 1;
 	GfxDecode(0x200, 2, 8, 8, XeviousBGCharPlaneOffsets, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars2);
 
 	bprintf(PRINT_NORMAL, _T("Xevious: 2bit chars decoded\n"));
-*/
+
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x08000);
-/*
+
 	if (0 != BurnLoadRom(DrvTempRom + 0x00000,            10, 1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x02000,            11, 1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x04000,            12, 1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x06000,            13, 1)) return 1;
-*/
+
    /* sprite set #1 */
    /* 128 sprites */
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-//	GfxDecode(0x80, 3, 16, 16, XeviousSprite1PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom, graphics.Sprites);
+	GfxDecode(0x80, 3, 16, 16, XeviousSprite1PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom, graphics.Sprites);
 
    /* sprite set #2 */
    /* 128 sprites */
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-//	GfxDecode(0x80, 3, 16, 16, XeviousSprite2PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + 128*64, graphics.Sprites + 128*64);
+	GfxDecode(0x80, 3, 16, 16, XeviousSprite2PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3, graphics.Sprites + 128*16*16);
 
    /* sprite set #3 */
    /* 64 sprites */
    /* 3 bits per pixel (one is always 0) */
    /* 16 x 16 sprites */
    /* every sprite takes 64 consecutive bytes */
-//	GfxDecode(0x40, 3, 16, 16, XeviousSprite3PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + 128*64 + 128*64, graphics.Sprites + 128*64 + 128*64);
+	GfxDecode(0x40, 3, 16, 16, XeviousSprite3PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3 + 128*16*16*3, graphics.Sprites + 128*16*16 + 128*16*16);
 
-//	bprintf(PRINT_NORMAL, _T("Xevious: Sprites decoded\n"));
+	bprintf(PRINT_NORMAL, _T("Xevious: Sprites decoded\n"));
 
    // Load PlayFieldData
 
@@ -2175,10 +2180,10 @@ static INT32 XeviousMemIndex()
 
 	memory.RAM.Size = Next - memory.RAM.Start;
 
-	graphics.Chars2 = Next;             Next += 0x00200 * 2 * 8;
+	graphics.Chars2 = Next;             Next += 0x00200 * 8 * 8;
 	PlayFieldData = Next;               Next += 0x04000;
-	graphics.Chars = Next;              Next += 0x00200 * 8;
-	graphics.Sprites = Next;            Next += 0x00140 * 6 * 16;
+	graphics.Chars = Next;              Next += 0x00200 * 8 * 8;
+	graphics.Sprites = Next;            Next += 0x00240 * 16 * 16;
 	graphics.Palette = (UINT32*)Next;   Next += 0x300 * sizeof(UINT32);
 
 	memory.All.Size = Next - memory.All.Start;
