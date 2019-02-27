@@ -2380,7 +2380,7 @@ static INT32 XeviousDraw()
 static void XeviousCalcPalette()
 {
 	UINT32 Palette[129];
-   UINT32 color = 0;
+   UINT32 code = 0;
 	
 	for (INT32 i = 0; i < 128; i ++) 
    {
@@ -2396,18 +2396,18 @@ static void XeviousCalcPalette()
 	/* bg_select */
 	for (INT32 i = 0; i < XEVIOUS_BG_COLOR_CODES * XEVIOUS_BG_COLOR_GRAN; i ++) 
    {
-      c = memory.PROM.CharLookup[                         i] & 0x0f      | 
-          memory.PROM.CharLookup[XEVIOUS_BG_COLOR_CODES + i] & 0x0f << 4;
-		graphics.Palette[0x100 + i] = Palette[c];
+      code = ( (memory.PROM.CharLookup[                         i] & 0x0f)       | 
+              ((memory.PROM.CharLookup[XEVIOUS_BG_COLOR_CODES + i] & 0x0f) << 4) );
+		graphics.Palette[0x100 + i] = Palette[code];
 	}
 
 	/* sprites */
 	for (INT32 i = 0; i < XEVIOUS_SPRITE_COLOR_CODES * XEVIOUS_SPRITE_COLOR_GRAN; i ++) 
    {
-      c = memory.PROM.SpriteLookup[i                             ] & 0x0f      |
-          memory.PROM.SpriteLookup[XEVIOUS_SPRITE_COLOR_CODES + i] & 0x0f << 4;
-      if (c & 0x80)
-         graphics.Palette[0x200 + i] = Palette[c & 0x7f]
+      code = ( (memory.PROM.SpriteLookup[i                             ] & 0x0f)       |
+              ((memory.PROM.SpriteLookup[XEVIOUS_SPRITE_COLOR_CODES + i] & 0x0f) << 4) );
+      if (code & 0x80)
+         graphics.Palette[0x200 + i] = Palette[code & 0x7f];
       else
          graphics.Palette[0x200 + i] = Palette[0x80];
 	}
