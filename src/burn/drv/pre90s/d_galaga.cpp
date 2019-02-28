@@ -171,11 +171,27 @@ enum GAMES_ON_MACHINE
 
 //static UINT8 DrvFlipScreen;
 
+struct CPU_Rd_Table
+{
+   UINT16 startAddr;
+   UINT16 endAddr;
+   UINT8 (*readFunc)(UINT16 offset);
+};
+
+struct CPU_Wr_Table
+{
+   UINT16 startAddr;
+   UINT16 endAddr;
+   void (*writeFunc)(UINT16 offset, UINT8 dta);
+};
+
 struct MachineDef
 {
    INT32 Game;
    UINT8 bHasSamples;
    UINT8 FlipScreen;
+   struct CPU_Wr_Table *wrAddrList;
+   struct CPU_Rd_Table *rdAddrList;
 };
 
 static struct MachineDef machine = { 0 };
@@ -202,46 +218,22 @@ static INT32 playfield, alphacolor, playenable, playcolor;
 #define INP_DIGDUG_START_1          0x10
 #define INP_DIGDUG_START_2          0x20
 
-static INT32 GalagaInit(void);
-static INT32 GallagInit(void);
-static INT32 GalagaMemIndex(void);
-static void GalagaMachineInit(void);
-static UINT8 __fastcall GalagaZ80ProgRead(UINT16 addr);
-static void __fastcall GalagaZ80ProgWrite(UINT16 addr, UINT8 dta);
-static INT32 GalagaDraw(void);
-static void GalagaCalcPalette(void);
-static void GalagaInitStars(void);
-static void GalagaRenderStars(void);
-static void GalagaRenderTilemap(void);
-static void GalagaRenderSprites(void);
-
-static INT32 DigdugInit(void);
-static INT32 DigDugMemIndex(void);
-static void DigDugMachineInit(void);
-static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr);
-void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data);
-static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta);
-static INT32 DigDugDraw(void);
-static void DigDugCalcPalette(void);
-static void DigDugRenderTiles(void);
-static void DigDugRenderSprites(void);
-
-static INT32 XeviousInit(void);
-static INT32 XeviousMemIndex(void);
-static void XeviousMachineInit(void);
-static UINT8 __fastcall XeviousZ80ProgRead(UINT16 addr);
-static void __fastcall XeviousZ80ProgWrite(UINT16 addr, UINT8 dta);
-static INT32 XeviousDraw(void);
-static void XeviousCalcPalette(void);
-static void XeviousRenderTiles(void);
-static void XeviousRenderSprites(void);
-
 static void machineReset(void);
 static INT32 DrvDoReset(void);
 static void Namco54XXWrite(INT32 Data);
+static UINT8 NamcoZ80ReadDip(UINT16 Offset);
+static UINT8 NamcoZ80ReadIoCmd(UINT16 Offset);
 static UINT8 __fastcall NamcoZ80ProgRead(UINT16 addr);
 static UINT8 updateCoinAndCredit(UINT8 trigger, UINT8 mask, UINT8 start1, UINT8 start2);
 static UINT8 updateJoyAndButtons(UINT16 Offset, UINT8 jp);
+static void NamcoZ80WriteSound(UINT16 Offset, UINT8 dta);
+static void NamcoZ80WriteCPU1Irq(UINT16 Offset, UINT8 dta);
+static void NamcoZ80WriteCPU2Irq(UINT16 Offset, UINT8 dta);
+static void NamcoZ80WriteCPU3Irq(UINT16 Offset, UINT8 dta);
+static void NamcoZ80WriteCPUReset(UINT16 Offset, UINT8 dta);
+static void NamcoZ80WriteIoChip(UINT16 Offset, UINT8 dta);
+static void NamcoZ80WriteIoCmd(UINT16 Offset, UINT8 dta);
+static void NamcoZ80WriteFlipScreen(UINT16 Offset, UINT8 dta);
 static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta);
 static INT32 DrvExit(void);
 static void DrvPreMakeInputs(void);
@@ -599,6 +591,46 @@ static struct BurnSampleInfo GalagaSampleDesc[] = {
 STD_SAMPLE_PICK(Galaga)
 STD_SAMPLE_FN(Galaga)
 
+static INT32 GalagaInit(void);
+static INT32 GallagInit(void);
+static INT32 GalagaMemIndex(void);
+static void GalagaMachineInit(void);
+static UINT8 GalagaZ80Read7000(UINT16 offset);
+static UINT8 GalagaZ80ReadInputs(UINT16 offset);
+static void GalagaZ80Write7007(UINT16 offset, UINT8 dta);
+static void GalagaZ80WriteStars(UINT16 Offset, UINT8 dta);
+static INT32 GalagaDraw(void);
+static void GalagaCalcPalette(void);
+static void GalagaInitStars(void);
+static void GalagaRenderStars(void);
+static void GalagaRenderTilemap(void);
+static void GalagaRenderSprites(void);
+
+static struct CPU_Rd_Table GalagaZ80ReadList[] =
+{
+	{ 0x6800, 0x6807, NamcoZ80ReadDip         }, 
+   { 0x7000, 0x7000, GalagaZ80Read7000       },
+   { 0x7001, 0x7002, GalagaZ80ReadInputs     },
+	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd       },
+	{ 0x0000, 0x0000, NULL                    },
+};
+
+static struct CPU_Wr_Table GalagaZ80WriteList[] = 
+{
+	{ 0x6800, 0x681f, NamcoZ80WriteSound      },
+   { 0x6820, 0x6820, NamcoZ80WriteCPU1Irq    },
+	{ 0x6821, 0x6821, NamcoZ80WriteCPU2Irq    },
+	{ 0x6822, 0x6822, NamcoZ80WriteCPU3Irq    },
+	{ 0x6823, 0x6823, NamcoZ80WriteCPUReset   },
+//	{ 0x6830, 0x6830, WatchDogWriteNotImplemented }, 
+	{ 0x7000, 0x700f, NamcoZ80WriteIoChip     },
+   { 0x7007, 0x7007, GalagaZ80Write7007      },
+	{ 0x7100, 0x7100, NamcoZ80WriteIoCmd      },
+	{ 0xa000, 0xa005, GalagaZ80WriteStars     },
+	{ 0xa007, 0xa007, NamcoZ80WriteFlipScreen },
+   { 0x0000, 0x0000, NULL                    },
+};
+
 static INT32 CharPlaneOffsets[2]   = { 0, 4 };
 static INT32 CharXOffsets[8]       = { 64, 65, 66, 67, 0, 1, 2, 3 };
 static INT32 CharYOffsets[8]       = { 0, 8, 16, 24, 32, 40, 48, 56 };
@@ -742,8 +774,8 @@ static void GalagaMachineInit()
 {
 	ZetInit(0);
 	ZetOpen(0);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -753,8 +785,8 @@ static void GalagaMachineInit()
 	
 	ZetInit(1);
 	ZetOpen(1);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -764,8 +796,8 @@ static void GalagaMachineInit()
 	
 	ZetInit(2);
 	ZetOpen(2);
-	ZetSetReadHandler(GalagaZ80ProgRead);
-	ZetSetWriteHandler(GalagaZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -779,6 +811,9 @@ static void GalagaMachineInit()
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
 	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
 
+   machine.rdAddrList = GalagaZ80ReadList;
+   machine.wrAddrList = GalagaZ80WriteList;
+   
 	GenericTilesInit();
 
 	earom_init();
@@ -787,73 +822,56 @@ static void GalagaMachineInit()
 	DrvDoReset();
 }
 
-static UINT8 __fastcall GalagaZ80ProgRead(UINT16 addr)
+static UINT8 GalagaZ80Read7000(UINT16 offset)
 {
-	switch (addr) 
+   if ( (0x71 == ioChip.CustomCommand) ||
+        (0xb1 == ioChip.CustomCommand) )
    {
-		case 0x7000:
+      if (ioChip.Mode) 
       {
-			if ( (0x71 == ioChip.CustomCommand) ||
-              (0xb1 == ioChip.CustomCommand) )
-         {
-            if (ioChip.Mode) 
-            {
-               return input.Ports[0];
-            } 
-            else 
-            {
-               return updateCoinAndCredit(
-                  INP_GALAGA_COIN_TRIGGER, 
-                  INP_GALAGA_COIN_MASK,
-                  INP_GALAGA_START_1, 
-                  INP_GALAGA_START_2
-               );
-            }
-			}
-			
-			return 0xff;
-		}
-      
-		case 0x7001:
-		case 0x7002:
+         return input.Ports[0];
+      } 
+      else 
       {
-         UINT32 Offset = addr - 0x7000;
-         
-			if ( (0x71 == ioChip.CustomCommand) ||
-              (0xb1 == ioChip.CustomCommand) )
-         {
-            UINT8 jp = input.Ports[Offset];
-
-            return updateJoyAndButtons(Offset, jp);
-			}
-			
-			return 0xff;
-		}
-		
-	}
-	
-	return NamcoZ80ProgRead(addr);
+         return updateCoinAndCredit(
+            INP_GALAGA_COIN_TRIGGER, 
+            INP_GALAGA_COIN_MASK,
+            INP_GALAGA_START_1, 
+            INP_GALAGA_START_2
+         );
+      }
+   }
+   
+   return 0xff;
 }
 
-static void __fastcall GalagaZ80ProgWrite(UINT16 addr, UINT8 dta)
+static UINT8 GalagaZ80ReadInputs(UINT16 Offset)
 {
-	switch (addr) 
+   if ( (0x71 == ioChip.CustomCommand) ||
+        (0xb1 == ioChip.CustomCommand) )
    {
-		case 0x7007:
-			if (0xe1 == ioChip.CustomCommand) 
-         {
-            ioChip.CoinPerCredit = ioChip.Buffer[1];
-            ioChip.CreditPerCoin = ioChip.Buffer[2];
-			}
-			
-			return;
-	
-		default: 
-      {
-		}
-	}
+      UINT8 jp = input.Ports[Offset];
+
+      return updateJoyAndButtons(Offset, jp);
+   }
    
-   return NamcoZ80ProgWrite(addr, dta);
+   return 0xff;
+}
+
+static void GalagaZ80Write7007(UINT16 offset, UINT8 dta)
+{
+   if (0xe1 == ioChip.CustomCommand) 
+   {
+      ioChip.CoinPerCredit = ioChip.Buffer[1];
+      ioChip.CreditPerCoin = ioChip.Buffer[2];
+   }
+   
+   return;
+}
+
+static void GalagaZ80WriteStars(UINT16 Offset, UINT8 dta)
+{
+   stars.Control[Offset] = dta & 0x01;
 }
 
 static INT32 GalagaDraw()
@@ -1279,6 +1297,48 @@ static struct BurnRomInfo digdugRomDesc[] = {
 STD_ROM_PICK(digdug)
 STD_ROM_FN(digdug)
 
+static INT32 DigdugInit(void);
+static INT32 DigDugMemIndex(void);
+static void DigDugMachineInit(void);
+static UINT8 DigDugZ80ReadInputs(UINT16 Offset);
+static void DigDug_pf_latch_w(UINT16 offset, UINT8 data);
+static void DigDugZ80Writeb840(UINT16 offset, UINT8 dta);
+static void DigDugZ80WriteIoChip(UINT16 offset, UINT8 dta);
+static INT32 DigDugDraw(void);
+static void DigDugCalcPalette(void);
+static void DigDugRenderTiles(void);
+static void DigDugRenderSprites(void);
+
+static struct CPU_Rd_Table DigDugZ80ReadList[] =
+{
+	{ 0x6800, 0x6807, NamcoZ80ReadDip         }, 
+   { 0x7000, 0x700f, DigDugZ80ReadInputs     }, 
+	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd       },
+   // EAROM Read
+	{ 0xb800, 0xb83f, earom_read              },
+	{ 0x0000, 0x0000, NULL                    },
+};
+
+static struct CPU_Wr_Table DigDugZ80WriteList[] =
+{
+   // EAROM Write
+	{ 0xb800, 0xb83f, earom_write             },
+	{ 0x6800, 0x681f, NamcoZ80WriteSound      },
+   { 0xb840, 0xb840, DigDugZ80Writeb840      },
+   { 0x6820, 0x6820, NamcoZ80WriteCPU1Irq    },
+	{ 0x6821, 0x6821, NamcoZ80WriteCPU2Irq    },
+	{ 0x6822, 0x6822, NamcoZ80WriteCPU3Irq    },
+	{ 0x6823, 0x6823, NamcoZ80WriteCPUReset   },
+//	{ 0x6830, 0x6830, WatchDogWriteNotImplemented }, 
+	{ 0x7000, 0x700f, NamcoZ80WriteIoChip     },
+   { 0x7008, 0x7008, DigDugZ80WriteIoChip    },
+	{ 0x7100, 0x7100, NamcoZ80WriteIoCmd      },
+	{ 0xa000, 0xa006, DigDug_pf_latch_w       },
+	{ 0xa007, 0xa007, NamcoZ80WriteFlipScreen },
+   { 0x0000, 0x0000, NULL                    },
+
+};
+
 static INT32 DigdugCharPlaneOffsets[2] = { 0 };
 static INT32 DigdugCharXOffsets[8] = { STEP8(7,-1) };
 static INT32 DigdugCharYOffsets[8] = { STEP8(0,8) };
@@ -1384,8 +1444,8 @@ static void DigDugMachineInit()
 {
 	ZetInit(0);
 	ZetOpen(0);
-	ZetSetReadHandler(DigDugZ80ProgRead);
-	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -1395,8 +1455,8 @@ static void DigDugMachineInit()
 	
 	ZetInit(1);
 	ZetOpen(1);
-	ZetSetReadHandler(DigDugZ80ProgRead);
-	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -1406,8 +1466,8 @@ static void DigDugMachineInit()
 	
 	ZetInit(2);
 	ZetOpen(2);
-	ZetSetReadHandler(DigDugZ80ProgRead);
-	ZetSetWriteHandler(DigDugZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Video,   0x8000, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8800, 0x8bff, MAP_RAM);
@@ -1421,6 +1481,9 @@ static void DigDugMachineInit()
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
 	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
 
+   machine.rdAddrList = DigDugZ80ReadList;
+   machine.wrAddrList = DigDugZ80WriteList;
+   
 	GenericTilesInit();
 
 	earom_init();
@@ -1429,110 +1492,78 @@ static void DigDugMachineInit()
 	DrvDoReset();
 }
 
-static UINT8 __fastcall DigDugZ80ProgRead(UINT16 addr)
+static UINT8 DigDugZ80ReadInputs(UINT16 Offset)
 {
-   // EAROM Read
-	if ( (addr >= 0xb800) && (addr <= 0xb83f) )
+   switch (ioChip.CustomCommand) 
    {
-		return earom_read(addr - 0xb800);
-	}
-
-	switch (addr) 
-   {
-		case 0x7000:
-		case 0x7001:
-		case 0x7002:
-		case 0x7003:
-		case 0x7004:
-		case 0x7005:
-		case 0x7006:
-		case 0x7007:
-		case 0x7008:
-		case 0x7009:
-		case 0x700a:
-		case 0x700b:
-		case 0x700c:
-		case 0x700d:
-		case 0x700e:
-		case 0x700f: 
+      case 0xd2: 
       {
-			INT32 Offset = addr - 0x7000;
-			
-			switch (ioChip.CustomCommand) 
+         if ( (0 == Offset) || (1 == Offset) )
+            return input.Dip[Offset];
+         break;
+      }
+      
+      case 0x71:
+      case 0xb1: 
+      {
+         if (0xb1 == ioChip.CustomCommand)
          {
-				case 0xd2: 
+            if (Offset <= 2) // status
+               return 0;
+            else
+               return 0xff;
+         }
+         
+         if (0 == Offset) 
+         {
+            if (ioChip.Mode) 
             {
-               if ( (0 == Offset) || (1 == Offset) )
-						return input.Dip[Offset];
-					break;
-				}
-            
-				case 0x71:
-				case 0xb1: 
+               return input.Ports[0];
+            } 
+            else 
             {
-					if (0xb1 == ioChip.CustomCommand)
-               {
-						if (Offset <= 2) // status
-							return 0;
-						else
-							return 0xff;
-					}
-					
-               if (0 == Offset) 
-               {
-						if (ioChip.Mode) 
-                  {
-							return input.Ports[0];
-						} 
-                  else 
-                  {
-                     return updateCoinAndCredit(
-                        INP_DIGDUG_COIN_TRIGGER,
-                        INP_DIGDUG_COIN_MASK,
-                        INP_DIGDUG_START_1,
-                        INP_DIGDUG_START_2
-                     );
-                  }
-					}
-					
-					if ( (1 == Offset) || (2 == Offset) ) 
-               {
-						INT32 jp = input.Ports[Offset];
+               return updateCoinAndCredit(
+                  INP_DIGDUG_COIN_TRIGGER,
+                  INP_DIGDUG_COIN_MASK,
+                  INP_DIGDUG_START_1,
+                  INP_DIGDUG_START_2
+               );
+            }
+         }
+         
+         if ( (1 == Offset) || (2 == Offset) ) 
+         {
+            INT32 jp = input.Ports[Offset];
 
-						if (0 == ioChip.Mode)
-                  {
-							/* check directions, according to the following 8-position rule */
-							/*         0          */
-							/*        7 1         */
-							/*       6 8 2        */
-							/*        5 3         */
-							/*         4          */
-							if ((jp & 0x01) == 0)		/* up */
-								jp = (jp & ~0x0f) | 0x00;
-							else if ((jp & 0x02) == 0)	/* right */
-								jp = (jp & ~0x0f) | 0x02;
-							else if ((jp & 0x04) == 0)	/* down */
-								jp = (jp & ~0x0f) | 0x04;
-							else if ((jp & 0x08) == 0) /* left */
-								jp = (jp & ~0x0f) | 0x06;
-							else
-								jp = (jp & ~0x0f) | 0x08;
-						}
+            if (0 == ioChip.Mode)
+            {
+               /* check directions, according to the following 8-position rule */
+               /*         0          */
+               /*        7 1         */
+               /*       6 8 2        */
+               /*        5 3         */
+               /*         4          */
+               if ((jp & 0x01) == 0)		/* up */
+                  jp = (jp & ~0x0f) | 0x00;
+               else if ((jp & 0x02) == 0)	/* right */
+                  jp = (jp & ~0x0f) | 0x02;
+               else if ((jp & 0x04) == 0)	/* down */
+                  jp = (jp & ~0x0f) | 0x04;
+               else if ((jp & 0x08) == 0) /* left */
+                  jp = (jp & ~0x0f) | 0x06;
+               else
+                  jp = (jp & ~0x0f) | 0x08;
+            }
 
-						return updateJoyAndButtons(Offset, jp);
-					}
-				}
-			}
-			
-			return 0xff;
-		}
-		
-	}
-	
-	return NamcoZ80ProgRead(addr);
+            return updateJoyAndButtons(Offset, jp);
+         }
+      }
+   }
+   
+   return 0xff;
 }
 
-void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data)
+static void DigDug_pf_latch_w(UINT16 offset, UINT8 data)
 {
 	switch (offset)
 	{
@@ -1562,48 +1593,18 @@ void __fastcall digdug_pf_latch_w(UINT16 offset, UINT8 data)
 	}
 }
 
-static void __fastcall DigDugZ80ProgWrite(UINT16 addr, UINT8 dta)
+static void DigDugZ80Writeb840(UINT16 offset, UINT8 dta)
 {
-   // EAROM Write
-	if ( (addr >= 0xb800) && (addr <= 0xb83f) ) 
+   earom_ctrl_write(0xb840, dta);
+}
+
+static void DigDugZ80WriteIoChip(UINT16 offset, UINT8 dta)
+{
+   if (0xc1 == ioChip.CustomCommand) 
    {
-		earom_write(addr - 0xb800, dta);
-		return;
-	}
-
-	switch (addr) 
-   {
-		case 0xb840:
-         earom_ctrl_write(0xb840, dta);
-			return;
-
-		case 0x7008:
-			if (0xc1 == ioChip.CustomCommand) 
-         {
-            ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
-            ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
-         }
-         break;
-	
-      case 0xa000:
-      case 0xa001:
-      case 0xa002:
-      case 0xa003:
-      case 0xa004:
-      case 0xa005:
-		case 0xa006: 
-      {
-			digdug_pf_latch_w(addr - 0xa000, dta);
-			break;
-		}
-
-		default: 
-      {
-         break;
-		}
-	}
-   
-   return NamcoZ80ProgWrite(addr, dta);
+      ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
+      ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
+   }
 }
 
 static INT32 DigDugDraw()
@@ -1977,6 +1978,43 @@ static struct BurnSampleInfo XeviousSampleDesc[] = {
 STD_SAMPLE_PICK(Xevious)
 STD_SAMPLE_FN(Xevious)
 
+static INT32 XeviousInit(void);
+static INT32 XeviousMemIndex(void);
+static void XeviousMachineInit(void);
+static UINT8 XeviousPlayFieldRead(UINT16 Offset);
+static UINT8 XeviousZ80ReadInputs(UINT16 Offset);
+static void Xevious_bs_wr(UINT16 Offset, UINT8 dta);
+static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta);
+static INT32 XeviousDraw(void);
+static void XeviousCalcPalette(void);
+static void XeviousRenderTiles(void);
+static void XeviousRenderSprites(void);
+
+static struct CPU_Rd_Table XeviousZ80ReadList[] =
+{
+	{ 0x6800, 0x6807, NamcoZ80ReadDip            }, 
+   { 0xf000, 0xffff, XeviousPlayFieldRead       },
+   { 0x7000, 0x700f, XeviousZ80ReadInputs       },
+	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd          },
+   { 0x0000, 0x0000, NULL                       },
+};
+
+static struct CPU_Wr_Table XeviousZ80WriteList[] = 
+{
+   { 0x0000, 0xefff, Xevious_bs_wr              },
+	{ 0x6800, 0x681f, NamcoZ80WriteSound         },
+   { 0x6820, 0x6820, NamcoZ80WriteCPU1Irq       },
+	{ 0x6821, 0x6821, NamcoZ80WriteCPU2Irq       },
+	{ 0x6822, 0x6822, NamcoZ80WriteCPU3Irq       },
+	{ 0x6823, 0x6823, NamcoZ80WriteCPUReset      },
+//	{ 0x6830, 0x6830, WatchDogWriteNotImplemented }, 
+	{ 0x7000, 0x700f, NamcoZ80WriteIoChip        },
+   { 0x7008, 0x7008, XeviousZ80WriteIoChip      },
+	{ 0x7100, 0x7100, NamcoZ80WriteIoCmd         },
+	{ 0xa007, 0xa007, NamcoZ80WriteFlipScreen    },
+   { 0x0000, 0x0000, NULL                       },
+};
+
 #define XEVIOUS_FG_COLOR_CODES      64
 #define XEVIOUS_FG_COLOR_PLANES     1
 #define XEVIOUS_FG_COLOR_GRAN       1 << (XEVIOUS_FG_COLOR_PLANES - 1)
@@ -1988,18 +2026,18 @@ STD_SAMPLE_FN(Xevious)
 #define XEVIOUS_SPRITE_COLOR_GRAN   1 << (XEVIOUS_SPRITE_COLOR_PLANES - 1)
 
 /* foreground characters */
-static INT32 XeviousFGCharPlaneOffsets[XEVIOUS_FG_COLOR_PLANES] = { 0 }; 
+//static INT32 XeviousFGCharPlaneOffsets[XEVIOUS_FG_COLOR_PLANES] = { 0 }; 
 
 /* background tiles */
    /* 512 characters */
    /* 2 bits per pixel */
    /* 8 x 8 characters */
    /* every char takes 8 consecutive bytes */
-static INT32 XeviousBGCharPlaneOffsets[XEVIOUS_BG_COLOR_PLANES] = { 
+/*static INT32 XeviousBGCharPlaneOffsets[XEVIOUS_BG_COLOR_PLANES] = { 
    0, 
-   512 * 8 * 8 
+   512 * 8 
 };
-
+*/
 static INT32 XeviousCharXOffsets[8] = 	{ 0, 1, 2, 3, 4, 5, 6, 7 };
 static INT32 XeviousCharYOffsets[8] = 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 };
 
@@ -2008,25 +2046,59 @@ static INT32 XeviousCharYOffsets[8] = 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-static INT32 XeviousSprite1PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
+/*static INT32 XeviousSprite1PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
    0x0000, //0, 
    0x0004, //4, 
    0x2000 // 128*16*16 
 };
-
+*/
 /* sprite set #2 */
-static INT32 XeviousSprite2PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
+/*static INT32 XeviousSprite2PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
    0x2004, // 128*16*16+4, 
    0x4000, // 256*16*16, 
    0x4004, // 256*16*16+4 
 };
-
+*/
 /* sprite set #3 */
-static INT32 XeviousSprite3PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
+/*static INT32 XeviousSprite3PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
    0x6000, // (128+128), 
    0x6004, // 0, 
    0       //4 
 };
+*/
+static struct PlaneOffsets
+{
+   INT32 fgChars[XEVIOUS_FG_COLOR_PLANES];
+   INT32 bgChars[XEVIOUS_BG_COLOR_PLANES];
+   INT32 sprites1[XEVIOUS_SPRITE_COLOR_PLANES];
+   INT32 sprites2[XEVIOUS_SPRITE_COLOR_PLANES];
+   INT32 sprites3[XEVIOUS_SPRITE_COLOR_PLANES];
+} xeviousOffsets = {
+   { 0 },   /* foreground characters */ 
+
+/* background tiles */
+   /* 512 characters */
+   /* 2 bits per pixel */
+   /* 8 x 8 characters */
+   /* every char takes 8 consecutive bytes */
+   { 0, 512 * 8 },
+
+/* sprite set #1 */
+   /* 128 sprites */
+   /* 3 bits per pixel */
+   /* 16 x 16 sprites */
+   /* every sprite takes 64 consecutive bytes */
+   { 0x0000, 0x0004, 0x2000 },
+
+/* sprite set #2 */
+   { 0x2004, 0x4000, 0x4004 },
+
+/* sprite set #3 */
+   { 0x6000, 0x6004, 0 },
+   
+};
+
+static UINT8 xevious_bs[2];
 
 static INT32 XeviousInit()
 {
@@ -2075,7 +2147,7 @@ static INT32 XeviousInit()
    /* 8 x 8 characters */
    /* every char takes 8 consecutive bytes */
 	if (0 != BurnLoadRom(DrvTempRom,                      7,  1)) return 1;
-	GfxDecode(0x200, 1, 8, 8, XeviousFGCharPlaneOffsets, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars);
+	GfxDecode(0x200, 1, 8, 8, xeviousOffsets.fgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars);
 
 	bprintf(PRINT_NORMAL, _T("Xevious: 1bit Chars decoded\n"));
 	
@@ -2087,7 +2159,7 @@ static INT32 XeviousInit()
 	memset(DrvTempRom, 0, 0x02000);
 	if (0 != BurnLoadRom(DrvTempRom,                      8,  1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x01000,            9,  1)) return 1;
-	GfxDecode(0x200, 2, 8, 8, XeviousBGCharPlaneOffsets, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars2);
+	GfxDecode(0x200, 2, 8, 8, xeviousOffsets.bgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars2);
 
 	bprintf(PRINT_NORMAL, _T("Xevious: 2bit chars decoded\n"));
 
@@ -2104,21 +2176,21 @@ static INT32 XeviousInit()
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-	GfxDecode(0x80, 3, 16, 16, XeviousSprite1PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom, graphics.Sprites);
+	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites1, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom, graphics.Sprites);
 
    /* sprite set #2 */
    /* 128 sprites */
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-	GfxDecode(0x80, 3, 16, 16, XeviousSprite2PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3, graphics.Sprites + 128*16*16);
+	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites2, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3, graphics.Sprites + 128*16*16);
 
    /* sprite set #3 */
    /* 64 sprites */
    /* 3 bits per pixel (one is always 0) */
    /* 16 x 16 sprites */
    /* every sprite takes 64 consecutive bytes */
-	GfxDecode(0x40, 3, 16, 16, XeviousSprite3PlaneOffsets, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3 + 128*16*16*3, graphics.Sprites + 128*16*16 + 128*16*16);
+	GfxDecode(0x40, 3, 16, 16, xeviousOffsets.sprites3, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3 + 128*16*16*3, graphics.Sprites + 128*16*16 + 128*16*16);
 
 	bprintf(PRINT_NORMAL, _T("Xevious: Sprites decoded\n"));
 
@@ -2195,8 +2267,8 @@ static void XeviousMachineInit()
 {
 	ZetInit(0);
 	ZetOpen(0);
-	ZetSetReadHandler(XeviousZ80ProgRead);
-	ZetSetWriteHandler(XeviousZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
@@ -2206,8 +2278,8 @@ static void XeviousMachineInit()
 	
 	ZetInit(1);
 	ZetOpen(1);
-	ZetSetReadHandler(XeviousZ80ProgRead);
-	ZetSetWriteHandler(XeviousZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
@@ -2217,8 +2289,8 @@ static void XeviousMachineInit()
 	
 	ZetInit(2);
 	ZetOpen(2);
-	ZetSetReadHandler(XeviousZ80ProgRead);
-	ZetSetWriteHandler(XeviousZ80ProgWrite);
+	ZetSetReadHandler(NamcoZ80ProgRead);
+	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
 	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x87ff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x97ff, MAP_RAM);
@@ -2232,139 +2304,141 @@ static void XeviousMachineInit()
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
 	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
 
+   machine.rdAddrList = XeviousZ80ReadList;
+   machine.wrAddrList = XeviousZ80WriteList;
+   
 	GenericTilesInit();
 
 	// Reset the driver
 	DrvDoReset();
 }
 
-static UINT8 __fastcall XeviousZ80ProgRead(UINT16 addr)
+static UINT8 XeviousPlayFieldRead(UINT16 Offset)
 {
-	switch (addr) 
+   UINT32 dat1 = 0;
+   
+   INT32 addr_2b = ( ((xevious_bs[1] & 0x7e) << 6) | 
+                     ((xevious_bs[0] & 0xfe) >> 1) );
+   
+   if (addr_2b & 1)
    {
-		case 0x7000:
-		case 0x7001:
-		case 0x7002:
-		case 0x7003:
-		case 0x7004:
-		case 0x7005:
-		case 0x7006:
-		case 0x7007:
-		case 0x7008:
-		case 0x7009:
-		case 0x700a:
-		case 0x700b:
-		case 0x700c:
-		case 0x700d:
-		case 0x700e:
-		case 0x700f: 
-      {
-			INT32 Offset = addr - 0x7000;
-			
-			switch (ioChip.CustomCommand) 
-         {
-				case 0xd2: 
-            {
-               if ( (0 == Offset) || (1 == Offset) )
-						return input.Dip[Offset];
-					break;
-				}
-            
-				case 0x71:
-				case 0xb1: 
-            {
-					if (0xb1 == ioChip.CustomCommand)
-               {
-						if (Offset <= 2) // status
-							return 0;
-						else
-							return 0xff;
-					}
-					
-               if (0 == Offset) 
-               {
-						if (ioChip.Mode) 
-                  {
-							return input.Ports[0];
-						} 
-                  else 
-                  {
-                     return updateCoinAndCredit(
-                        INP_DIGDUG_COIN_TRIGGER,
-                        INP_DIGDUG_COIN_MASK,
-                        INP_DIGDUG_START_1,
-                        INP_DIGDUG_START_2
-                     );
-                  }
-					}
-					
-					if ( (1 == Offset) || (2 == Offset) ) 
-               {
-						INT32 jp = input.Ports[Offset];
+      dat1 = ( ((UINT32)(PlayFieldData[0x0000 + (addr_2b >> 1)] & 0xf0) << 4) | 
+                         PlayFieldData[0x1000 +  addr_2b      ]               );
+   }
+   else
+   {
+      dat1 = ( ((UINT32)(PlayFieldData[0x0000 + (addr_2b >> 1)] & 0x0f) << 8) | 
+                         PlayFieldData[0x1000 +  addr_2b      ]               );
+   }
+   
+   INT32 addr_2c = (dat1 & 0x01ff) << 2;
+   if (Offset & 1)
+   {
+      addr_2c += (1 << 11);
+   }
+   if ((xevious_bs[0] & 1) ^ ((dat1 >> 10) & 1) )
+   {
+      addr_2c |= 1;
+   }
+   if ((xevious_bs[1] & 1) ^ ((dat1 >> 9) & 1) )
+   {
+      addr_2c |= 2;
+   }
 
-						if (0 == ioChip.Mode)
-                  {
-							/* check directions, according to the following 8-position rule */
-							/*         0          */
-							/*        7 1         */
-							/*       6 8 2        */
-							/*        5 3         */
-							/*         4          */
-							if ((jp & 0x01) == 0)		/* up */
-								jp = (jp & ~0x0f) | 0x00;
-							else if ((jp & 0x02) == 0)	/* right */
-								jp = (jp & ~0x0f) | 0x02;
-							else if ((jp & 0x04) == 0)	/* down */
-								jp = (jp & ~0x0f) | 0x04;
-							else if ((jp & 0x08) == 0) /* left */
-								jp = (jp & ~0x0f) | 0x06;
-							else
-								jp = (jp & ~0x0f) | 0x08;
-						}
-
-						return updateJoyAndButtons(Offset, jp);
-					}
-				}
-			}
-			
-			return 0xff;
-		}
-		
-	}
-	
-	return NamcoZ80ProgRead(addr);
+   UINT8 dat2 = PlayFieldData[0x3000 + addr_2c];
+   if (!(Offset & 1))
+   {
+      dat2 = (dat2 & 0x3f) | ((dat2 & 0x80) >> 1) | ((dat2 & 0x40) << 1);
+      dat2 ^= (dat1 >> 4) & 0x40;
+      dat2 ^= (dat1 >> 2) & 0x80;
+   }
+   
+   return dat2;
 }
 
-static void __fastcall XeviousZ80ProgWrite(UINT16 addr, UINT8 dta)
+static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
 {
-	switch (addr) 
+   switch (ioChip.CustomCommand) 
    {
-		case 0x7008:
-			if (0xc1 == ioChip.CustomCommand) 
+      case 0xd2: 
+      {
+         if ( (0 == Offset) || (1 == Offset) )
+            return input.Dip[Offset];
+         break;
+      }
+      
+      case 0x71:
+      case 0xb1: 
+      {
+         if (0xb1 == ioChip.CustomCommand)
          {
-            ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
-            ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
+            if (Offset <= 2) // status
+               return 0;
+            else
+               return 0xff;
          }
-         break;
-	
-      case 0xa000:
-      case 0xa001:
-      case 0xa002:
-      case 0xa003:
-      case 0xa004:
-      case 0xa005:
-		case 0xa006: 
-      {
-			break;
-		}
+         
+         if (0 == Offset) 
+         {
+            if (ioChip.Mode) 
+            {
+               return input.Ports[0];
+            } 
+            else 
+            {
+               return updateCoinAndCredit(
+                  INP_DIGDUG_COIN_TRIGGER,
+                  INP_DIGDUG_COIN_MASK,
+                  INP_DIGDUG_START_1,
+                  INP_DIGDUG_START_2
+               );
+            }
+         }
+         
+         if ( (1 == Offset) || (2 == Offset) ) 
+         {
+            INT32 jp = input.Ports[Offset];
 
-		default: 
-      {
-         break;
-		}
-	}
+            if (0 == ioChip.Mode)
+            {
+               /* check directions, according to the following 8-position rule */
+               /*         0          */
+               /*        7 1         */
+               /*       6 8 2        */
+               /*        5 3         */
+               /*         4          */
+               if ((jp & 0x01) == 0)		/* up */
+                  jp = (jp & ~0x0f) | 0x00;
+               else if ((jp & 0x02) == 0)	/* right */
+                  jp = (jp & ~0x0f) | 0x02;
+               else if ((jp & 0x04) == 0)	/* down */
+                  jp = (jp & ~0x0f) | 0x04;
+               else if ((jp & 0x08) == 0) /* left */
+                  jp = (jp & ~0x0f) | 0x06;
+               else
+                  jp = (jp & ~0x0f) | 0x08;
+            }
+
+            return updateJoyAndButtons(Offset, jp);
+         }
+      }
+   }
    
-   return NamcoZ80ProgWrite(addr, dta);
+   return 0xff;
+}
+		
+static void Xevious_bs_wr(UINT16 Offset, UINT8 dta)
+{
+   xevious_bs[Offset & 0x01] = dta;
+}
+
+static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta)
+{
+   if (0xc1 == ioChip.CustomCommand) 
+   {
+      ioChip.CoinPerCredit = ioChip.Buffer[2] & 0x0f;
+      ioChip.CreditPerCoin = ioChip.Buffer[3] & 0x0f;
+   }
 }
 
 static INT32 XeviousDraw()
@@ -2759,45 +2833,38 @@ static void Namco54XXWrite(INT32 Data)
 	}
 }
 
+static UINT8 NamcoZ80ReadDip(UINT16 Offset)
+{
+   INT32 Bit0 = (input.Dip[2] >> Offset) & 0x01;
+   INT32 Bit1 = (input.Dip[1] >> Offset) & 0x01;
+
+   return (Bit1 << 1) | Bit0;
+}
+
+static UINT8 NamcoZ80ReadIoCmd(UINT16 Offset)
+{
+   return ioChip.CustomCommand;
+}
+      
 static UINT8 __fastcall NamcoZ80ProgRead(UINT16 addr)
 {
-	switch (addr) 
+   struct CPU_Rd_Table *rdEntry = machine.rdAddrList;
+   UINT8 dta = 0;
+   
+   if (NULL != rdEntry)
    {
-		case 0x6800:
-		case 0x6801:
-		case 0x6802:
-		case 0x6803:
-		case 0x6804:
-		case 0x6805:
-		case 0x6806:
-		case 0x6807: 
+      while (NULL != rdEntry->readFunc)
       {
-			INT32 Offset = addr - 0x6800;
-			INT32 Bit0 = (input.Dip[2] >> Offset) & 0x01;
-			INT32 Bit1 = (input.Dip[1] >> Offset) & 0x01;
-
-			return (Bit1 << 1) | Bit0;
-		}
-		
-		case 0x7100: 
-      {
-			return ioChip.CustomCommand;
-		}
-      
-		case 0xa000:
-		case 0xa001:
-		case 0xa002:
-		case 0xa003:
-		case 0xa004:
-		case 0xa005:
-		case 0xa006: break; // (ignore) spurious reads when playfield latch written to
-
-		default: {
-			bprintf(PRINT_NORMAL, _T("Z80 #%i Read %04x\n"), ZetGetActive(), addr);
-		}
-	}
-	
-	return 0;
+         if ( (addr >= rdEntry->startAddr) && 
+              (addr <= rdEntry->endAddr)      )
+         {
+            dta = rdEntry->readFunc(addr - rdEntry->startAddr);
+         }
+         rdEntry ++;
+      }
+   }
+   
+	return dta;
 }
 
 static UINT8 updateCoinAndCredit(UINT8 trigger, UINT8 mask, UINT8 start1, UINT8 start2)
@@ -2858,165 +2925,134 @@ static UINT8 updateJoyAndButtons(UINT16 Offset, UINT8 jp)
    return joy;
 }
 
+static void NamcoZ80WriteSound(UINT16 Offset, UINT8 dta)
+{
+   NamcoSoundWrite(Offset, dta);
+}
+
+static void NamcoZ80WriteCPU1Irq(UINT16 Offset, UINT8 dta)
+{
+   cpus.CPU1.FireIRQ = dta & 0x01;
+   if (!cpus.CPU1.FireIRQ) 
+   {
+      INT32 nActive = ZetGetActive();
+      ZetClose();
+      ZetOpen(0);
+      ZetSetIRQLine(0, CPU_IRQSTATUS_NONE);
+      ZetClose();
+      ZetOpen(nActive);
+   }
+
+}
+
+static void NamcoZ80WriteCPU2Irq(UINT16 Offset, UINT8 dta)
+{
+   cpus.CPU2.FireIRQ = dta & 0x01;
+   if (!cpus.CPU2.FireIRQ) 
+   {
+      INT32 nActive = ZetGetActive();
+      ZetClose();
+      ZetOpen(1);
+      ZetSetIRQLine(0, CPU_IRQSTATUS_NONE);
+      ZetClose();
+      ZetOpen(nActive);
+   }
+
+}
+
+static void NamcoZ80WriteCPU3Irq(UINT16 Offset, UINT8 dta)
+{
+   cpus.CPU3.FireIRQ = !(dta & 0x01);
+
+}
+		
+static void NamcoZ80WriteCPUReset(UINT16 Offset, UINT8 dta)
+{
+   if (!(dta & 0x01)) 
+   {
+      INT32 nActive = ZetGetActive();
+      ZetClose();
+      ZetOpen(1);
+      ZetReset();
+      ZetClose();
+      ZetOpen(2);
+      ZetReset();
+      ZetClose();
+      ZetOpen(nActive);
+      cpus.CPU2.Halt = 1;
+      cpus.CPU3.Halt = 1;
+      return;
+   } 
+   else 
+   {
+      cpus.CPU2.Halt = 0;
+      cpus.CPU3.Halt = 0;
+   }
+}
+		
+static void NamcoZ80WriteIoChip(UINT16 Offset, UINT8 dta)
+{
+   ioChip.Buffer[Offset] = dta;
+   Namco54XXWrite(dta);
+   
+}
+	
+static void NamcoZ80WriteIoCmd(UINT16 Offset, UINT8 dta)
+{
+   ioChip.CustomCommand = dta;
+   ioChip.CPU1FireIRQ = 1;
+   
+   switch (ioChip.CustomCommand) 
+   {
+      case 0x10: 
+      {
+         ioChip.CPU1FireIRQ = 0;
+         return;
+      }
+      
+      case 0xa1: 
+      {
+         ioChip.Mode = 1;
+         return;
+      }
+      case 0xb1: 
+      {
+         ioChip.Credits = 0;
+         return;
+      }
+      case 0xc1:
+      case 0xe1: 
+      {
+         ioChip.Credits = 0;
+         ioChip.Mode = 0;
+         return;
+      }
+   }
+   
+}
+
+static void NamcoZ80WriteFlipScreen(UINT16 Offset, UINT8 dta)
+{
+   machine.FlipScreen = dta & 0x01;
+}
+
 static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta)
 {
-	if ( (addr >= 0x6800) && (addr <= 0x681f) ) 
+   struct CPU_Wr_Table *wrEntry = machine.wrAddrList;
+   
+   if (NULL != wrEntry)
    {
-		NamcoSoundWrite(addr - 0x6800, dta);
-		return;
-	}
-
-//	bprintf(PRINT_NORMAL, _T("54XX z80 #%i Write %X, %X nbs %X\n"), ZetGetActive(), a, d, nBurnSoundLen);
-
-	switch (addr) 
-   {
-		case 0x6820: 
+      while (NULL != wrEntry->writeFunc)
       {
-			cpus.CPU1.FireIRQ = dta & 0x01;
-			if (!cpus.CPU1.FireIRQ) 
+         if ( (addr >= wrEntry->startAddr) &&
+              (addr <= wrEntry->endAddr)      )
          {
-				INT32 nActive = ZetGetActive();
-				ZetClose();
-				ZetOpen(0);
-				ZetSetIRQLine(0, CPU_IRQSTATUS_NONE);
-				ZetClose();
-				ZetOpen(nActive);
-			}
-			return;
-		}
-		
-		case 0x6821: 
-      {
-			cpus.CPU2.FireIRQ = dta & 0x01;
-			if (!cpus.CPU2.FireIRQ) 
-         {
-				INT32 nActive = ZetGetActive();
-				ZetClose();
-				ZetOpen(1);
-				ZetSetIRQLine(0, CPU_IRQSTATUS_NONE);
-				ZetClose();
-				ZetOpen(nActive);
-			}
-			return;
-		}
-		
-		case 0x6822: 
-      {
-			cpus.CPU3.FireIRQ = !(dta & 0x01);
-			return;
-		}
-		
-		case 0x6823: 
-      {
-			if (!(dta & 0x01)) 
-         {
-				INT32 nActive = ZetGetActive();
-				ZetClose();
-				ZetOpen(1);
-				ZetReset();
-				ZetClose();
-				ZetOpen(2);
-				ZetReset();
-				ZetClose();
-				ZetOpen(nActive);
-				cpus.CPU2.Halt = 1;
-				cpus.CPU3.Halt = 1;
-				return;
-			} 
-         else 
-         {
-				cpus.CPU2.Halt = 0;
-				cpus.CPU3.Halt = 0;
-			}
-		}
-		
-		case 0x6830: 
-      {
-			// watchdog write
-			return;
-		}
-		
-		case 0x7000:
-		case 0x7001:
-		case 0x7002:
-		case 0x7003:
-		case 0x7004:
-		case 0x7005:
-		case 0x7006:
-		case 0x7007:
-		case 0x7008:
-		case 0x7009:
-		case 0x700a:
-		case 0x700b:
-		case 0x700c:
-		case 0x700d:
-		case 0x700e:
-		case 0x700f: 
-      {
-			INT32 Offset = addr - 0x7000;
-			ioChip.Buffer[Offset] = dta;
-			Namco54XXWrite(dta);
-			
-			return;
-		}
-	
-		case 0x7100: 
-      {
-			ioChip.CustomCommand = dta;
-			ioChip.CPU1FireIRQ = 1;
-			
-			switch (ioChip.CustomCommand) 
-         {
-				case 0x10: 
-            {
-					ioChip.CPU1FireIRQ = 0;
-					return;
-				}
-				
-				case 0xa1: 
-            {
-					ioChip.Mode = 1;
-					return;
-				}
-				case 0xb1: 
-            {
-					ioChip.Credits = 0;
-					return;
-				}
-				case 0xc1:
-				case 0xe1: 
-            {
-					ioChip.Credits = 0;
-					ioChip.Mode = 0;
-					return;
-				}
-			}
-			
-			return;
-		}
-		
-		case 0xa000:
-		case 0xa001:
-		case 0xa002:
-		case 0xa003:
-		case 0xa004:
-		case 0xa005:
-      {
-         stars.Control[addr - 0xa000] = dta & 0x01;
-			return;
-		}
-		
-		case 0xa007: 
-      {
-			machine.FlipScreen = dta & 0x01;
-			return;
-		}
-		
-		default: 
-      {
-			//bprintf(PRINT_NORMAL, _T("Z80 #%i Write %04x, %02x\n"), ZetGetActive(), a, d);
-		}
-	}
+            wrEntry->writeFunc(addr - wrEntry->startAddr, dta);
+         }
+         
+         wrEntry ++;
+      }
+   }
 }
 
 static INT32 DrvExit()
