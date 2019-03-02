@@ -2525,15 +2525,6 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="deepdun" romof="msx">
-		<description>Deep Dungeon</description>
-		<year>2008</year>
-		<manufacturer>Trilobyte</manufacturer>
-		<rom name="DDUNGEON.ROM" size="32768" crc="012e13d3"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="deepdng" romof="msx">
 		<description>Deep Dungeon (Jpn)</description>
 		<year>1988</year>
@@ -2548,6 +2539,15 @@
 		<year>1988</year>
 		<manufacturer>ScapTrust</manufacturer>
 		<rom name="deep dungeon ii (japan).rom" size="131072" crc="101db19c"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="deepdun" romof="msx">
+		<description>Deep Dungeon</description>
+		<year>2008</year>
+		<manufacturer>Trilobyte</manufacturer>
+		<rom name="DDUNGEON.ROM" size="32768" crc="012e13d3"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -3560,21 +3560,21 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="gameover" romof="msx">
-		<description>Game Over</description>
-		<year>1988</year>
-		<manufacturer>Dinamic Software</manufacturer>
-		<rom name="Game Over (1988)(Dinamic Software)(ES).rom" size="131072" crc="dfbbdf10"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="gameovr2" romof="msx">
 		<description>Game Over II (Spa)</description>
 		<year>1988</year>
 		<manufacturer>Dinamic Software</manufacturer>
 		<rom name="game over ii (1988)(dinamic software)(es)(side a)[re-release of phantis][run'cas-'].cas" size="50115" crc="12de1170"/>
 		<rom name="game over ii (1988)(dinamic software)(es)(side b)[re-release of phantis][run'cas-'].cas" size="49149" crc="994cd2a2"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="gameover" romof="msx">
+		<description>Game Over</description>
+		<year>1988</year>
+		<manufacturer>Dinamic Software</manufacturer>
+		<rom name="Game Over (1988)(Dinamic Software)(ES).rom" size="131072" crc="dfbbdf10"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -3841,20 +3841,20 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="griel" romof="msx">
-		<description>Griel's Quest for the Sangraal</description>
-		<year>2005</year>
-		<manufacturer>Karoshi Corporation</manufacturer>
-		<rom name="griel.rom" size="32768" crc="6cebb29b"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="grielex" cloneof="griel" romof="griel">
 		<description>Griel's Quest for the Sangraal (Extended Version)</description>
 		<year>2005</year>
 		<manufacturer>Karoshi Corporation</manufacturer>
 		<rom name="grielex.rom" size="32768" crc="c9427fe2"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="griel" romof="msx">
+		<description>Griel's Quest for the Sangraal</description>
+		<year>2005</year>
+		<manufacturer>Karoshi Corporation</manufacturer>
+		<rom name="griel.rom" size="32768" crc="6cebb29b"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -4634,20 +4634,20 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="nipper" romof="msx">
-		<description>Jack the Nipper</description>
-		<year>1986</year>
-		<manufacturer>Gremlin Graphics Software</manufacturer>
-		<rom name="Jack the Nipper (1986)(Gremlin Graphics Software)(GB).rom" size="131072" crc="666725ec"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="nipper2" romof="msx">
 		<description>Jack the Nipper II - In Coconut Capers</description>
 		<year>1987</year>
 		<manufacturer>Gremlin Graphics Software</manufacturer>
 		<rom name="Jack the Nipper II - In Coconut Capers (1987)(Gremlin Graphics Software)(GB).rom" size="131072" crc="6b0fd271"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="nipper" romof="msx">
+		<description>Jack the Nipper</description>
+		<year>1986</year>
+		<manufacturer>Gremlin Graphics Software</manufacturer>
+		<rom name="Jack the Nipper (1986)(Gremlin Graphics Software)(GB).rom" size="131072" crc="666725ec"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -5525,20 +5525,20 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="livingstone" romof="msx">
-		<description>Livingstone Supongo</description>
-		<year>1986</year>
-		<manufacturer>Opera Soft</manufacturer>
-		<rom name="Livingstone Supongo (1986)(Opera Soft)(ES).rom" size="131072" crc="cea7e9bc"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="livingstone2" romof="msx">
 		<description>Livingstone Supongo II</description>
 		<year>1989</year>
 		<manufacturer>Opera Soft</manufacturer>
 		<rom name="Livingstone Supongo II (1989)(Opera Soft)(ES).rom" size="131072" crc="5410c622"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="livingstone" romof="msx">
+		<description>Livingstone Supongo</description>
+		<year>1986</year>
+		<manufacturer>Opera Soft</manufacturer>
+		<rom name="Livingstone Supongo (1986)(Opera Soft)(ES).rom" size="131072" crc="cea7e9bc"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -6281,20 +6281,20 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="mortadelo" romof="msx">
-		<description>Mortadelo y Filemon</description>
-		<year>1988</year>
-		<manufacturer>Dro Soft</manufacturer>
-		<rom name="Mortadelo y Filemon (1988)(Dro Soft)(ES).rom" size="131072" crc="ff4852f4"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="mortadelo2" romof="msx">
 		<description>Mortadelo y Filemon II - Safari Callejero</description>
 		<year>1990</year>
 		<manufacturer>Dro Soft</manufacturer>
 		<rom name="Mortadelo y Filemon II - Safari Callejero (1990)(Dro Soft)(ES).rom" size="131072" crc="0c6a21b2"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="mortadelo" romof="msx">
+		<description>Mortadelo y Filemon</description>
+		<year>1988</year>
+		<manufacturer>Dro Soft</manufacturer>
+		<rom name="Mortadelo y Filemon (1988)(Dro Soft)(ES).rom" size="131072" crc="ff4852f4"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -6588,15 +6588,6 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="gradius" romof="msx">
-		<description>Nemesis (Euro) ~ Gradius (Jpn)</description>
-		<year>1986</year>
-		<manufacturer>Konami</manufacturer>
-		<rom name="nemesis (japan, europe).rom" size="131072" crc="4d44255f"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="gradiusa" cloneof="gradius" romof="gradius">
 		<description>Nemesis (Euro) ~ Gradius (Jpn) (Alt)</description>
 		<year>1986</year>
@@ -6606,11 +6597,11 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="gradius2" romof="msx">
-		<description>Nemesis 2 (Euro) ~ Gradius 2 (Jpn)</description>
-		<year>1987</year>
+	<game name="gradius" romof="msx">
+		<description>Nemesis (Euro) ~ Gradius (Jpn)</description>
+		<year>1986</year>
 		<manufacturer>Konami</manufacturer>
-		<rom name="nemesis 2 (japan, europe).rom" size="131072" crc="db847b2b"/>
+		<rom name="nemesis (japan, europe).rom" size="131072" crc="4d44255f"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -6642,11 +6633,11 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="nemesis3" romof="msx">
-		<description>Nemesis 3 - The Eve of Destruction (Euro) ~ Gopher no Yabou - Episode II (Jpn)</description>
-		<year>1988</year>
+	<game name="gradius2" romof="msx">
+		<description>Nemesis 2 (Euro) ~ Gradius 2 (Jpn)</description>
+		<year>1987</year>
 		<manufacturer>Konami</manufacturer>
-		<rom name="nemesis 3 - the eve of destruction (japan, europe).rom" size="262144" crc="4b61ae91"/>
+		<rom name="nemesis 2 (japan, europe).rom" size="131072" crc="db847b2b"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -6665,6 +6656,15 @@
 		<year>1988</year>
 		<manufacturer>Konami</manufacturer>
 		<rom name="nemesis 3 - the eve of destruction (japan, europe) (alt 1).rom" size="262144" crc="0db7132f"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="nemesis3" romof="msx">
+		<description>Nemesis 3 - The Eve of Destruction (Euro) ~ Gopher no Yabou - Episode II (Jpn)</description>
+		<year>1988</year>
+		<manufacturer>Konami</manufacturer>
+		<rom name="nemesis 3 - the eve of destruction (japan, europe).rom" size="262144" crc="4b61ae91"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -7695,21 +7695,21 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="seicorobocop" romof="msx">
-		<description>RoboCop</description>
-		<year>1992</year>
-		<manufacturer>Sieco</manufacturer>
-		<rom name="sieco_robocop_(1992)(sieco).rom" size="131072" crc="4628ef05"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="robocop" romof="msx">
 		<description>Robocop (Euro)</description>
 		<year>1988</year>
 		<manufacturer>Ocean Software</manufacturer>
 		<rom name="robocop (1988)(ocean software)(gb)(side a)[bload'cas-',r].cas" size="81634" crc="fb8aa367"/>
 		<rom name="robocop (1988)(ocean software)(gb)(side b)[bload'cas-',r].cas" size="57586" crc="8a43b63f"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="seicorobocop" romof="msx">
+		<description>RoboCop</description>
+		<year>1992</year>
+		<manufacturer>Sieco</manufacturer>
+		<rom name="sieco_robocop_(1992)(sieco).rom" size="131072" crc="4628ef05"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
@@ -7750,20 +7750,20 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
-	<game name="rocknroller" romof="msx">
-		<description>Rock 'n Roller</description>
-		<year>1988</year>
-		<manufacturer>RCC</manufacturer>
-		<rom name="Rock'nRoller.rom" size="65536" crc="b0c0e46d"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
 	<game name="rockroll" romof="msx">
 		<description>Rock 'n Roller (Spa)</description>
 		<year>1988</year>
 		<manufacturer>Topo Soft</manufacturer>
 		<rom name="rock 'n roller (1988)(topo soft)(es)[run'cas-'].cas" size="52209" crc="cc0bc2e0"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
+	<game name="rocknroller" romof="msx">
+		<description>Rock 'n Roller</description>
+		<year>1988</year>
+		<manufacturer>RCC</manufacturer>
+		<rom name="Rock'nRoller.rom" size="65536" crc="b0c0e46d"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>

@@ -126,17 +126,17 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="be ball (japan).pce" size="262144" crc="e439f299"/>
 	</game>
-	<game name="bikkuri">
-		<description>Bikkuriman World</description>
-		<year>1987</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="bikkuriman world (japan).pce" size="262144" crc="2841fd1e"/>
-	</game>
 	<game name="bikkuri1" cloneof="bikkuri" romof="bikkuri">
 		<description>Bikkuriman World (Alt)</description>
 		<year>1987</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="bikkuriman world (japan) [a].pce" size="262144" crc="34893891"/>
+	</game>
+	<game name="bikkuri">
+		<description>Bikkuriman World</description>
+		<year>1987</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="bikkuriman world (japan).pce" size="262144" crc="2841fd1e"/>
 	</game>
 	<game name="blodia">
 		<description>Blodia</description>
@@ -150,23 +150,17 @@
 		<manufacturer>Games Express</manufacturer>
 		<rom name="body conquest ii (japan).pce" size="524288" crc="ffd92458"/>
 	</game>
-	<game name="bombman">
-		<description>Bomberman</description>
-		<year>1990</year>
+	<game name="bombmn93s" cloneof="bombmn93" romof="bombmn93">
+		<description>Bomberman '93 (Special Version)</description>
+		<year>1992</year>
 		<manufacturer>Hudson</manufacturer>
-		<rom name="bomberman (japan).pce" size="262144" crc="9abb4d1f"/>
+		<rom name="bomberman '93 (special version) (japan).pce" size="524288" crc="02309aa0"/>
 	</game>
 	<game name="bombmn93">
 		<description>Bomberman '93</description>
 		<year>1992</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="bomberman '93 (japan).pce" size="524288" crc="b300c5d0"/>
-	</game>
-	<game name="bombmn93s" cloneof="bombmn93" romof="bombmn93">
-		<description>Bomberman '93 (Special Version)</description>
-		<year>1992</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="bomberman '93 (special version) (japan).pce" size="524288" crc="02309aa0"/>
 	</game>
 	<game name="bombmn94">
 		<description>Bomberman '94</description>
@@ -179,6 +173,12 @@
 		<year>19??</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="bomberman - users battle (japan).pce" size="262144" crc="1489fa51"/>
+	</game>
+	<game name="bombman">
+		<description>Bomberman</description>
+		<year>1990</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="bomberman (japan).pce" size="262144" crc="9abb4d1f"/>
 	</game>
 	<game name="lostsunh">
 		<description>Bouken Danshaku Don - The Lost Sunheart [Bad sound]</description>
@@ -234,17 +234,17 @@
 		<manufacturer>Namcot</manufacturer>
 		<rom name="chibi maruko chan - quiz de piihyara (japan).pce" size="524288" crc="951ed380"/>
 	</game>
-	<game name="chikuden">
-		<description>Chikudenya Toubei - Kubikiri Yakata Yori</description>
-		<year>1990</year>
-		<manufacturer>Naxat</manufacturer>
-		<rom name="chikudenya toubei - kubikiri yakata yori (japan).pce" size="524288" crc="cab21b2e"/>
-	</game>
 	<game name="chikuden1" cloneof="chikuden" romof="chikuden">
 		<description>Chikudenya Toubei - Kubikiri Yakata Yori (Alt)</description>
 		<year>1990</year>
 		<manufacturer>Naxat</manufacturer>
 		<rom name="chikudenya toubei - kubikiri yakata yori (japan) [a].pce" size="524288" crc="84098884"/>
+	</game>
+	<game name="chikuden">
+		<description>Chikudenya Toubei - Kubikiri Yakata Yori</description>
+		<year>1990</year>
+		<manufacturer>Naxat</manufacturer>
+		<rom name="chikudenya toubei - kubikiri yakata yori (japan).pce" size="524288" crc="cab21b2e"/>
 	</game>
 	<game name="bravoman">
 		<description>Chouzetsu Rinjin - Bravoman</description>
@@ -276,17 +276,17 @@
 		<manufacturer>Konami</manufacturer>
 		<rom name="Contra.pce" size="524288" crc="aaf5aeb4"/>
 	</game>
-	<game name="coryoon">
-		<description>Coryoon - Child of Dragon</description>
-		<year>1991</year>
-		<manufacturer>Naxat</manufacturer>
-		<rom name="coryoon - child of dragon (japan).pce" size="524288" crc="b4d29e3b"/>
-	</game>
 	<game name="coryoon1" cloneof="coryoon" romof="coryoon">
 		<description>Coryoon - Child of Dragon (Alt)</description>
 		<year>1991</year>
 		<manufacturer>Naxat</manufacturer>
 		<rom name="coryoon - child of dragon (japan) [a].pce" size="524288" crc="d5389889"/>
+	</game>
+	<game name="coryoon">
+		<description>Coryoon - Child of Dragon</description>
+		<year>1991</year>
+		<manufacturer>Naxat</manufacturer>
+		<rom name="coryoon - child of dragon (japan).pce" size="524288" crc="b4d29e3b"/>
 	</game>
 	<game name="xwiber">
 		<description>Cross Wiber - Cyber Combat Police</description>
@@ -396,17 +396,17 @@
 		<manufacturer>NCS</manufacturer>
 		<rom name="double dungeons - w (japan).pce" size="262144" crc="86087b39"/>
 	</game>
-	<game name="download">
-		<description>Download</description>
-		<year>1990</year>
-		<manufacturer>NEC Avenue</manufacturer>
-		<rom name="download (japan).pce" size="524288" crc="85101c20"/>
-	</game>
 	<game name="download1" cloneof="download" romof="download">
 		<description>Download (Alt)</description>
 		<year>1990</year>
 		<manufacturer>NEC Avenue</manufacturer>
 		<rom name="download (japan) [a].pce" size="524288" crc="4e0de488"/>
+	</game>
+	<game name="download">
+		<description>Download</description>
+		<year>1990</year>
+		<manufacturer>NEC Avenue</manufacturer>
+		<rom name="download (japan).pce" size="524288" crc="85101c20"/>
 	</game>
 	<game name="dragnegg">
 		<description>Dragon Egg!</description>
@@ -414,17 +414,17 @@
 		<manufacturer>Masiya</manufacturer>
 		<rom name="dragon egg! (japan).pce" size="524288" crc="442405d5"/>
 	</game>
-	<game name="dsaber">
-		<description>Dragon Saber - After Story of Dragon Spirit</description>
-		<year>1991</year>
-		<manufacturer>Namcot</manufacturer>
-		<rom name="dragon saber - after story of dragon spirit (japan).pce" size="524288" crc="3219849c"/>
-	</game>
 	<game name="dsaber1" cloneof="dsaber" romof="dsaber">
 		<description>Dragon Saber - After Story of Dragon Spirit (Alt)</description>
 		<year>1991</year>
 		<manufacturer>Namcot</manufacturer>
 		<rom name="dragon saber - after story of dragon spirit (japan) [a].pce" size="524288" crc="c89ce75a"/>
+	</game>
+	<game name="dsaber">
+		<description>Dragon Saber - After Story of Dragon Spirit</description>
+		<year>1991</year>
+		<manufacturer>Namcot</manufacturer>
+		<rom name="dragon saber - after story of dragon spirit (japan).pce" size="524288" crc="3219849c"/>
 	</game>
 	<game name="dspirit">
 		<description>Dragon Spirit</description>
@@ -432,17 +432,17 @@
 		<manufacturer>Namcot</manufacturer>
 		<rom name="dragon spirit (japan).pce" size="262144" crc="01a76935"/>
 	</game>
-	<game name="droprock">
-		<description>Drop Rock Hora Hora</description>
-		<year>1990</year>
-		<manufacturer>Data East</manufacturer>
-		<rom name="drop rock hora hora (japan).pce" size="262144" crc="67ec5ec4"/>
-	</game>
 	<game name="droprock1" cloneof="droprock" romof="droprock">
 		<description>Drop Rock Hora Hora (Alt)</description>
 		<year>1990</year>
 		<manufacturer>Data East</manufacturer>
 		<rom name="drop rock hora hora (japan) [a].pce" size="262144" crc="8e81fcac"/>
+	</game>
+	<game name="droprock">
+		<description>Drop Rock Hora Hora</description>
+		<year>1990</year>
+		<manufacturer>Data East</manufacturer>
+		<rom name="drop rock hora hora (japan).pce" size="262144" crc="67ec5ec4"/>
 	</game>
 	<game name="dungexpl">
 		<description>Dungeon Explorer</description>
@@ -468,12 +468,6 @@
 		<manufacturer>Pack-In-Video</manufacturer>
 		<rom name="f-1 pilot - you're king of kings (japan).pce" size="393216" crc="09048174"/>
 	</game>
-	<game name="f1circus">
-		<description>F1 Circus</description>
-		<year>1990</year>
-		<manufacturer>Nihon Bussan</manufacturer>
-		<rom name="f1 circus (japan).pce" size="524288" crc="e14dee08"/>
-	</game>
 	<game name="f1circ91">
 		<description>F1 Circus '91 - World Championship</description>
 		<year>1991</year>
@@ -491,6 +485,12 @@
 		<year>1990</year>
 		<manufacturer>Nihon Bussan</manufacturer>
 		<rom name="f1 circus (japan) [a].pce" size="524288" crc="79705779"/>
+	</game>
+	<game name="f1circus">
+		<description>F1 Circus</description>
+		<year>1990</year>
+		<manufacturer>Nihon Bussan</manufacturer>
+		<rom name="f1 circus (japan).pce" size="524288" crc="e14dee08"/>
 	</game>
 	<game name="f1tb">
 		<description>F1 Triple Battle</description>
@@ -528,17 +528,17 @@
 		<manufacturer>Human</manufacturer>
 		<rom name="final match tennis (japan).pce" size="262144" crc="560d2305"/>
 	</game>
-	<game name="finalsol">
-		<description>Final Soldier</description>
-		<year>1991</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="final soldier (japan).pce" size="524288" crc="af2dd2af"/>
-	</game>
 	<game name="finalsols" cloneof="finalsol" romof="finalsol">
 		<description>Final Soldier (Special Version)</description>
 		<year>19??</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="final soldier (special version) (japan).pce" size="524288" crc="02a578c5"/>
+	</game>
+	<game name="finalsol">
+		<description>Final Soldier</description>
+		<year>1991</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="final soldier (japan).pce" size="524288" crc="af2dd2af"/>
 	</game>
 	<game name="fireprow">
 		<description>Fire Pro Wrestling - Combination Tag</description>
@@ -612,17 +612,17 @@
 		<manufacturer>NEC Home Electronics</manufacturer>
 		<rom name="genji tsuushin agedama (japan).pce" size="524288" crc="ad450dfc"/>
 	</game>
-	<game name="genpei">
-		<description>Genpei Toumaden</description>
-		<year>1990</year>
-		<manufacturer>Namcot</manufacturer>
-		<rom name="genpei toumaden (japan).pce" size="524288" crc="b926c682"/>
-	</game>
 	<game name="genpemak">
 		<description>Genpei Toumaden ni no Maki</description>
 		<year>1992</year>
 		<manufacturer>Namcot</manufacturer>
 		<rom name="genpei toumaden ni no maki (japan).pce" size="524288" crc="8793758c"/>
+	</game>
+	<game name="genpei">
+		<description>Genpei Toumaden</description>
+		<year>1990</year>
+		<manufacturer>Namcot</manufacturer>
+		<rom name="genpei toumaden (japan).pce" size="524288" crc="b926c682"/>
 	</game>
 	<game name="chukatai">
 		<description>Gokuraku! Chuka Taisen</description>
@@ -642,17 +642,17 @@
 		<manufacturer>Konami</manufacturer>
 		<rom name="gradius (japan).pce" size="262144" crc="0517da65"/>
 	</game>
-	<game name="gunhed">
-		<description>GunHed</description>
-		<year>1989</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="gunhed (japan).pce" size="393216" crc="a17d4d7e"/>
-	</game>
 	<game name="gunhedht">
 		<description>GunHed - Hudson GunHed Taikai</description>
 		<year>1989</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="gunhed - hudson gunhed taikai (japan).pce" size="262144" crc="57f183ae"/>
+	</game>
+	<game name="gunhed">
+		<description>GunHed</description>
+		<year>1989</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="gunhed (japan).pce" size="393216" crc="a17d4d7e"/>
 	</game>
 	<game name="hanataka">
 		<description>Hana Taaka Daka!?</description>
@@ -732,23 +732,17 @@
 		<manufacturer>Taito</manufacturer>
 		<rom name="jigoku meguri (japan).pce" size="393216" crc="cc7d3eeb"/>
 	</game>
-	<game name="jinmu">
-		<description>Jinmu Denshou</description>
-		<year>1989</year>
-		<manufacturer>Big Club</manufacturer>
-		<rom name="jinmu denshou (japan).pce" size="524288" crc="c150637a"/>
-	</game>
 	<game name="jinmu1" cloneof="jinmu" romof="jinmu">
 		<description>Jinmu Denshou (Alt)</description>
 		<year>1989</year>
 		<manufacturer>Big Club</manufacturer>
 		<rom name="jinmu denshou (japan) [a].pce" size="524288" crc="84240ef9"/>
 	</game>
-	<game name="juuouki">
-		<description>Juuouki</description>
+	<game name="jinmu">
+		<description>Jinmu Denshou</description>
 		<year>1989</year>
-		<manufacturer>NEC</manufacturer>
-		<rom name="juuouki (japan).pce" size="524288" crc="c8c7d63e"/>
+		<manufacturer>Big Club</manufacturer>
+		<rom name="jinmu denshou (japan).pce" size="524288" crc="c150637a"/>
 	</game>
 	<game name="juuouki1" cloneof="juuouki" romof="juuouki">
 		<description>Juuouki (Alt)</description>
@@ -756,17 +750,23 @@
 		<manufacturer>NEC</manufacturer>
 		<rom name="juuouki (japan) [a].pce" size="524288" crc="6a628982"/>
 	</game>
-	<game name="shubibi">
-		<description>Kaizou Choujin Shubibinman</description>
+	<game name="juuouki">
+		<description>Juuouki</description>
 		<year>1989</year>
-		<manufacturer>NCS</manufacturer>
-		<rom name="kaizou choujin shubibinman (japan).pce" size="262144" crc="a9084d6e"/>
+		<manufacturer>NEC</manufacturer>
+		<rom name="juuouki (japan).pce" size="524288" crc="c8c7d63e"/>
 	</game>
 	<game name="shubibi2">
 		<description>Kaizou Choujin Shubibinman 2 - Aratanaru Teki</description>
 		<year>1991</year>
 		<manufacturer>Masiya</manufacturer>
 		<rom name="kaizou choujin shubibinman 2 - aratanaru teki (japan).pce" size="524288" crc="109ba474"/>
+	</game>
+	<game name="shubibi">
+		<description>Kaizou Choujin Shubibinman</description>
+		<year>1989</year>
+		<manufacturer>NCS</manufacturer>
+		<rom name="kaizou choujin shubibinman (japan).pce" size="262144" crc="a9084d6e"/>
 	</game>
 	<game name="katochan">
 		<description>Kato Chan &amp; Ken Chan</description>
@@ -840,17 +840,17 @@
 		<manufacturer>Taito</manufacturer>
 		<rom name="kyuukyoku tiger (japan).pce" size="262144" crc="09509315"/>
 	</game>
-	<game name="ladyswrd">
-		<description>Lady Sword</description>
-		<year>19??</year>
-		<manufacturer>Game Express</manufacturer>
-		<rom name="lady sword (japan).pce" size="1048576" crc="c6f764ec"/>
-	</game>
 	<game name="ladyswrd1" cloneof="ladyswrd" romof="ladyswrd">
 		<description>Lady Sword (Alt)</description>
 		<year>19??</year>
 		<manufacturer>Game Express</manufacturer>
 		<rom name="lady sword (japan) [a].pce" size="1048576" crc="eb833d15"/>
+	</game>
+	<game name="ladyswrd">
+		<description>Lady Sword</description>
+		<year>19??</year>
+		<manufacturer>Game Express</manufacturer>
+		<rom name="lady sword (japan).pce" size="1048576" crc="c6f764ec"/>
 	</game>
 	<game name="loht">
 		<description>Legend of Hero Tonma</description>
@@ -876,17 +876,17 @@
 		<manufacturer>Face</manufacturer>
 		<rom name="mahjong gakuen - touma soushirou toujou (japan).pce" size="524288" crc="f5b90d55"/>
 	</game>
-	<game name="mjgakmld">
-		<description>Mahjong Gakuen Mild - Touma Soushirou Toujou</description>
-		<year>1990</year>
-		<manufacturer>Face</manufacturer>
-		<rom name="mahjong gakuen mild - touma soushirou toujou (japan).pce" size="524288" crc="f4148600"/>
-	</game>
 	<game name="mjgakmld1" cloneof="mjgakmld" romof="mjgakmld">
 		<description>Mahjong Gakuen Mild - Touma Soushirou Toujou (Alt)</description>
 		<year>1990</year>
 		<manufacturer>Face</manufacturer>
 		<rom name="mahjong gakuen mild - touma soushirou toujou (japan) [a].pce" size="524288" crc="3e4d432a"/>
+	</game>
+	<game name="mjgakmld">
+		<description>Mahjong Gakuen Mild - Touma Soushirou Toujou</description>
+		<year>1990</year>
+		<manufacturer>Face</manufacturer>
+		<rom name="mahjong gakuen mild - touma soushirou toujou (japan).pce" size="524288" crc="f4148600"/>
 	</game>
 	<game name="mjgokusp">
 		<description>Mahjong Gokuu Special</description>
@@ -1002,11 +1002,11 @@
 		<manufacturer>NEC Avenue</manufacturer>
 		<rom name="morita shougi pc (japan).pce" size="524288" crc="2546efe0"/>
 	</game>
-	<game name="motoroad">
-		<description>Moto Roader</description>
-		<year>1989</year>
-		<manufacturer>NCS</manufacturer>
-		<rom name="moto roader (japan).pce" size="262144" crc="428f36cd"/>
+	<game name="motorod2a" cloneof="motorod2" romof="motorod2">
+		<description>Moto Roader II (Alt)</description>
+		<year>1991</year>
+		<manufacturer>Masiya</manufacturer>
+		<rom name="moto roader ii (japan) [a].pce" size="393216" crc="4ba525ba"/>
 	</game>
 	<game name="motorod2">
 		<description>Moto Roader II</description>
@@ -1014,23 +1014,23 @@
 		<manufacturer>Masiya</manufacturer>
 		<rom name="moto roader ii (japan).pce" size="393216" crc="0b7f6e5f"/>
 	</game>
-	<game name="motorod2a" cloneof="motorod2" romof="motorod2">
-		<description>Moto Roader II (Alt)</description>
-		<year>1991</year>
-		<manufacturer>Masiya</manufacturer>
-		<rom name="moto roader ii (japan) [a].pce" size="393216" crc="4ba525ba"/>
-	</game>
-	<game name="mrheli">
-		<description>Mr. Heli no Daibouken</description>
+	<game name="motoroad">
+		<description>Moto Roader</description>
 		<year>1989</year>
-		<manufacturer>Irem</manufacturer>
-		<rom name="mr. heli no daibouken (japan).pce" size="524288" crc="2cb92290"/>
+		<manufacturer>NCS</manufacturer>
+		<rom name="moto roader (japan).pce" size="262144" crc="428f36cd"/>
 	</game>
 	<game name="mrheli1" cloneof="mrheli" romof="mrheli">
 		<description>Mr. Heli no Daibouken (Alt)</description>
 		<year>1989</year>
 		<manufacturer>Irem</manufacturer>
 		<rom name="mr. heli no daibouken (japan) [a].pce" size="524288" crc="ac0cd796"/>
+	</game>
+	<game name="mrheli">
+		<description>Mr. Heli no Daibouken</description>
+		<year>1989</year>
+		<manufacturer>Irem</manufacturer>
+		<rom name="mr. heli no daibouken (japan).pce" size="524288" crc="2cb92290"/>
 	</game>
 	<game name="blodwolf">
 		<description>Narazumono Sentai Butai - Bloody Wolf</description>
@@ -1086,17 +1086,17 @@
 		<manufacturer>Naxat</manufacturer>
 		<rom name="nekketsu koukou dodgeball bu - soccer pc hen (japan).pce" size="524288" crc="f2285c6d"/>
 	</game>
-	<game name="neutopia">
-		<description>Neutopia</description>
-		<year>1989</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="neutopia (japan).pce" size="393216" crc="9c49ef11"/>
-	</game>
 	<game name="neutopi2">
 		<description>Neutopia II</description>
 		<year>1991</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="neutopia ii (japan).pce" size="786432" crc="2b94aedc"/>
+	</game>
+	<game name="neutopia">
+		<description>Neutopia</description>
+		<year>1989</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="neutopia (japan).pce" size="393216" crc="9c49ef11"/>
 	</game>
 	<game name="nhktaidr">
 		<description>NHK Taiga Drama - Taiheiki</description>
@@ -1182,17 +1182,17 @@
 		<manufacturer>Konami</manufacturer>
 		<rom name="parodius da! - shinwa kara owarai he (japan).pce" size="1048576" crc="647718f9"/>
 	</game>
-	<game name="pcgenj">
-		<description>PC Genjin - Pithecanthropus Computerurus</description>
-		<year>1989</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="pc genjin - pithecanthropus computerurus (japan).pce" size="393216" crc="2cb5cd55"/>
-	</game>
 	<game name="pcgenja" cloneof="pcgenj" romof="pcgenj">
 		<description>PC Genjin - Pithecanthropus Computerurus (Alt)</description>
 		<year>1989</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="pc genjin - pithecanthropus computerurus (japan) [a].pce" size="393216" crc="67b35e6e"/>
+	</game>
+	<game name="pcgenj">
+		<description>PC Genjin - Pithecanthropus Computerurus</description>
+		<year>1989</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="pc genjin - pithecanthropus computerurus (japan).pce" size="393216" crc="2cb5cd55"/>
 	</game>
 	<game name="pcgenj2">
 		<description>PC Genjin 2 - Pithecanthropus Computerurus</description>
@@ -1200,17 +1200,17 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="pc genjin 2 - pithecanthropus computerurus (japan).pce" size="524288" crc="3028f7ca"/>
 	</game>
-	<game name="pcgenj3">
-		<description>PC Genjin 3 - Pithecanthropus Computerurus</description>
-		<year>1993</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="pc genjin 3 - pithecanthropus computerurus (japan).pce" size="1048576" crc="a170b60e"/>
-	</game>
 	<game name="pcgenj3t">
 		<description>PC Genjin 3 - Pithecanthropus Computerurus (Taikenban)</description>
 		<year>1993</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="pc genjin 3 - pithecanthropus computerurus (taikenban) (japan).pce" size="786432" crc="6f6ed301"/>
+	</game>
+	<game name="pcgenj3">
+		<description>PC Genjin 3 - Pithecanthropus Computerurus</description>
+		<year>1993</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="pc genjin 3 - pithecanthropus computerurus (japan).pce" size="1048576" crc="a170b60e"/>
 	</game>
 	<game name="pcpachi">
 		<description>PC Pachi-slot</description>
@@ -1218,29 +1218,29 @@
 		<manufacturer>Game Express</manufacturer>
 		<rom name="pc pachi-slot (japan).pce" size="524288" crc="0aa88f33"/>
 	</game>
-	<game name="populous">
-		<description>Populous</description>
-		<year>1991</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="populous (japan).pce" size="524288" crc="083c956a"/>
-	</game>
 	<game name="populous1" cloneof="populous" romof="populous">
 		<description>Populous (Alt)</description>
 		<year>1991</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="populous (japan) [a].pce" size="524288" crc="0a9ade99"/>
 	</game>
-	<game name="pdrift">
-		<description>Power Drift</description>
-		<year>1990</year>
-		<manufacturer>Asmik</manufacturer>
-		<rom name="power drift (japan).pce" size="524288" crc="25e0f6e9"/>
+	<game name="populous">
+		<description>Populous</description>
+		<year>1991</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="populous (japan).pce" size="524288" crc="083c956a"/>
 	</game>
 	<game name="pdrift1" cloneof="pdrift" romof="pdrift">
 		<description>Power Drift (Alt)</description>
 		<year>1990</year>
 		<manufacturer>Asmik</manufacturer>
 		<rom name="power drift (japan) [a].pce" size="524288" crc="99e6d988"/>
+	</game>
+	<game name="pdrift">
+		<description>Power Drift</description>
+		<year>1990</year>
+		<manufacturer>Asmik</manufacturer>
+		<rom name="power drift (japan).pce" size="524288" crc="25e0f6e9"/>
 	</game>
 	<game name="power11">
 		<description>Power Eleven</description>
@@ -1260,12 +1260,6 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="power golf (japan).pce" size="393216" crc="ea324f07"/>
 	</game>
-	<game name="pleague">
-		<description>Power League</description>
-		<year>1988</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="power league (japan).pce" size="262144" crc="69180984"/>
-	</game>
 	<game name="pleag93">
 		<description>Power League '93</description>
 		<year>1993</year>
@@ -1278,17 +1272,17 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="power league (all star version) (japan).pce" size="262144" crc="04a85769"/>
 	</game>
-	<game name="pleag2">
-		<description>Power League II</description>
-		<year>1989</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="power league ii (japan).pce" size="393216" crc="c5fdfa89"/>
-	</game>
 	<game name="pleag3">
 		<description>Power League III</description>
 		<year>1990</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="power league iii (japan).pce" size="393216" crc="8aa4b220"/>
+	</game>
+	<game name="pleag2">
+		<description>Power League II</description>
+		<year>1989</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="power league ii (japan).pce" size="393216" crc="c5fdfa89"/>
 	</game>
 	<game name="pleag4">
 		<description>Power League IV</description>
@@ -1302,6 +1296,12 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="power league v (japan).pce" size="786432" crc="8b61e029"/>
 	</game>
+	<game name="pleague">
+		<description>Power League</description>
+		<year>1988</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="power league (japan).pce" size="262144" crc="69180984"/>
+	</game>
 	<game name="psports">
 		<description>Power Sports</description>
 		<year>1992</year>
@@ -1314,17 +1314,17 @@
 		<manufacturer>Namcot</manufacturer>
 		<rom name="pro tennis world court (japan).pce" size="262144" crc="11a36745"/>
 	</game>
-	<game name="proyak">
-		<description>Pro Yakyuu World Stadium</description>
-		<year>1988</year>
-		<manufacturer>Namcot</manufacturer>
-		<rom name="pro yakyuu world stadium (japan).pce" size="262144" crc="34e089a9"/>
-	</game>
 	<game name="proyak91">
 		<description>Pro Yakyuu World Stadium '91</description>
 		<year>1991</year>
 		<manufacturer>Namcot</manufacturer>
 		<rom name="pro yakyuu world stadium '91 (japan).pce" size="262144" crc="66b167a9"/>
+	</game>
+	<game name="proyak">
+		<description>Pro Yakyuu World Stadium</description>
+		<year>1988</year>
+		<manufacturer>Namcot</manufacturer>
+		<rom name="pro yakyuu world stadium (japan).pce" size="262144" crc="34e089a9"/>
 	</game>
 	<game name="psychas">
 		<description>Psycho Chaser</description>
@@ -1578,17 +1578,17 @@
 		<manufacturer>Pack-In-Video</manufacturer>
 		<rom name="super metal crusher (japan).pce" size="262144" crc="56488b36"/>
 	</game>
-	<game name="smomo">
-		<description>Super Momotarou Dentetsu</description>
-		<year>1989</year>
-		<manufacturer>Hudson</manufacturer>
-		<rom name="super momotarou dentetsu (japan).pce" size="393216" crc="3eb5304a"/>
-	</game>
 	<game name="smomo2">
 		<description>Super Momotarou Dentetsu II</description>
 		<year>1991</year>
 		<manufacturer>Hudson</manufacturer>
 		<rom name="super momotarou dentetsu ii (japan).pce" size="786432" crc="2bc023fc"/>
+	</game>
+	<game name="smomo">
+		<description>Super Momotarou Dentetsu</description>
+		<year>1989</year>
+		<manufacturer>Hudson</manufacturer>
+		<rom name="super momotarou dentetsu (japan).pce" size="393216" crc="3eb5304a"/>
 	</game>
 	<game name="sssoldr">
 		<description>Super Star Soldier</description>
@@ -1620,17 +1620,17 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="takahashi meijin no shin boukenjima (japan).pce" size="524288" crc="e415ea19"/>
 	</game>
-	<game name="shingen">
-		<description>Takeda Shingen</description>
-		<year>1989</year>
-		<manufacturer>Aicom</manufacturer>
-		<rom name="takeda shingen (japan).pce" size="262144" crc="f022be13"/>
-	</game>
 	<game name="shingen1" cloneof="shingen" romof="shingen">
 		<description>Takeda Shingen (Alt)</description>
 		<year>1989</year>
 		<manufacturer>Aicom</manufacturer>
 		<rom name="takeda shingen (japan) [a].pce" size="262144" crc="df7af71c"/>
+	</game>
+	<game name="shingen">
+		<description>Takeda Shingen</description>
+		<year>1989</year>
+		<manufacturer>Aicom</manufacturer>
+		<rom name="takeda shingen (japan).pce" size="262144" crc="f022be13"/>
 	</game>
 	<game name="tatsunok">
 		<description>Tatsu No Ko Fighter</description>
@@ -1638,17 +1638,17 @@
 		<manufacturer>Tonkin House</manufacturer>
 		<rom name="tatsunoko fighter (japan).pce" size="262144" crc="eeb6dd43"/>
 	</game>
-	<game name="tatsujin">
-		<description>Tatsujin</description>
-		<year>1992</year>
-		<manufacturer>Taito</manufacturer>
-		<rom name="tatsujin (japan).pce" size="524288" crc="a6088275"/>
-	</game>
 	<game name="tatsujinp" cloneof="tatsujin" romof="tatsujin">
 		<description>Tatsujin (Prototype)</description>
 		<year>1992</year>
 		<manufacturer>Taito</manufacturer>
 		<rom name="tatsujin (japan) (proto).pce" size="524288" crc="c1b26659"/>
+	</game>
+	<game name="tatsujin">
+		<description>Tatsujin</description>
+		<year>1992</year>
+		<manufacturer>Taito</manufacturer>
+		<rom name="tatsujin (japan).pce" size="524288" crc="a6088275"/>
 	</game>
 	<game name="sdragon">
 		<description>Tenseiryuu - Saint Dragon</description>
@@ -1872,17 +1872,17 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="yuu yuu jinsei - victory life (japan).pce" size="262144" crc="c0905ca9"/>
 	</game>
-	<game name="zero4ca" cloneof="zero4c" romof="zero4c">
-		<description>Zero 4 Champ</description>
-		<year>1991</year>
-		<manufacturer>Media Rings Corporation</manufacturer>
-		<rom name="zero 4 champ (japan).pce" size="524288" crc="ee156721"/>
-	</game>
 	<game name="zero4c">
 		<description>Zero 4 Champ (v1.5)</description>
 		<year>1991</year>
 		<manufacturer>Media Rings Corporation</manufacturer>
 		<rom name="zero 4 champ (japan) (v1.5).pce" size="524288" crc="b77f2e2f"/>
+	</game>
+	<game name="zero4ca" cloneof="zero4c" romof="zero4c">
+		<description>Zero 4 Champ</description>
+		<year>1991</year>
+		<manufacturer>Media Rings Corporation</manufacturer>
+		<rom name="zero 4 champ (japan).pce" size="524288" crc="ee156721"/>
 	</game>
 	<game name="zipang">
 		<description>Zipang</description>
