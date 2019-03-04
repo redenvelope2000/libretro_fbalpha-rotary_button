@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12000 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12001 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -1292,8 +1292,8 @@ This list contains all games supported by FB Alpha.
 | bubsymphu	|  	| Bubble Symphony (Ver 2.5A 1994/10/05)			| bublbob2	| 1994	| Taito America | Taito F3 Syste| 					|
 | bubsymphj	|  	| Bubble Symphony (Ver 2.5J 1994/10/05)			| bublbob2	| 1994	| Taito Corporat| Taito F3 Syste| 					|
 | bubsymphe	|  	| Bubble Symphony (Ver 2.5O 1994/10/05)			| bublbob2	| 1994	| Taito Corporat| Taito F3 Syste| 					|
-| bubbletrj	|  	| Bubble Trouble (Japan, Rev C)				| bubbletr	| 1992	| Namco		| System 2	| 					|
-| bubbletr	|  	| Bubble Trouble (World, Rev B)				| 		| 1992	| Namco		| System 2	| 					|
+| bubbletrj	|   NW	| Bubble Trouble (Japan, Rev C)				| bubbletr	| 1992	| Namco		| System 2	| 					|
+| bubbletr	|   NW	| Bubble Trouble (World, Rev B)				| 		| 1992	| Namco		| System 2	| 					|
 | pce_bubblegm	|  	| Bubblegum Crash! - Knight Sabers 2034			| 		| 1991	| Naxat		| PC Engine	| 					|
 | msx_bubbler	|  	| Bubbler						| 		| 1987	| Ultimate Play | MSX		| 					|
 | bubblesp	|  	| Bubbles (prototype version)				| bubbles	| 1982	| Williams	| 6809 System	| 					|
@@ -1829,6 +1829,7 @@ This list contains all games supported by FB Alpha.
 | gg_cocakid	|  	| Coca Cola Kid (Jpn)					| 		| 1994	| Sega		| Sega Game Gear| 					|
 | ladybugb2	|  	| Coccinelle (bootleg of Lady Bug, set 2)		| ladybug	| 1981	| bootleg (Model| Miscellaneous	| 					|
 | cnbe		|  	| Codename - Blut Engel (2006-01-19)			| 		| 2006	| blastar@gmx.ne| Neo Geo MVS	| 					|
+| cv_cvjoytest	|  	| ColecoVision Joystick Test				| 		| 1983	| Coleco	| ColecoVision	| 					|
 | cv_coleco	|   NW	| ColecoVision System BIOS				| 		| 1982	| Coleco	| ColecoVision	| BIOS only				|
 | md_colleg96	|  	| College Football USA 96 (USA)				| 		| 1995	| Electronic Art| Sega Megadrive| 					|
 | md_colleg97	|  	| College Football USA 97 (USA)				| 		| 1996	| Electronic Art| Sega Megadrive| 					|
@@ -3925,7 +3926,7 @@ This list contains all games supported by FB Alpha.
 | sms_golfaman	|  	| Golfamania (Euro, Bra)				| 		| 1990	| Sega		| Sega Master Sy| 					|
 | sms_golfamanp	|  	| Golfamania (Prototype)				| sms_golfaman	| 1990	| Sega		| Sega Master Sy| 					|
 | sg1k_golgo13	|  	| Golgo 13 (Jpn)					| 		| 1984	| Sega		| Sega SG-1000	| 					|
-| gollygho	|  	| Golly! Ghost!						| 		| 1990	| Namco		| System 2	| 					|
+| gollygho	|   NW	| Golly! Ghost!						| 		| 1990	| Namco		| System 2	| 					|
 | sms_golvell	|  	| Golvellius (Euro, USA)				| 		| 1988	| Sega		| Sega Master Sy| 					|
 | msx_golvell	|  	| Golvellius (Jpn)					| 		| 1987	| Compile	| MSX		| 					|
 | msx_gommy	|  	| Gommy							| 		| 2013	| Retroworks/Dim| MSX		| 					|

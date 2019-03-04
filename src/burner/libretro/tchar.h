@@ -43,6 +43,7 @@ extern int bRunPause;
 #define _tcsicmp strcasecmp
 #define _stricmp strcasecmp
 #define stricmp strcasecmp
+#define _ftprintf fprintf
 
 typedef char TCHAR;
 

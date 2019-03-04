@@ -5,5 +5,6 @@
 #include "cd_interface.h"
 
 extern void InpDIPSWResetDIPs (void);
+extern TCHAR szAppBurnVer[16];
 
 #endif

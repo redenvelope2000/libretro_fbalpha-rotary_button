@@ -377,6 +377,16 @@
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
 		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
 	</game>
+	<game name="cvjoytest" romof="coleco">
+		<description>ColecoVision Joystick Test</description>
+		<year>1983</year>
+		<manufacturer>Coleco</manufacturer>
+		<rom name="Super Action Controller Test Cartridge (1983) (Nuvatec).rom" size="16384" crc="eb6cb4d8"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
 	<game name="congo" romof="coleco">
 		<description>Congo Bongo</description>
 		<year>1984</year>

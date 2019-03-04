@@ -1863,6 +1863,7 @@ DRV		BurnDrvCobracom;
 DRV		BurnDrvgg_cocakid;
 DRV		BurnDrvLadybugb2;
 DRV		BurnDrvcnbe;
+DRV		BurnDrvcv_cvjoytest;
 DRV		BurnDrvcv_Coleco;
 DRV		BurnDrvmd_colleg96;
 DRV		BurnDrvmd_colleg97;
@@ -13583,8 +13584,8 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvBubsymphu,			// Bubble Symphony (Ver 2.5A 1994/10/05)
 	&BurnDrvBubsymphj,			// Bubble Symphony (Ver 2.5J 1994/10/05)
 	&BurnDrvBubsymphe,			// Bubble Symphony (Ver 2.5O 1994/10/05)
-	&BurnDrvBubbletrj,			// Bubble Trouble (Japan, Rev C)
-	&BurnDrvBubbletr,			// Bubble Trouble (World, Rev B)
+	&BurnDrvBubbletrj,			// Bubble Trouble (Japan, Rev C) [no comment, NOT WORKING]
+	&BurnDrvBubbletr,			// Bubble Trouble (World, Rev B) [no comment, NOT WORKING]
 	&BurnDrvpce_bubblegm,		// Bubblegum Crash! - Knight Sabers 2034
 	&BurnDrvMSX_bubbler,		// Bubbler
 	&BurnDrvBubblesp,			// Bubbles (prototype version)
@@ -14132,6 +14133,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvgg_cocakid,			// Coca Cola Kid (Jpn)
 	&BurnDrvLadybugb2,			// Coccinelle (bootleg of Lady Bug, set 2)
 	&BurnDrvcnbe,				// Codename - Blut Engel (2006-01-19)
+	&BurnDrvcv_cvjoytest,		// ColecoVision Joystick Test
 	&BurnDrvcv_Coleco,			// ColecoVision System BIOS [BIOS only, NOT WORKING]
 	&BurnDrvmd_colleg96,		// College Football USA 96 (USA)
 	&BurnDrvmd_colleg97,		// College Football USA 97 (USA)
@@ -16278,7 +16280,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvsms_golfaman,		// Golfamania (Euro, Bra)
 	&BurnDrvsms_golfamanp,		// Golfamania (Prototype)
 	&BurnDrvsg1k_golgo13,		// Golgo 13 (Jpn)
-	&BurnDrvGollygho,			// Golly! Ghost!
+	&BurnDrvGollygho,			// Golly! Ghost! [no comment, NOT WORKING]
 	&BurnDrvsms_golvell,		// Golvellius (Euro, USA)
 	&BurnDrvMSX_golvell,		// Golvellius (Jpn)
 	&BurnDrvMSX_gommy,			// Gommy
