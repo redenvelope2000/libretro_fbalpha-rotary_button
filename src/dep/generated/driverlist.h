@@ -5177,7 +5177,7 @@ DRV		BurnDrvStrahlja;
 DRV		BurnDrvStrahl;
 DRV		BurnDrvKozure;
 DRV		BurnDrvMSX_krakout;
-//		BurnDrvKram3;			// no comment
+//		BurnDrvKram3;			// no comment [NOT WORKING]
 DRV		BurnDrvKram;
 DRV		BurnDrvKram2;
 DRV		BurnDrvKrzybowl;
@@ -17447,7 +17447,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvStrahl,				// Koutetsu Yousai Strahl (World)
 	&BurnDrvKozure,				// Kozure Ookami (Japan)
 	&BurnDrvMSX_krakout,		// Krakout (Euro)
-//	&BurnDrvKram3,				// Kram (encrypted) [no comment]
+//	&BurnDrvKram3,				// Kram (encrypted) [no comment, NOT WORKING]
 	&BurnDrvKram,				// Kram (set 1)
 	&BurnDrvKram2,				// Kram (set 2)
 	&BurnDrvKrzybowl,			// Krazy Bowl

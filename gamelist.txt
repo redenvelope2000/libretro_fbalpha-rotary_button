@@ -5059,7 +5059,7 @@ This list contains all games supported by FB Alpha.
 | strahl	|  	| Koutetsu Yousai Strahl (World)			| 		| 1992	| UPL		| NMK16		| 					|
 | kozure	|  	| Kozure Ookami (Japan)					| 		| 1987	| Nichibutsu	| Miscellaneous	| 					|
 | msx_krakout	|  	| Krakout (Euro)					| 		| 1987	| Gremlin Graphi| MSX		| 					|
-| kram3		| X	| Kram (encrypted)					| kram		| 1982	| Taito America | Miscellaneous	| 					|
+| kram3		| X NW	| Kram (encrypted)					| kram		| 1982	| Taito America | Miscellaneous	| 					|
 | kram		|  	| Kram (set 1)						| 		| 1982	| Taito America | Miscellaneous	| 					|
 | kram2		|  	| Kram (set 2)						| kram		| 1982	| Taito America | Miscellaneous	| 					|
 | krzybowl	|  	| Krazy Bowl						| 		| 1994	| American Sammy| Seta		| 					|
