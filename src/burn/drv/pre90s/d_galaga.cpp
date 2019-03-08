@@ -46,9 +46,9 @@ static struct Input_Def input;
 
 struct Graphics_Def
 {
-   UINT8 *Chars;
+   UINT8 *fgChars;
    UINT8 *Sprites;
-   UINT8 *Chars2;
+   UINT8 *bgTiles;
    UINT32 *Palette;
 };
 
@@ -667,7 +667,7 @@ static INT32 GalagaInit()
 	
 	// Load and decode the chars
 	if (0 != BurnLoadRom(DrvTempRom,                   6, 1)) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.fgChars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
@@ -717,7 +717,7 @@ static INT32 GallagInit()
 	
 	// Load and decode the chars
 	if (0 != BurnLoadRom(DrvTempRom,                   7, 1)) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.fgChars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x02000);
@@ -759,9 +759,9 @@ static INT32 GalagaMemIndex()
 
 	memory.RAM.Size            = Next - memory.RAM.Start;
 
-	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
+	graphics.bgTiles           = Next; Next += 0x00180 * 8 * 8;
 	PlayFieldData              = Next; Next += 0x01000;
-	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
+	graphics.fgChars           = Next; Next += 0x01100 * 8 * 8;
 	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
 	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
 
@@ -1064,15 +1064,15 @@ static void GalagaRenderTilemap()
 			if (x > 8 && x < 280 && y > 8 && y < 216) 
          {
 				if (machine.FlipScreen) {
-					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+					Render8x8Tile_FlipXY(pTransDraw, Code, x, y, Colour, 2, 0, graphics.fgChars);
 				} else {
-					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+					Render8x8Tile(pTransDraw, Code, x, y, Colour, 2, 0, graphics.fgChars);
 				}
 			} else {
 				if (machine.FlipScreen) {
-					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+					Render8x8Tile_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.fgChars);
 				} else {
-					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.Chars);
+					Render8x8Tile_Clip(pTransDraw, Code, x, y, Colour, 2, 0, graphics.fgChars);
 				}
 			}
 		}
@@ -1306,7 +1306,6 @@ static void DigDugZ80Writeb840(UINT16 offset, UINT8 dta);
 static void DigDugZ80WriteIoChip(UINT16 offset, UINT8 dta);
 static INT32 DigDugDraw(void);
 static void DigDugCalcPalette(void);
-static void DigDugRenderTiles(void);
 static void DigDugRenderSprites(void);
 
 static struct CPU_Rd_Table DigDugZ80ReadList[] =
@@ -1339,9 +1338,12 @@ static struct CPU_Wr_Table DigDugZ80WriteList[] =
 
 };
 
-static INT32 DigdugCharPlaneOffsets[2] = { 0 };
-static INT32 DigdugCharXOffsets[8] = { STEP8(7,-1) };
-static INT32 DigdugCharYOffsets[8] = { STEP8(0,8) };
+static INT32 DigdugCharsPlaneOffsets[2] = { 0 };
+static INT32 DigdugCharsXOffsets[8] = { STEP8(7,-1) };
+static INT32 DigdugCharsYOffsets[8] = { STEP8(0,8) };
+
+#define DIGDUG_NO_OF_COLS  36
+#define DIGDUG_NO_OF_ROWS  28
 
 static INT32 DigdugInit()
 {
@@ -1374,7 +1376,7 @@ static INT32 DigdugInit()
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 8x8 (in digdug)
 	if (0 != BurnLoadRom(DrvTempRom,                   7, 1)) return 1;
-	GfxDecode(0x80, 1, 8, 8, DigdugCharPlaneOffsets, DigdugCharXOffsets, DigdugCharYOffsets, 0x40, DrvTempRom, graphics.Chars2);
+	GfxDecode(0x80, 1, 8, 8, DigdugCharsPlaneOffsets, DigdugCharsXOffsets, DigdugCharsYOffsets, 0x40, DrvTempRom, graphics.fgChars);
 	
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x10000);
@@ -1387,7 +1389,7 @@ static INT32 DigdugInit()
 	memset(DrvTempRom, 0, 0x10000);
 	// Load and decode the chars 2bpp
 	if (0 != BurnLoadRom(DrvTempRom,                   12, 1)) return 1;
-	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.Chars);
+	GfxDecode(0x100, 2, 8, 8, CharPlaneOffsets, CharXOffsets, CharYOffsets, 0x80, DrvTempRom, graphics.bgTiles);
 
 	// Load gfx4 - the playfield data
 	if (0 != BurnLoadRom(PlayFieldData,                13, 1)) return 1;
@@ -1429,15 +1431,61 @@ static INT32 DigDugMemIndex()
 
 	memory.RAM.Size            = Next - memory.RAM.Start;
 
-	graphics.Chars2            = Next; Next += 0x00180 * 8 * 8;
 	PlayFieldData              = Next; Next += 0x01000;
-	graphics.Chars             = Next; Next += 0x01100 * 8 * 8;
-	graphics.Sprites           = Next; Next += 0x01100 * 16 * 16;
+	graphics.fgChars           = Next; Next += 0x00080 * 8 * 8 * 1;
+	graphics.bgTiles           = Next; Next += 0x00100 * 8 * 8 * 2;
+	graphics.Sprites           = Next; Next += 0x00100 * 16 * 16 * 2;
 	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
 
 	memory.All.Size            = Next - memory.All.Start;
 
 	return 0;
+}
+
+static tilemap_scan (digdug_bg )
+{
+	INT32 offs;
+
+	row += 2;
+	col -= 2;
+	if (col & 0x20)
+		offs = row + ((col & 0x1f) << 5);
+	else
+		offs = col + (row << 5);
+
+	return offs;
+}
+
+static tilemap_callback ( digdug_bg )
+{
+	UINT8 *pf = PlayFieldData + (playfield << 10);
+   INT8 pfval = pf[offs & 0xfff];
+   INT32 pfColour = (pfval >> 4) + (playcolor << 4);
+   
+	TILE_SET_INFO(0, pfval, pfColour, 0);
+}
+
+static tilemap_scan (digdug_fg )
+{
+   INT32 row2 = row + 2;
+   INT32 col2 = col - 2;
+
+	if (col2 & 0x20)
+   {
+		return (row2 + ((col2 & 0x1f) << 5));
+	}
+   
+   return (col2 + (row2 << 5));
+
+}
+
+static tilemap_callback ( digdug_fg )
+{
+   INT32 Code = memory.RAM.Video[offs];
+   INT32 Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
+   Code &= 0x7f;
+
+	TILE_SET_INFO(1, Code, Colour, 0);
 }
 
 static void DigDugMachineInit()
@@ -1485,6 +1533,15 @@ static void DigDugMachineInit()
    machine.wrAddrList = DigDugZ80WriteList;
    
 	GenericTilesInit();
+   GenericTilemapInit(0, digdug_bg_map_scan, digdug_bg_map_callback, 8, 8, 36, 28);
+	GenericTilemapSetGfx(0, graphics.bgTiles, 2, 8, 8, 0x04000, 0x100, 0xff);
+	GenericTilemapSetTransparent(0, 0);
+	
+   GenericTilemapInit(1, digdug_fg_map_scan, digdug_fg_map_callback, 8, 8, 36, 28);
+	GenericTilemapSetGfx(1, graphics.fgChars, 1, 8, 8, 0x4000, 0x0, 0x1f);
+	GenericTilemapSetTransparent(1, 0);
+   
+	GenericTilemapSetOffsets(TMAP_GLOBAL, 0, 0);
 
 	earom_init();
 
@@ -1611,8 +1668,17 @@ static INT32 DigDugDraw()
 {
 	BurnTransferClear();
 	DigDugCalcPalette();
-	DigDugRenderTiles();
-	DigDugRenderSprites();
+
+	GenericTilemapSetScrollX(0, 0);
+	GenericTilemapSetScrollY(0, 0);
+   GenericTilemapSetOffsets(0, 0, 0);
+   GenericTilemapSetEnable(0, (0 == playenable));
+   GenericTilemapSetEnable(1, 1);
+   GenericTilemapDraw(0, pTransDraw, 0 | TMAP_DRAWOPAQUE);
+	GenericTilemapDraw(1, pTransDraw, 0 | TMAP_TRANSPARENT);
+
+   DigDugRenderSprites();
+
 	BurnTransferCopy(graphics.Palette);
 	return 0;
 }
@@ -1647,81 +1713,6 @@ static void DigDugCalcPalette()
 	for (INT32 i = 0; i < 0x100; i ++) 
    {
 		graphics.Palette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
-	}
-}
-
-static void DigDugRenderTiles()
-{
-	INT32 TileIndex;
-	UINT8 *pf = PlayFieldData + (playfield << 10);
-	UINT8 pfval;
-	UINT32 pfcolor = playcolor << 4;
-
-	if (playenable != 0)
-		pf = NULL;
-
-	for (INT32 mx = 0; mx < 28; mx ++) 
-   {
-		for (INT32 my = 0; my < 36; my ++) 
-      {
-			INT32 Row = mx + 2;
-			INT32 Col = my - 2;
-			if (Col & 0x20) 
-         {
-				TileIndex = Row + ((Col & 0x1f) << 5);
-			} else {
-				TileIndex = Col + (Row << 5);
-			}
-
-			INT32 Code = memory.RAM.Video[TileIndex];
-			INT32 Colour = ((Code >> 4) & 0x0e) | ((Code >> 3) & 2);
-			Code &= 0x7f;
-
-			INT32 y = 8 * mx;
-			INT32 x = 8 * my;
-			
-			if (machine.FlipScreen) 
-         {
-				x = 280 - x;
-				y = 216 - y;
-			}
-
-			if (pf) 
-         {
-				// Draw playfield / background
-				pfval = pf[TileIndex & 0xfff];
-				INT32 pfColour = (pfval >> 4) + pfcolor;
-				if (x > 8 && x < 280 && y > 8 && y < 216) 
-            {
-					if (machine.FlipScreen) {
-						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					} else {
-						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					}
-				} else {
-					if (machine.FlipScreen) {
-						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					} else {
-						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
-					}
-				}
-			}
-
-			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
-         {
-				if (machine.FlipScreen) {
-					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
-				} else {
-					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
-				}
-			} else {
-				if (machine.FlipScreen) {
-					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
-				} else {
-					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
-				}
-			}
-		}
 	}
 }
 
@@ -1985,6 +1976,7 @@ static UINT8 XeviousPlayFieldRead(UINT16 Offset);
 static UINT8 XeviousZ80ReadInputs(UINT16 Offset);
 static void Xevious_bs_wr(UINT16 Offset, UINT8 dta);
 static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta);
+static void Xevious_vh_latch_w(UINT16 Offset, UINT8 dta);
 static INT32 XeviousDraw(void);
 static void XeviousCalcPalette(void);
 static void XeviousRenderTiles(void);
@@ -1993,15 +1985,14 @@ static void XeviousRenderSprites(void);
 static struct CPU_Rd_Table XeviousZ80ReadList[] =
 {
 	{ 0x6800, 0x6807, NamcoZ80ReadDip            }, 
-   { 0xf000, 0xffff, XeviousPlayFieldRead       },
    { 0x7000, 0x700f, XeviousZ80ReadInputs       },
 	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd          },
+   { 0xf000, 0xffff, XeviousPlayFieldRead       },
    { 0x0000, 0x0000, NULL                       },
 };
 
 static struct CPU_Wr_Table XeviousZ80WriteList[] = 
 {
-   { 0x0000, 0xefff, Xevious_bs_wr              },
 	{ 0x6800, 0x681f, NamcoZ80WriteSound         },
    { 0x6820, 0x6820, NamcoZ80WriteCPU1Irq       },
 	{ 0x6821, 0x6821, NamcoZ80WriteCPU2Irq       },
@@ -2011,7 +2002,8 @@ static struct CPU_Wr_Table XeviousZ80WriteList[] =
 	{ 0x7000, 0x700f, NamcoZ80WriteIoChip        },
    { 0x7008, 0x7008, XeviousZ80WriteIoChip      },
 	{ 0x7100, 0x7100, NamcoZ80WriteIoCmd         },
-	{ 0xa007, 0xa007, NamcoZ80WriteFlipScreen    },
+   { 0xd000, 0xd07f, Xevious_vh_latch_w         },
+   { 0xf000, 0xffff, Xevious_bs_wr              },
    { 0x0000, 0x0000, NULL                       },
 };
 
@@ -2100,6 +2092,11 @@ static struct PlaneOffsets
 
 static UINT8 xevious_bs[2];
 
+static UINT8 *xevious_fg_videoram;
+static UINT8 *xevious_fg_colorram;
+static UINT8 *xevious_bg_videoram;
+static UINT8 *xevious_bg_colorram;
+
 static INT32 XeviousInit()
 {
 	bprintf(PRINT_NORMAL, _T("Xevious: Init\n"));
@@ -2147,7 +2144,7 @@ static INT32 XeviousInit()
    /* 8 x 8 characters */
    /* every char takes 8 consecutive bytes */
 	if (0 != BurnLoadRom(DrvTempRom,                      7,  1)) return 1;
-	GfxDecode(0x200, 1, 8, 8, xeviousOffsets.fgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars);
+	GfxDecode(0x200, 1, 8, 8, xeviousOffsets.fgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.fgChars);
 
 	bprintf(PRINT_NORMAL, _T("Xevious: 1bit Chars decoded\n"));
 	
@@ -2159,7 +2156,7 @@ static INT32 XeviousInit()
 	memset(DrvTempRom, 0, 0x02000);
 	if (0 != BurnLoadRom(DrvTempRom,                      8,  1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x01000,            9,  1)) return 1;
-	GfxDecode(0x200, 2, 8, 8, xeviousOffsets.bgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.Chars2);
+	GfxDecode(0x200, 2, 8, 8, xeviousOffsets.bgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.bgTiles);
 
 	bprintf(PRINT_NORMAL, _T("Xevious: 2bit chars decoded\n"));
 
@@ -2252,9 +2249,9 @@ static INT32 XeviousMemIndex()
 
 	memory.RAM.Size = Next - memory.RAM.Start;
 
-	graphics.Chars2 = Next;             Next += 0x00200 * 8 * 8;
+	graphics.bgTiles = Next;            Next += 0x00200 * 8 * 8;
 	PlayFieldData = Next;               Next += 0x04000;
-	graphics.Chars = Next;              Next += 0x00200 * 8 * 8;
+	graphics.fgChars = Next;            Next += 0x00200 * 8 * 8;
 	graphics.Sprites = Next;            Next += 0x00240 * 16 * 16;
 	graphics.Palette = (UINT32*)Next;   Next += 0x300 * sizeof(UINT32);
 
@@ -2263,6 +2260,14 @@ static INT32 XeviousMemIndex()
    return 0;
 }
 
+/*
+static tilemap_callback ( xevious )
+{
+   UINT8 code = xevious_bg_videoram[offs];
+   UINT8 attr = xevious_bg_colorram[offs];
+   TILE_SET_INFO(0, code, attr, 0);
+}
+*/
 static void XeviousMachineInit()
 {
 	ZetInit(0);
@@ -2307,8 +2312,18 @@ static void XeviousMachineInit()
    machine.rdAddrList = XeviousZ80ReadList;
    machine.wrAddrList = XeviousZ80WriteList;
    
+   xevious_fg_colorram = memory.RAM.Video;            // 0xb000 - 0xb7ff
+   xevious_bg_colorram = memory.RAM.Video + 0x0800;   // 0xb800 - 0xbfff
+   xevious_fg_videoram = memory.RAM.Video + 0x1000;   // 0xc000 - 0xc7ff
+   xevious_bg_videoram = memory.RAM.Video + 0x1800;   // 0xc800 - 0xcfff
+   
 	GenericTilesInit();
-
+/*
+   GenericTilemapInit(0, TILEMAP_SCAN_ROWS, xevious_map_callback, 8, 8, 64, 32);
+	GenericTilemapSetGfx(0, PlayFieldData, 4, 8, 8, 0x4000, 0, 0x7f);
+	GenericTilemapSetTransparent(0, 0);
+	GenericTilemapSetOffsets(0, 0, 0);
+*/
 	// Reset the driver
 	DrvDoReset();
 }
@@ -2441,12 +2456,45 @@ static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta)
    }
 }
 
+static void Xevious_vh_latch_w(UINT16 Offset, UINT8 dta)
+{
+   //UINT16 dta16 = dta + ((Offset & 1) << 8);
+   UINT16 reg = (Offset & 0xf0) >> 4;
+   
+   switch (reg)
+   {
+      case 0:
+      {
+         // set bg tilemap x
+      }
+      case 1:
+      {
+         // set fg tilemap x
+      }
+      case 2:
+      {
+         // set fg tilemap y
+      }
+      case 3:
+      {
+         // set bg tilemap y
+      }
+      case 7:
+      {
+      }
+      default:
+      {
+      }
+   }
+}
+
 static INT32 XeviousDraw()
 {
 	BurnTransferClear();
 	XeviousCalcPalette();
-	XeviousRenderTiles();
+//	XeviousRenderTiles();
 	XeviousRenderSprites();
+//	XeviousRenderFG();
 	BurnTransferCopy(graphics.Palette);
 	return 0;
 }
@@ -2539,15 +2587,15 @@ static void XeviousRenderTiles()
 				if (x > 8 && x < 280 && y > 8 && y < 216) 
             {
 					if (machine.FlipScreen) {
-						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+						Render8x8Tile_FlipXY(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.bgTiles);
 					} else {
-						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+						Render8x8Tile(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.bgTiles);
 					}
 				} else {
 					if (machine.FlipScreen) {
-						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+						Render8x8Tile_FlipXY_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.bgTiles);
 					} else {
-						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.Chars);
+						Render8x8Tile_Clip(pTransDraw, pfval, x, y, pfColour, 2, 0x100, graphics.bgTiles);
 					}
 				}
 			}
@@ -2555,15 +2603,15 @@ static void XeviousRenderTiles()
 			if (x >= 0 && x <= 288 && y >= 0 && y <= 224) 
          {
 				if (machine.FlipScreen) {
-					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+					Render8x8Tile_Mask_FlipXY(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.fgChars);
 				} else {
-					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+					Render8x8Tile_Mask(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.fgChars);
 				}
 			} else {
 				if (machine.FlipScreen) {
-					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+					Render8x8Tile_Mask_FlipXY_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.fgChars);
 				} else {
-					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.Chars2);
+					Render8x8Tile_Mask_Clip(pTransDraw, Code, x, y, Colour, 1, 0, 0, graphics.fgChars);
 				}
 			}
 		}
