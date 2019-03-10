@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12002 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12008 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -4837,6 +4837,8 @@ This list contains all games supported by FB Alpha.
 | msx_keykaper	|  	| Keystone Kapers (Jpn)					| 		| 1984	| Pony Canyon	| MSX		| 					|
 | cv_keykaper	|  	| Keystone Kapers					| 		| 1984	| Activision	| ColecoVision	| 					|
 | msx_khazzad	|  	| Khazzad-Dum (Spa)					| 		| 1989	| System 4	| MSX		| 					|
+| kicknrunu	|  	| Kick and Run (US)					| kicknrun	| 1986	| Taito America | Miscellaneous	| 					|
+| kicknrun	|  	| Kick and Run (World)					| 		| 1986	| Taito Corporat| Miscellaneous	| 					|
 | gg_kickrush	|  	| Kick and Rush (Jpn)					| gg_tengenwc	| 1993	| SIMS		| Sega Game Gear| 					|
 | kickboy	|  	| Kick Boy						| 		| 1983	| Nichibutsu	| Miscellaneous	| 					|
 | kftgoal	| D NW	| Kick for the Goal					| wpksoc	| 1995	| Jaleco	| Irem M107	| 					|
@@ -4858,6 +4860,7 @@ This list contains all games supported by FB Alpha.
 | horekidb	|  	| Kid no Hore Hore Daisakusen (bootleg)			| horekid	| 1987	| bootleg	| Miscellaneous	| 					|
 | horekid	|  	| Kid no Hore Hore Daisakusen				| 		| 1987	| Nichibutsu	| Miscellaneous	| 					|
 | md_patlabor	|  	| Kidou Keisatsu Patlabor - 98-shiki Kidou Seyo! (Jpn)	| 		| 1992	| Ma-Ba		| Sega Megadrive| 					|
+| kikikai	|  	| KiKi KaiKai						| 		| 1986	| Taito Corporat| Miscellaneous	| 					|
 | pce_kikikai	|  	| Kiki KaiKai						| 		| 1990	| Taito		| PC Engine	| 					|
 | spec_kikstrt2	|  	| Kikstart 2 (48K)					| 		| 1988	| Mastertronic	| ZX Spectrum	| 					|
 | msx_killmice	|  	| Kill Mice						| 		| 2011	| Gamecast Enter| MSX		| 					|
@@ -4929,6 +4932,7 @@ This list contains all games supported by FB Alpha.
 | klax5bl	| D NW	| Klax (version 5, bootleg set 1)			| klax		| 1989	| bootleg	| Miscellaneous	| 					|
 | pce_klax	|  	| Klax							| 		| 1990	| Tengen	| PC Engine	| 					|
 | tg_klax	|  	| Klax							| 		| 1990	| Tengen	| TurboGrafx 16	| 					|
+| knightb	|  	| Knight Boy						| kikikai	| 1986	| bootleg	| Miscellaneous	| 					|
 | spec_kniglore	|  	| Knight Lore (48K)					| 		| 1984	| Ultimate Play | ZX Spectrum	| 					|
 | msx_knightlr	|  	| Knight Lore (Jpn)					| 		| 1986	| Nihon Dexter	| MSX		| 					|
 | pce_knightrs	|  	| Knight Rider Special					| 		| 1989	| Pack-In-Video	| PC Engine	| 					|
@@ -5784,6 +5788,8 @@ This list contains all games supported by FB Alpha.
 | meteorts	|  	| Meteorites (VGG bootleg of Asteroids)			| asteroid	| 1979	| bootleg (VGG)	| Miscellaneous	| 					|
 | metrocrs	|  	| Metro-Cross (set 1)					| 		| 1985	| Namco		| Miscellaneous	| 					|
 | metrocrsa	|  	| Metro-Cross (set 2)					| metrocrs	| 1985	| Namco		| Miscellaneous	| 					|
+| mexico86	|  	| Mexico 86 (bootleg of Kick and Run) (set 1)		| kicknrun	| 1986	| bootleg	| Miscellaneous	| 					|
+| mexico86a	| D NW	| Mexico 86 (bootleg of Kick and Run) (set 2)		| kicknrun	| 1986	| bootleg	| Miscellaneous	| 					|
 | mwalkbl2	|  	| Michael Jackson's Moonwalker (bootleg)		| mwalk		| 1990	| bootleg	| System 18	| 					|
 | sms_mwalk	|  	| Michael Jackson's Moonwalker (Euro, USA, Bra, Kor)	| 		| 1990	| Sega		| Sega Master Sy| 					|
 | mwalkjd	|  	| Michael Jackson's Moonwalker (Japan) (bootleg of FD109| mwalk		| 1990	| Sega		| System 18	| 					|

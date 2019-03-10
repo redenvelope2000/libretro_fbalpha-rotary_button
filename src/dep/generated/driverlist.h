@@ -4947,6 +4947,8 @@ DRV		BurnDrvKet;
 DRV		BurnDrvMSX_keykaper;
 DRV		BurnDrvcv_keykaper;
 DRV		BurnDrvMSX_khazzad;
+DRV		BurnDrvKicknrunu;
+DRV		BurnDrvKicknrun;
 DRV		BurnDrvgg_kickrush;
 DRV		BurnDrvKickboy;
 #if defined FBA_DEBUG
@@ -4970,6 +4972,7 @@ DRV		BurnDrvKidniki;
 DRV		BurnDrvHorekidb;
 DRV		BurnDrvHorekid;
 DRV		BurnDrvmd_patlabor;
+DRV		BurnDrvKikikai;
 DRV		BurnDrvpce_kikikai;
 DRV		BurnSpeckikstrt2;
 DRV		BurnDrvMSX_killmice;
@@ -5045,6 +5048,7 @@ DRV		BurnDrvKlax5bl;			// no comment [NOT WORKING]
 #endif
 DRV		BurnDrvpce_klax;
 DRV		BurnDrvtg_klax;
+DRV		BurnDrvKnightb;
 DRV		BurnSpeckniglore;
 DRV		BurnDrvMSX_knightlr;
 DRV		BurnDrvpce_knightrs;
@@ -5910,6 +5914,10 @@ DRV		BurnDrvMeteorite;
 DRV		BurnDrvMeteorts;
 DRV		BurnDrvMetrocrs;
 DRV		BurnDrvMetrocrsa;
+DRV		BurnDrvMexico86;
+#if defined FBA_DEBUG
+DRV		BurnDrvMexico86a;		// no comment [NOT WORKING]
+#endif
 DRV		BurnDrvMWalkbl2;
 DRV		BurnDrvsms_mwalk;
 DRV		BurnDrvMWalkjd;
@@ -17218,6 +17226,8 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvMSX_keykaper,		// Keystone Kapers (Jpn)
 	&BurnDrvcv_keykaper,		// Keystone Kapers
 	&BurnDrvMSX_khazzad,		// Khazzad-Dum (Spa)
+	&BurnDrvKicknrunu,			// Kick and Run (US)
+	&BurnDrvKicknrun,			// Kick and Run (World)
 	&BurnDrvgg_kickrush,		// Kick and Rush (Jpn)
 	&BurnDrvKickboy,			// Kick Boy
 #if defined FBA_DEBUG
@@ -17241,6 +17251,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvHorekidb,			// Kid no Hore Hore Daisakusen (bootleg)
 	&BurnDrvHorekid,			// Kid no Hore Hore Daisakusen
 	&BurnDrvmd_patlabor,		// Kidou Keisatsu Patlabor - 98-shiki Kidou Seyo! (Jpn)
+	&BurnDrvKikikai,			// KiKi KaiKai
 	&BurnDrvpce_kikikai,		// Kiki KaiKai
 	&BurnSpeckikstrt2,			// Kikstart 2 (48K)
 	&BurnDrvMSX_killmice,		// Kill Mice
@@ -17316,6 +17327,7 @@ static struct BurnDriver* pDriver[] = {
 #endif
 	&BurnDrvpce_klax,			// Klax
 	&BurnDrvtg_klax,			// Klax
+	&BurnDrvKnightb,			// Knight Boy
 	&BurnSpeckniglore,			// Knight Lore (48K)
 	&BurnDrvMSX_knightlr,		// Knight Lore (Jpn)
 	&BurnDrvpce_knightrs,		// Knight Rider Special
@@ -18181,6 +18193,10 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvMeteorts,			// Meteorites (VGG bootleg of Asteroids)
 	&BurnDrvMetrocrs,			// Metro-Cross (set 1)
 	&BurnDrvMetrocrsa,			// Metro-Cross (set 2)
+	&BurnDrvMexico86,			// Mexico 86 (bootleg of Kick and Run) (set 1)
+#if defined FBA_DEBUG
+	&BurnDrvMexico86a,			// Mexico 86 (bootleg of Kick and Run) (set 2) [no comment, NOT WORKING]
+#endif
 	&BurnDrvMWalkbl2,			// Michael Jackson's Moonwalker (bootleg)
 	&BurnDrvsms_mwalk,			// Michael Jackson's Moonwalker (Euro, USA, Bra, Kor)
 	&BurnDrvMWalkjd,			// Michael Jackson's Moonwalker (Japan) (bootleg of FD1094/8751 317-0157 set)
