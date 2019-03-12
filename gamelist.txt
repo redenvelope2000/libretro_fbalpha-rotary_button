@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12008 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12009 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -259,7 +259,7 @@ This list contains all games supported by FB Alpha.
 | msx_albatros	|  	| Albatross (Jpn)					| 		| 1986	| Nihon Telenet	| MSX		| 					|
 | msx_albatrosa	|  	| Albatross (Jpn, Alt)					| msx_albatros	| 1986	| Nihon Telenet	| MSX		| 					|
 | cv_alcazar	|  	| Alcazar: The Forgotten Fortress			| 		| 1985	| Telegames	| ColecoVision	| 					|
-| alcon		|  	| Alcon (US)						| 		| 1986	| Toaplan / Tait| Early Toaplan	| 					|
+| alcon		|  	| Alcon (US)						| 		| 1986	| Toaplan / Tait| Miscellaneous	| 					|
 | sgx_aldynes	|  	| Aldynes						| 		| 1991	| Hudson	| SuperGrafx	| 					|
 | msx_alehop	|  	| Ale Hop!						| 		| 1988	| Topo Soft	| MSX		| 					|
 | sms_aleste	|  	| Aleste (Jpn)						| sms_pstrike	| 1988	| Sega		| Sega Master Sy| 					|
@@ -3761,9 +3761,9 @@ This list contains all games supported by FB Alpha.
 | md_georgekou	|  	| George Foreman's KO Boxing (USA)			| md_georgeko	| 1992	| Flying Edge	| Sega Megadrive| 					|
 | geostorm	|  	| Geostorm (Japan)					| gunforc2	| 1994	| Irem		| Irem M92	| 					|
 | sms_gerald	|  	| Geraldinho (Bra)					| sms_teddyboy	| 19??	| Tec Toy	| Sega Master Sy| 					|
-| getstarb1	|  	| Get Star (bootleg, set 1)				| grdian	| 1986	| bootleg	| Early Toaplan	| 					|
-| getstarb2	|  	| Get Star (bootleg, set 2)				| grdian	| 1986	| bootleg	| Early Toaplan	| 					|
-| getstarj	|  	| Get Star (Japan)					| grdian	| 1986	| Toaplan / Tait| Early Toaplan	| 					|
+| getstarb1	|  	| Get Star (bootleg set 1)				| grdian	| 1986	| bootleg	| Miscellaneous	| 					|
+| getstarb2	|  	| Get Star (bootleg set 2)				| grdian	| 1986	| bootleg	| Miscellaneous	| 					|
+| getstarj	|  	| Get Star (Japan)					| grdian	| 1986	| Toaplan / Tait| Miscellaneous	| 					|
 | gg_ggaleste	|  	| GG Aleste (Jpn)					| 		| 1991	| Compile	| Sega Game Gear| 					|
 | gg_ggdora	|  	| GG Doraemon - Noranosuke no Yabou (Jpn)		| 		| 1993	| Sega		| Sega Game Gear| 					|
 | gg_ggport	|  	| GG Portrait - Pai Chen (Jpn)				| 		| 1996	| Sega		| Sega Game Gear| 					|
@@ -4045,10 +4045,10 @@ This list contains all games supported by FB Alpha.
 | spec_gryzor_48|  	| Gryzor (48K)						| spec_gryzor	| 1987	| Ocean		| ZX Spectrum	| 					|
 | gryzor	|  	| Gryzor (Set 1)					| contra	| 1987	| Konami	| GX633		| 					|
 | gryzor1	|  	| Gryzor (Set 2)					| contra	| 1987	| Konami	| GX633		| 					|
+| grdian	|  	| Guardian (US)						| 		| 1986	| Toaplan / Tait| Miscellaneous	| 					|
 | grdnstrmg	|  	| Guardian Storm (Germany)				| grdnstrm	| 1998	| Afega		| NMK16		| 					|
 | grdnstrm	|  	| Guardian Storm (horizontal, not encrypted)		| 		| 1998	| Afega (Apples | NMK16		| 					|
 | grdnstrmv	|  	| Guardian Storm (vertical)				| grdnstrm	| 1998	| Afega (Apples | NMK16		| 					|
-| grdian	|  	| Guardian						| 		| 1986	| Toaplan / Tait| Early Toaplan	| 					|
 | grdians	|  	| Guardians\0Denjin Makai II				| 		| 1995	| Banpresto	| Newer Seta	| Imperfect graphics @ game start cutsce|
 | msx_guardic	|  	| Guardic (Jpn)						| 		| 1986	| Compile	| MSX		| 					|
 | msx_guardica	|  	| Guardic (Jpn, Alt)					| msx_guardic	| 1986	| Compile	| MSX		| 					|
@@ -6998,8 +6998,8 @@ This list contains all games supported by FB Alpha.
 | pbillrdsa	|  	| Perfect Billiard (MC-8123, 317-5008)			| pbillrd	| 1987	| Nihon System	| Miscellaneous	| 					|
 | pbillrd	|  	| Perfect Billiard					| 		| 1987	| Nihon System	| Miscellaneous	| 					|
 | psoldier	|  	| Perfect Soldiers (Japan)				| ssoldier	| 1993	| Irem		| Irem M92	| 					|
-| perfrman	|  	| Performan (Japan)					| 		| 1985	| Toaplan / Data| Early Toaplan	| 					|
-| perfrmanu	|  	| Performan (US)					| perfrman	| 1985	| Toaplan / Data| Early Toaplan	| 					|
+| perfrman	|  	| Performan (Japan)					| 		| 1985	| Toaplan / Data| Miscellaneous	| 					|
+| perfrmanu	|  	| Performan (US)					| perfrman	| 1985	| Toaplan / Data| Miscellaneous	| 					|
 | msx_perspective|  	| Perspective (v1.1)					| 		| 1987	| T.Yoshida	| MSX		| 					|
 | pestplce	|  	| Pest Place						| mario		| 1983	| bootleg	| Miscellaneous	| 					|
 | gg_inudais	|  	| Pet Club Inu Daisuki! (Jpn)				| 		| 1996	| Sega		| Sega Game Gear| 					|
@@ -8581,10 +8581,11 @@ This list contains all games supported by FB Alpha.
 | md_slamshaq	|  	| Slam - Shaq vs. the Legends (Prototype)		| 		| 199?	| <unknown>	| Sega Megadrive| 					|
 | spec_slapfigh	|  	| Slap Fight (128K)					| 		| 1987	| Imagine Softwa| ZX Spectrum	| 					|
 | spec_slapfigh_48|  	| Slap Fight (48K)					| spec_slapfigh	| 1987	| Imagine Softwa| ZX Spectrum	| 					|
-| slapfighb1	|  	| Slap Fight (bootleg set 1)				| alcon		| 1986	| bootleg	| Early Toaplan	| 					|
-| slapfighb2	|  	| Slap Fight (bootleg set 2)				| alcon		| 1986	| bootleg	| Early Toaplan	| 					|
-| slapfighb3	|  	| Slap Fight (bootleg set 3)				| alcon		| 1986	| bootleg	| Early Toaplan	| 					|
-| slapfigh	|  	| Slap Fight (Japan set 1)				| alcon		| 1986	| Toaplan / Tait| Early Toaplan	| 					|
+| slapfigha	|  	| Slap Fight (A76 set, GX-006-A PCB)			| alcon		| 1986	| Toaplan / Tait| Miscellaneous	| 					|
+| slapfigh	|  	| Slap Fight (A77 set, 8606M PCB)			| alcon		| 1986	| Toaplan / Tait| Miscellaneous	| 					|
+| slapfighb1	|  	| Slap Fight (bootleg set 1)				| alcon		| 1986	| bootleg	| Miscellaneous	| 					|
+| slapfighb2	|  	| Slap Fight (bootleg set 2)				| alcon		| 1986	| bootleg	| Miscellaneous	| 					|
+| slapfighb3	|  	| Slap Fight (bootleg set 3)				| alcon		| 1986	| bootleg	| Miscellaneous	| 					|
 | md_slapfigh	|  	| Slap Fight MD (Jpn)					| 		| 1993	| Tengen	| Sega Megadrive| 					|
 | sms_slapshotp	|  	| Slap Shoot (Prototype)				| sms_slapshot	| 1990	| Sega		| Sega Master Sy| 					|
 | slapshtr	|  	| Slap Shooter						| 		| 1986	| Sega		| System E	| 					|
@@ -10696,11 +10697,11 @@ This list contains all games supported by FB Alpha.
 | thunderja	|  	| ThunderJaws (rev 2)					| thunderj	| 1990	| Atari Games	| Miscellaneous	| 					|
 | thunderj	|  	| ThunderJaws (rev 3)					| 		| 1990	| Atari Games	| Miscellaneous	| 					|
 | msx_titipang	|  	| Ti Ti! Pang Pang! (Kor)				| 		| 1989	| Aproman	| MSX		| 					|
-| tigerhb1	|  	| Tiger Heli (bootleg, set 1)				| tigerh	| 1985	| bootleg	| Early Toaplan	| 					|
-| tigerhb2	|  	| Tiger Heli (bootleg, set 2)				| tigerh	| 1985	| bootleg	| Early Toaplan	| 					|
-| tigerhb3	|  	| Tiger Heli (bootleg, set 3)				| tigerh	| 1985	| bootleg	| Early Toaplan	| 					|
-| tigerhj	|  	| Tiger Heli (Japan)					| tigerh	| 1985	| Toaplan / Tait| Early Toaplan	| 					|
-| tigerh	|  	| Tiger Heli (US)					| 		| 1985	| Toaplan / Tait| Early Toaplan	| 					|
+| tigerhb1	|  	| Tiger Heli (bootleg set 1)				| tigerh	| 1985	| bootleg	| Miscellaneous	| 					|
+| tigerhb2	|  	| Tiger Heli (bootleg set 2)				| tigerh	| 1985	| bootleg	| Miscellaneous	| 					|
+| tigerhb3	|  	| Tiger Heli (bootleg set 3)				| tigerh	| 1985	| bootleg	| Miscellaneous	| 					|
+| tigerhj	|  	| Tiger Heli (Japan)					| tigerh	| 1985	| Toaplan / Tait| Miscellaneous	| 					|
+| tigerh	|  	| Tiger Heli (US)					| 		| 1985	| Toaplan / Tait| Miscellaneous	| 					|
 | spec_tigeroad	|  	| Tiger Road (128K)					| 		| 1988	| Go!		| ZX Spectrum	| 					|
 | spec_tigeroad_48|  	| Tiger Road (48K)					| spec_tigeroad	| 1988	| Go!		| ZX Spectrum	| 					|
 | tigeroadb	|  	| Tiger Road (US bootleg, set 1)			| tigeroad	| 1987	| bootleg	| Miscellaneous	| 					|

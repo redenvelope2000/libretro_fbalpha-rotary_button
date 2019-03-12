@@ -3845,9 +3845,9 @@ DRV		BurnDrvgg_georgeko;
 DRV		BurnDrvmd_georgekou;
 DRV		BurnDrvGeostorm;
 DRV		BurnDrvsms_gerald;
-DRV		BurnDrvGetStarb1;
-DRV		BurnDrvGetStarb2;
-DRV		BurnDrvGetStarj;
+DRV		BurnDrvGetstarb1;
+DRV		BurnDrvGetstarb2;
+DRV		BurnDrvGetstarj;
 DRV		BurnDrvgg_ggaleste;
 DRV		BurnDrvgg_ggdora;
 DRV		BurnDrvgg_ggport;
@@ -4133,10 +4133,10 @@ DRV		BurnSpecgryzor;
 DRV		BurnSpecgryzor_48;
 DRV		BurnDrvGryzor;
 DRV		BurnDrvGryzor1;
+DRV		BurnDrvGrdian;
 DRV		BurnDrvGrdnstrmg;
 DRV		BurnDrvGrdnstrm;
 DRV		BurnDrvGrdnstrmv;
-DRV		BurnDrvGetStar;
 DRV		BurnDrvGrdians;
 DRV		BurnDrvMSX_guardic;
 DRV		BurnDrvMSX_guardica;
@@ -8771,10 +8771,11 @@ DRV		BurnDrvMSX_skygaldo;
 DRV		BurnDrvmd_slamshaq;
 DRV		BurnSpecslapfigh;
 DRV		BurnSpecslapfigh_48;
-DRV		BurnDrvSlapBtJP;
-DRV		BurnDrvSlapBtUK;
-DRV		BurnDrvSlapFghtr;
-DRV		BurnDrvSlapFigh;
+DRV		BurnDrvSlapfigha;
+DRV		BurnDrvSlapfigh;
+DRV		BurnDrvSlapfighb1;
+DRV		BurnDrvSlapfighb2;
+DRV		BurnDrvSlapfighb3;
 DRV		BurnDrvmd_slapfigh;
 DRV		BurnDrvsms_slapshotp;
 DRV		BurnDrvSlapshtr;
@@ -10918,11 +10919,11 @@ DRV		BurnDrvTndrcade;
 DRV		BurnDrvThunderja;
 DRV		BurnDrvThunderj;
 DRV		BurnDrvMSX_titipang;
-DRV		BurnDrvTigerHB1;
-DRV		BurnDrvTigerHB2;
-DRV		BurnDrvTigerHB3;
-DRV		BurnDrvTigerhJ;
-DRV		BurnDrvTigerH;
+DRV		BurnDrvTigerhb1;
+DRV		BurnDrvTigerhb2;
+DRV		BurnDrvTigerhb3;
+DRV		BurnDrvTigerhj;
+DRV		BurnDrvTigerh;
 DRV		BurnSpectigeroad;
 DRV		BurnSpectigeroad_48;
 DRV		BurnDrvTigeroadb;
@@ -16124,9 +16125,9 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_georgekou,		// George Foreman's KO Boxing (USA)
 	&BurnDrvGeostorm,			// Geostorm (Japan)
 	&BurnDrvsms_gerald,			// Geraldinho (Bra)
-	&BurnDrvGetStarb1,			// Get Star (bootleg, set 1)
-	&BurnDrvGetStarb2,			// Get Star (bootleg, set 2)
-	&BurnDrvGetStarj,			// Get Star (Japan)
+	&BurnDrvGetstarb1,			// Get Star (bootleg set 1)
+	&BurnDrvGetstarb2,			// Get Star (bootleg set 2)
+	&BurnDrvGetstarj,			// Get Star (Japan)
 	&BurnDrvgg_ggaleste,		// GG Aleste (Jpn)
 	&BurnDrvgg_ggdora,			// GG Doraemon - Noranosuke no Yabou (Jpn)
 	&BurnDrvgg_ggport,			// GG Portrait - Pai Chen (Jpn)
@@ -16412,10 +16413,10 @@ static struct BurnDriver* pDriver[] = {
 	&BurnSpecgryzor_48,			// Gryzor (48K)
 	&BurnDrvGryzor,				// Gryzor (Set 1)
 	&BurnDrvGryzor1,			// Gryzor (Set 2)
+	&BurnDrvGrdian,				// Guardian (US)
 	&BurnDrvGrdnstrmg,			// Guardian Storm (Germany)
 	&BurnDrvGrdnstrm,			// Guardian Storm (horizontal, not encrypted)
 	&BurnDrvGrdnstrmv,			// Guardian Storm (vertical)
-	&BurnDrvGetStar,			// Guardian
 	&BurnDrvGrdians,			// Guardians\0Denjin Makai II
 	&BurnDrvMSX_guardic,		// Guardic (Jpn)
 	&BurnDrvMSX_guardica,		// Guardic (Jpn, Alt)
@@ -21050,10 +21051,11 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_slamshaq,		// Slam - Shaq vs. the Legends (Prototype)
 	&BurnSpecslapfigh,			// Slap Fight (128K)
 	&BurnSpecslapfigh_48,		// Slap Fight (48K)
-	&BurnDrvSlapBtJP,			// Slap Fight (bootleg set 1)
-	&BurnDrvSlapBtUK,			// Slap Fight (bootleg set 2)
-	&BurnDrvSlapFghtr,			// Slap Fight (bootleg set 3)
-	&BurnDrvSlapFigh,			// Slap Fight (Japan set 1)
+	&BurnDrvSlapfigha,			// Slap Fight (A76 set, GX-006-A PCB)
+	&BurnDrvSlapfigh,			// Slap Fight (A77 set, 8606M PCB)
+	&BurnDrvSlapfighb1,			// Slap Fight (bootleg set 1)
+	&BurnDrvSlapfighb2,			// Slap Fight (bootleg set 2)
+	&BurnDrvSlapfighb3,			// Slap Fight (bootleg set 3)
 	&BurnDrvmd_slapfigh,		// Slap Fight MD (Jpn)
 	&BurnDrvsms_slapshotp,		// Slap Shoot (Prototype)
 	&BurnDrvSlapshtr,			// Slap Shooter
@@ -23197,11 +23199,11 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvThunderja,			// ThunderJaws (rev 2)
 	&BurnDrvThunderj,			// ThunderJaws (rev 3)
 	&BurnDrvMSX_titipang,		// Ti Ti! Pang Pang! (Kor)
-	&BurnDrvTigerHB1,			// Tiger Heli (bootleg, set 1)
-	&BurnDrvTigerHB2,			// Tiger Heli (bootleg, set 2)
-	&BurnDrvTigerHB3,			// Tiger Heli (bootleg, set 3)
-	&BurnDrvTigerhJ,			// Tiger Heli (Japan)
-	&BurnDrvTigerH,				// Tiger Heli (US)
+	&BurnDrvTigerhb1,			// Tiger Heli (bootleg set 1)
+	&BurnDrvTigerhb2,			// Tiger Heli (bootleg set 2)
+	&BurnDrvTigerhb3,			// Tiger Heli (bootleg set 3)
+	&BurnDrvTigerhj,			// Tiger Heli (Japan)
+	&BurnDrvTigerh,				// Tiger Heli (US)
 	&BurnSpectigeroad,			// Tiger Road (128K)
 	&BurnSpectigeroad_48,		// Tiger Road (48K)
 	&BurnDrvTigeroadb,			// Tiger Road (US bootleg, set 1)
