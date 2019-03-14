@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12009 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12011 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -2498,11 +2498,13 @@ This list contains all games supported by FB Alpha.
 | spec_dizzy7_48|  	| Dizzy VII - Crystal Kingdom Dizzy (48K)		| spec_dizzy7	| 1992	| Codemasters	| ZX Spectrum	| 					|
 | spec_dizzy7r	|  	| Dizzy VII - Crystal Kingdom Dizzy (Russian) (128K)	| spec_dizzy7	| 1993	| Codemasters	| ZX Spectrum	| 					|
 | md_djboy	|  	| DJ Boy (Euro)						| 		| 1991	| Sega		| Sega Megadrive| 					|
-| djboyj	|  	| DJ Boy (Japan)					| djboy		| 1989	| Kaneko (Sega l| Miscellaneous	| 					|
+| djboyj	|  	| DJ Boy (Japan, set 1)					| djboy		| 1989	| Kaneko (Sega l| Miscellaneous	| 					|
+| djboyja	|  	| DJ Boy (Japan, set 2)					| djboy		| 1989	| Kaneko (Sega l| Miscellaneous	| 					|
 | md_djboyj	|  	| DJ Boy (Jpn)						| md_djboy	| 1990	| Sega		| Sega Megadrive| 					|
-| djboy		|  	| DJ Boy (set 1)					| 		| 1989	| Kaneko (Americ| Miscellaneous	| 					|
-| djboya	|  	| DJ Boy (set 2)					| djboy		| 1989	| Kaneko (Americ| Miscellaneous	| 					|
+| djboyu	|  	| DJ Boy (US, set 1)					| djboy		| 1990	| Kaneko (Americ| Miscellaneous	| 					|
+| djboyua	|  	| DJ Boy (US, set 2)					| djboy		| 1990	| Kaneko (Americ| Miscellaneous	| 					|
 | md_djboyu	|  	| DJ Boy (USA)						| md_djboy	| 1990	| Kaneko	| Sega Megadrive| 					|
+| djboy		|  	| DJ Boy (World)					| 		| 1989	| Kaneko	| Miscellaneous	| 					|
 | dorunrun	|  	| Do! Run Run (set 1)					| 		| 1984	| Universal	| Miscellaneous	| 					|
 | dockman	|  	| Dock Man						| 		| 1982	| Taito Corporat| Miscellaneous	| 					|
 | dodgeman	|  	| Dodge Man						| 		| 1983	| Omori Electric| Miscellaneous	| 					|

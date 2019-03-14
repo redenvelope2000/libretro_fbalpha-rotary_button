@@ -2551,10 +2551,12 @@ DRV		BurnSpecdizzy7_48;
 DRV		BurnSpecdizzy7r;
 DRV		BurnDrvmd_djboy;
 DRV		BurnDrvDjboyj;
+DRV		BurnDrvDjboyja;
 DRV		BurnDrvmd_djboyj;
-DRV		BurnDrvDjboy;
-DRV		BurnDrvDjboya;
+DRV		BurnDrvDjboyu;
+DRV		BurnDrvDjboyua;
 DRV		BurnDrvmd_djboyu;
+DRV		BurnDrvDjboy;
 DRV		BurnDrvDorunrun;
 DRV		BurnDrvDockman;
 DRV		BurnDrvDodgeman;
@@ -14830,11 +14832,13 @@ static struct BurnDriver* pDriver[] = {
 	&BurnSpecdizzy7_48,			// Dizzy VII - Crystal Kingdom Dizzy (48K)
 	&BurnSpecdizzy7r,			// Dizzy VII - Crystal Kingdom Dizzy (Russian) (128K)
 	&BurnDrvmd_djboy,			// DJ Boy (Euro)
-	&BurnDrvDjboyj,				// DJ Boy (Japan)
+	&BurnDrvDjboyj,				// DJ Boy (Japan, set 1)
+	&BurnDrvDjboyja,			// DJ Boy (Japan, set 2)
 	&BurnDrvmd_djboyj,			// DJ Boy (Jpn)
-	&BurnDrvDjboy,				// DJ Boy (set 1)
-	&BurnDrvDjboya,				// DJ Boy (set 2)
+	&BurnDrvDjboyu,				// DJ Boy (US, set 1)
+	&BurnDrvDjboyua,			// DJ Boy (US, set 2)
 	&BurnDrvmd_djboyu,			// DJ Boy (USA)
+	&BurnDrvDjboy,				// DJ Boy (World)
 	&BurnDrvDorunrun,			// Do! Run Run (set 1)
 	&BurnDrvDockman,			// Dock Man
 	&BurnDrvDodgeman,			// Dodge Man
