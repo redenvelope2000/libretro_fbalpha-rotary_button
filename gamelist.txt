@@ -7286,9 +7286,9 @@ This list contains all games supported by FB Alpha.
 | portmanj	|  	| Port Man (Japan)					| dockman	| 1982	| Taito Corporat| Miscellaneous	| 					|
 | portman	|  	| Port Man						| dockman	| 1982	| Taito Corporat| Miscellaneous	| 					|
 | sms_poseidon	|  	| Poseidon Wars 3-D (Euro, USA, Bra)			| 		| 1988	| Sega		| Sega Master Sy| 					|
-| poundforj	| D NW	| Pound for Pound (Japan)				| poundfor	| 1990	| Irem		| Irem M85	| 					|
-| poundforu	| D NW	| Pound for Pound (US)					| poundfor	| 1990	| Irem America	| Irem M85	| 					|
-| poundfor	| D NW	| Pound for Pound (World)				| 		| 1990	| Irem		| Irem M85	| 					|
+| poundforj	|  	| Pound for Pound (Japan)				| poundfor	| 1990	| Irem		| Irem M85	| 					|
+| poundforu	|  	| Pound for Pound (US)					| poundfor	| 1990	| Irem America	| Irem M85	| 					|
+| poundfor	|  	| Pound for Pound (World)				| 		| 1990	| Irem		| Irem M85	| 					|
 | md_powerath	|  	| Power Athlete (Jpn, Kor)				| md_deadlymv	| 1992	| Kaneko	| Sega Megadrive| 					|
 | spec_pdrift	|  	| Power Drift (128K)					| 		| 1989	| Activision	| ZX Spectrum	| 					|
 | pce_pdrift1	|  	| Power Drift (Alt)					| pce_pdrift	| 1990	| Asmik		| PC Engine	| 					|

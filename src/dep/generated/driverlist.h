@@ -7446,11 +7446,9 @@ DRV		BurnDrvPorter;
 DRV		BurnDrvPortmanj;
 DRV		BurnDrvPortman;
 DRV		BurnDrvsms_poseidon;
-#if defined FBA_DEBUG
-DRV		BurnDrvPoundforj;		// no comment [NOT WORKING]
-DRV		BurnDrvPoundforu;		// no comment [NOT WORKING]
-DRV		BurnDrvPoundfor;		// no comment [NOT WORKING]
-#endif
+DRV		BurnDrvPoundforj;
+DRV		BurnDrvPoundforu;
+DRV		BurnDrvPoundfor;
 DRV		BurnDrvmd_powerath;
 DRV		BurnSpecpdrift;
 DRV		BurnDrvpce_pdrift1;
@@ -19728,11 +19726,9 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvPortmanj,			// Port Man (Japan)
 	&BurnDrvPortman,			// Port Man
 	&BurnDrvsms_poseidon,		// Poseidon Wars 3-D (Euro, USA, Bra)
-#if defined FBA_DEBUG
-	&BurnDrvPoundforj,			// Pound for Pound (Japan) [no comment, NOT WORKING]
-	&BurnDrvPoundforu,			// Pound for Pound (US) [no comment, NOT WORKING]
-	&BurnDrvPoundfor,			// Pound for Pound (World) [no comment, NOT WORKING]
-#endif
+	&BurnDrvPoundforj,			// Pound for Pound (Japan)
+	&BurnDrvPoundforu,			// Pound for Pound (US)
+	&BurnDrvPoundfor,			// Pound for Pound (World)
 	&BurnDrvmd_powerath,		// Power Athlete (Jpn, Kor)
 	&BurnSpecpdrift,			// Power Drift (128K)
 	&BurnDrvpce_pdrift1,		// Power Drift (Alt)
