@@ -7105,6 +7105,7 @@ DRV		BurnDrvPasssht;
 DRV		BurnDrvPassshtad;
 DRV		BurnDrvPassshta;
 DRV		BurnDrvPass;
+DRV		BurnDrvPastelis;
 DRV		BurnDrvMSX_pastfind;
 DRV		BurnDrvmd_patriley;
 DRV		BurnDrvsms_patriley;
@@ -19385,6 +19386,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvPassshtad,			// Passing Shot (World, 4 Players, FD1094 317-0074 decrypted)
 	&BurnDrvPassshta,			// Passing Shot (World, 4 Players, FD1094 317-0074)
 	&BurnDrvPass,				// Pass
+	&BurnDrvPastelis,			// Pastel Island (Japan, prototype)
 	&BurnDrvMSX_pastfind,		// Pastfinder (Jpn)
 	&BurnDrvmd_patriley,		// Pat Riley Basketball (USA)
 	&BurnDrvsms_patriley,		// Pat Riley Basketball (USA, Prototype)
@@ -20862,7 +20864,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvgg_shikinjo,		// Shikinjou (Jpn)
 	&BurnDrvmd_ragnacen,		// Shin Souseiki Ragnacenty (Jpn)
 	&BurnDrvmd_ragnacenp,		// Shin Souseiki Ragnacenty (Jpn, Prototype)
-	&BurnDrvTshingen,			// Shingen Samurai-Fighter (Japan, English)
+	&BurnDrvTshingen,			// Shingen Samurai-Fighter (Japan, English) [Game crashes in level 2, play tshingena instead!, NOT WORKING]
 	&BurnDrvmd_shindarkj,		// Shining and the Darkness (Jpn)
 	&BurnDrvmd_shinfrce,		// Shining Force (USA)
 	&BurnDrvmd_shinfrcep,		// Shining Force (USA, Prototype)

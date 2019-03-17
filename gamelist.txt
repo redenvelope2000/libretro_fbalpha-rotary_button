@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12011 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12012 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -6951,6 +6951,7 @@ This list contains all games supported by FB Alpha.
 | passshtad	|  	| Passing Shot (World, 4 Players, FD1094 317-0074 decryp| passsht	| 1988	| Sega		| System 16B	| 					|
 | passshta	|  	| Passing Shot (World, 4 Players, FD1094 317-0074)	| passsht	| 1988	| Sega		| System 16B	| 					|
 | pass		|  	| Pass							| 		| 1992	| Oksan		| Miscellaneous	| 					|
+| pastelis	|  	| Pastel Island (Japan, prototype)			| 		| 1993	| Visco		| SSV		| 					|
 | msx_pastfind	|  	| Pastfinder (Jpn)					| 		| 1984	| Pony Canyon	| MSX		| 					|
 | md_patriley	|  	| Pat Riley Basketball (USA)				| md_srealbas	| 1990	| Sega		| Sega Megadrive| 					|
 | sms_patriley	|  	| Pat Riley Basketball (USA, Prototype)			| 		| 19??	| Sega		| Sega Master Sy| 					|
@@ -8398,7 +8399,7 @@ This list contains all games supported by FB Alpha.
 | gg_shikinjo	|  	| Shikinjou (Jpn)					| 		| 1991	| Sunsoft	| Sega Game Gear| 					|
 | md_ragnacen	|  	| Shin Souseiki Ragnacenty (Jpn)			| md_soleil	| 1994	| Sega		| Sega Megadrive| 					|
 | md_ragnacenp	|  	| Shin Souseiki Ragnacenty (Jpn, Prototype)		| md_soleil	| 1994	| Sega		| Sega Megadrive| 					|
-| tshingen	|  	| Shingen Samurai-Fighter (Japan, English)		| 		| 1988	| Jaleco	| Mega System 1	| Game crashes in level 2, play tshingen|
+| tshingen	|   NW	| Shingen Samurai-Fighter (Japan, English)		| 		| 1988	| Jaleco	| Mega System 1	| Game crashes in level 2, play tshingen|
 | md_shindarkj	|  	| Shining and the Darkness (Jpn)			| md_shindark	| 1991	| Sega		| Sega Megadrive| 					|
 | md_shinfrce	|  	| Shining Force (USA)					| 		| 1992	| Sega		| Sega Megadrive| 					|
 | md_shinfrcep	|  	| Shining Force (USA, Prototype)			| md_shinfrce	| 1992	| Sega		| Sega Megadrive| 					|
