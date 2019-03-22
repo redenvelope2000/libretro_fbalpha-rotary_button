@@ -748,6 +748,7 @@ DRV		BurnDrvtg_ballistx;
 DRV		BurnDrvBallbros;
 DRV		BurnDrvMSX_balloonpunch;
 DRV		BurnDrvmd_ballz3d;
+DRV		BurnDrvBaluba;
 DRV		BurnDrvMSX_banana;
 DRV		BurnDrvBanbam;
 DRV		BurnDrvBangball;
@@ -5808,6 +5809,8 @@ DRV		BurnDrvmd_megabomb;
 DRV		BurnDrvmd_megabombu;
 DRV		BurnDrvmd_megabm8;
 DRV		BurnDrvmd_cperils;
+DRV		BurnDrvMegaforcu;
+DRV		BurnDrvMegaforc;
 DRV		BurnDrvmd_megaga10;
 DRV		BurnDrvmd_megaga2;
 DRV		BurnDrvmd_megaga3;
@@ -8517,6 +8520,7 @@ DRV		BurnDrvMSX_senjokam;
 DRV		BurnDrvCommandj;
 DRV		BurnDrvMSX_senjyo;
 DRV		BurnDrvMSX_senjyoa;
+DRV		BurnDrvSenjyo;
 DRV		BurnDrvgg_sensible;
 DRV		BurnDrvmd_sensible;
 DRV		BurnDrvsms_sensible;
@@ -9284,11 +9288,15 @@ DRV		BurnSpecstarfarc;
 DRV		BurnDrvStarfgmc;
 DRV		BurnDrvStarfigh;
 DRV		BurnDrvStarfght;
+DRV		BurnDrvStarforcb;
+DRV		BurnDrvStarforce;
+DRV		BurnDrvStarforca;
 DRV		BurnDrvMSX_starfrce;
 DRV		BurnDrvsg1k_starfrce;
 DRV		BurnDrvMSX_starfrcea;
 DRV		BurnDrvsg1k_starfrcet;
 DRV		BurnDrvsg1k_starfrceta;
+DRV		BurnDrvStarforc;
 DRV		BurnDrvsg1k_starjack1;
 DRV		BurnDrvsg1k_starjack;
 DRV		BurnDrvsg1k_starjack2;
@@ -13029,6 +13037,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvBallbros,			// Balloon Brothers
 	&BurnDrvMSX_balloonpunch,	// Balloon Punch
 	&BurnDrvmd_ballz3d,			// Ballz 3D (Euro, USA)
+	&BurnDrvBaluba,				// Baluba-louk no Densetsu (Japan)
 	&BurnDrvMSX_banana,			// Banana (Jpn)
 	&BurnDrvBanbam,				// BanBam
 	&BurnDrvBangball,			// Bang Bang Ball (v1.05)
@@ -18089,6 +18098,8 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_megabombu,		// Mega Bomberman (USA)
 	&BurnDrvmd_megabm8,			// Mega Bomberman - 8 Player Demo
 	&BurnDrvmd_cperils,			// Mega Cheril Perils
+	&BurnDrvMegaforcu,			// Mega Force (US)
+	&BurnDrvMegaforc,			// Mega Force (World)
 	&BurnDrvmd_megaga10,		// Mega Games 10 (Bra)
 	&BurnDrvmd_megaga2,			// Mega Games 2 (Euro)
 	&BurnDrvmd_megaga3,			// Mega Games 3 (Euro, Asia)
@@ -20798,6 +20809,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvCommandj,			// Senjou no Ookami
 	&BurnDrvMSX_senjyo,			// Senjyo (Jpn)
 	&BurnDrvMSX_senjyoa,		// Senjyo (Jpn, Alt)
+	&BurnDrvSenjyo,				// Senjyo
 	&BurnDrvgg_sensible,		// Sensible Soccer (Euro)
 	&BurnDrvmd_sensible,		// Sensible Soccer (Euro)
 	&BurnDrvsms_sensible,		// Sensible Soccer (Euro)
@@ -21565,11 +21577,15 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvStarfgmc,			// Star Fighter (Moon Cresta bootleg)
 	&BurnDrvStarfigh,			// Star Fighter (v1)
 	&BurnDrvStarfght,			// Star Fighter
+	&BurnDrvStarforcb,			// Star Force (encrypted, bootleg) [no comment, NOT WORKING]
+	&BurnDrvStarforce,			// Star Force (encrypted, set 1)
+	&BurnDrvStarforca,			// Star Force (encrypted, set 2)
 	&BurnDrvMSX_starfrce,		// Star Force (Jpn)
 	&BurnDrvsg1k_starfrce,		// Star Force (Jpn)
 	&BurnDrvMSX_starfrcea,		// Star Force (Jpn, Alt)
 	&BurnDrvsg1k_starfrcet,		// Star Force (Tw)
 	&BurnDrvsg1k_starfrceta,	// Star Force (Tw, Alt)
+	&BurnDrvStarforc,			// Star Force
 	&BurnDrvsg1k_starjack1,		// Star Jacker (Euro, Jpn, v1.1)
 	&BurnDrvsg1k_starjack,		// Star Jacker (Euro, Jpn, v1.2)
 	&BurnDrvsg1k_starjack2,		// Star Jacker (Jpn, v1.0)

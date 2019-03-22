@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12012 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12020 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -736,6 +736,7 @@ This list contains all games supported by FB Alpha.
 | ballbros	|  	| Balloon Brothers					| 		| 1992	| East Technolog| Taito X	| 					|
 | msx_balloonpunch|  	| Balloon Punch						| 		| 1989	| Satico	| MSX		| 					|
 | md_ballz3d	|  	| Ballz 3D (Euro, USA)					| 		| 1994	| Accolade	| Sega Megadrive| 					|
+| baluba	|  	| Baluba-louk no Densetsu (Japan)			| 		| 1986	| Able Corp, Ltd| Miscellaneous	| 					|
 | msx_banana	|  	| Banana (Jpn)						| 		| 19??	| Studio GEN	| MSX		| 					|
 | banbam	|  	| BanBam						| 		| 1984	| Sun Electronic| Miscellaneous	| 					|
 | bangball	|  	| Bang Bang Ball (v1.05)				| 		| 1996	| Banpresto / Ku| Miscellaneous	| 					|
@@ -5682,6 +5683,8 @@ This list contains all games supported by FB Alpha.
 | md_megabombu	|  	| Mega Bomberman (USA)					| md_megabomb	| 1994	| Sega		| Sega Megadrive| 					|
 | md_megabm8	|  	| Mega Bomberman - 8 Player Demo			| 		| 199?	| <unlicensed>	| Sega Megadrive| 					|
 | md_cperils	|  	| Mega Cheril Perils					| 		| 2016	| 2016 The Mojon| Sega Megadrive| 					|
+| megaforcu	|  	| Mega Force (US)					| starforc	| 1985	| Tehkan (Video | Miscellaneous	| 					|
+| megaforc	|  	| Mega Force (World)					| starforc	| 1984	| Tehkan	| Miscellaneous	| 					|
 | md_megaga10	|  	| Mega Games 10 (Bra)					| 		| 199?	| <unknown>	| Sega Megadrive| 					|
 | md_megaga2	|  	| Mega Games 2 (Euro)					| 		| 1993	| Sega		| Sega Megadrive| 					|
 | md_megaga3	|  	| Mega Games 3 (Euro, Asia)				| 		| 1993	| Sega		| Sega Megadrive| 					|
@@ -8335,6 +8338,7 @@ This list contains all games supported by FB Alpha.
 | commandoj	|  	| Senjou no Ookami					| commando	| 1985	| Capcom	| Miscellaneous	| 					|
 | msx_senjyo	|  	| Senjyo (Jpn)						| 		| 1984	| Sony		| MSX		| 					|
 | msx_senjyoa	|  	| Senjyo (Jpn, Alt)					| msx_senjyo	| 1984	| Sony		| MSX		| 					|
+| senjyo	|  	| Senjyo						| 		| 1983	| Tehkan	| Miscellaneous	| 					|
 | gg_sensible	|  	| Sensible Soccer (Euro)				| 		| 1994	| Sony Imagesoft| Sega Game Gear| 					|
 | md_sensible	|  	| Sensible Soccer (Euro)				| 		| 1993	| Renegade	| Sega Megadrive| 					|
 | sms_sensible	|  	| Sensible Soccer (Euro)				| 		| 1993	| Sony Imagesoft| Sega Master Sy| 					|
@@ -9090,11 +9094,15 @@ This list contains all games supported by FB Alpha.
 | starfgmc	|  	| Star Fighter (Moon Cresta bootleg)			| mooncrst	| 198?	| bootleg (Samyr| Galaxian	| 					|
 | starfigh	|  	| Star Fighter (v1)					| 		| 1990	| SunA		| Miscellaneous	| 					|
 | starfght	|  	| Star Fighter						| galaxian	| 1979	| Juetel	| Galaxian	| 					|
+| starforcb	|   NW	| Star Force (encrypted, bootleg)			| starforc	| 1984	| bootleg	| Miscellaneous	| 					|
+| starforce	|  	| Star Force (encrypted, set 1)				| starforc	| 1984	| Tehkan	| Miscellaneous	| 					|
+| starforca	|  	| Star Force (encrypted, set 2)				| starforc	| 1984	| Tehkan	| Miscellaneous	| 					|
 | msx_starfrce	|  	| Star Force (Jpn)					| 		| 1985	| Hudson Soft	| MSX		| 					|
 | sg1k_starfrce	|  	| Star Force (Jpn)					| 		| 1985	| Sega		| Sega SG-1000	| 					|
 | msx_starfrcea	|  	| Star Force (Jpn, Alt)					| msx_starfrce	| 1985	| Hudson Soft	| MSX		| 					|
 | sg1k_starfrcet|  	| Star Force (Tw)					| sg1k_starfrce	| 1985?	| Aaronix	| Sega SG-1000	| 					|
 | sg1k_starfrceta|  	| Star Force (Tw, Alt)					| sg1k_starfrce	| 1985?	| Aaronix	| Sega SG-1000	| 					|
+| starforc	|  	| Star Force						| 		| 1984	| Tehkan	| Miscellaneous	| 					|
 | sg1k_starjack1|  	| Star Jacker (Euro, Jpn, v1.1)				| sg1k_starjack	| 1983	| Sega		| Sega SG-1000	| 					|
 | sg1k_starjack	|  	| Star Jacker (Euro, Jpn, v1.2)				| 		| 1983	| Sega		| Sega SG-1000	| 					|
 | sg1k_starjack2|  	| Star Jacker (Jpn, v1.0)				| sg1k_starjack	| 1983	| Sega		| Sega SG-1000	| 					|
