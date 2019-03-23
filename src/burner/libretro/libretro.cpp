@@ -378,13 +378,13 @@ static void set_controller_infos()
 	for (int i = 0; i < nMaxPlayers; i++)
 	{
 		controller_infos[i].types = controller_description;
-		controller_infos[i].num_types = sizeof(controller_description)/sizeof(*controller_description);
+		controller_infos[i].num_types = sizeof(controller_description) / sizeof(controller_description[0]);
 	}
 
 	controller_infos[nMaxPlayers].types = NULL;
 	controller_infos[nMaxPlayers].num_types = 0;
 
-	environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, controller_infos.data());
+	environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, &controller_infos.front());
 }
 
 // Update DIP switches value  depending of the choice the user made in core options

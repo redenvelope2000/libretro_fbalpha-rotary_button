@@ -2354,7 +2354,7 @@ static void InitMacroInputDescriptors()
 // Set the input descriptors by combininng the two lists of 'Normal' and 'Macros' inputs
 static void SetInputDescriptors()
 {
-	std::vector<retro_input_descriptor> input_descriptors(normal_input_descriptors.size() + macro_input_descriptors.size() + 1); // + 1 for the empty ending retro_input_descriptor { 0 }
+	struct retro_input_descriptor *input_descriptors = (struct retro_input_descriptor*)calloc(normal_input_descriptors.size() + macro_input_descriptors.size() + 1, sizeof(struct retro_input_descriptor));
 
 	unsigned input_descriptor_idx = 0;
 
@@ -2370,7 +2370,8 @@ static void SetInputDescriptors()
 
 	input_descriptors[input_descriptor_idx].description = NULL;
 
-	environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors.data());
+	environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors);
+	free(input_descriptors);
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
