@@ -258,13 +258,12 @@ void set_environment()
 
 	int nbr_vars = vars_systems.size();
 	int nbr_dips = dipswitch_core_options.size();
-	int nbr_macros = macro_core_options.size();
 
 #if 0
 	log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d, MACRO: %d\n", nbr_vars, nbr_dips, nbr_macros);
 #endif
 
-	vars = (struct retro_variable*)calloc(nbr_vars + nbr_dips + nbr_macros + 1, sizeof(struct retro_variable));
+	vars = (struct retro_variable*)calloc(nbr_vars + nbr_dips + 1, sizeof(struct retro_variable));
 
 	int idx_var = 0;
 
@@ -290,16 +289,6 @@ void set_environment()
 #endif
 			idx_var++;
 		}
-	}
-
-	// Add the macro inputs core options
-	for (int macro_idx = 0; macro_idx < nbr_macros; macro_idx++, idx_var++)
-	{
-		vars[idx_var].key = macro_core_options[macro_idx].option_name;
-		vars[idx_var].value = macro_core_options[macro_idx].values_str.c_str();
-#if 0
-		log_cb(RETRO_LOG_INFO, "retro_variable (MACRO)     { '%s', '%s' }\n", vars[idx_var].key, vars[idx_var].value);
-#endif
 	}
 
 	vars[idx_var] = var_empty;
