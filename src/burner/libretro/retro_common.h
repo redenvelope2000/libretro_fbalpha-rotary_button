@@ -17,27 +17,6 @@
 #define RETRO_GAME_TYPE_SPEC	10
 #define RETRO_GAME_TYPE_NEOCD	11
 
-struct macro_core_option_value
-{
-	unsigned retro_device_id;
-	const char* friendly_name;
-	macro_core_option_value(unsigned device_id, const char* name):
-		retro_device_id(device_id),
-		friendly_name(name)
-	{
-	}
-};
-
-struct macro_core_option
-{
-	struct GameInp *pgi;
-	char option_name[100];
-	char friendly_name[100];
-	std::string values_str;
-	std::vector<macro_core_option_value> values;
-	macro_core_option_value *selected_value;
-};
-
 struct dipswitch_core_option_value
 {
 	struct GameInp *pgi;
@@ -78,7 +57,6 @@ extern retro_environment_t environ_cb;
 extern RomBiosInfo *available_mvs_bios;
 extern RomBiosInfo *available_aes_bios;
 extern RomBiosInfo *available_uni_bios;
-extern std::vector<macro_core_option> macro_core_options;
 extern std::vector<dipswitch_core_option> dipswitch_core_options;
 extern struct GameInp *pgi_reset;
 extern struct GameInp *pgi_diag;

@@ -49,7 +49,6 @@ struct RomBiosInfo uni_bioses[] = {
 RomBiosInfo *available_mvs_bios = NULL;
 RomBiosInfo *available_aes_bios = NULL;
 RomBiosInfo *available_uni_bios = NULL;
-std::vector<macro_core_option> macro_core_options;
 std::vector<dipswitch_core_option> dipswitch_core_options;
 struct GameInp *pgi_reset;
 struct GameInp *pgi_diag;
@@ -260,7 +259,7 @@ void set_environment()
 	int nbr_dips = dipswitch_core_options.size();
 
 #if 0
-	log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d, MACRO: %d\n", nbr_vars, nbr_dips, nbr_macros);
+	log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d\n", nbr_vars, nbr_dips);
 #endif
 
 	vars = (struct retro_variable*)calloc(nbr_vars + nbr_dips + 1, sizeof(struct retro_variable));

@@ -31,7 +31,6 @@ struct AxiBind
 
 void SetDiagInpHoldFrameDelay(unsigned val);
 void InputMake(void);
-void UpdateMacros();
 void InputInit();
 void InputDeInit();
 

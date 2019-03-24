@@ -94,8 +94,6 @@ static int16_t *g_audio_buf;
 // Mapping of PC inputs to game inputs
 struct GameInp* GameInp = NULL;
 UINT32 nGameInpCount = 0;
-UINT32 nMacroCount = 0;
-UINT32 nMaxMacro = 0;
 INT32 nAnalogSpeed = 0x0100;
 INT32 nFireButtons = 0;
 
@@ -898,9 +896,6 @@ void retro_run()
 		check_variables();
 
 		apply_dipswitch_from_variables();
-
-		// Maybe macros changed, update them
-		UpdateMacros();
 
 		// adjust aspect ratio if the needed
 		if (old_core_aspect_par != core_aspect_par)
