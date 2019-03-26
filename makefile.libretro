@@ -436,12 +436,16 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 
 # Windows
 else
-   TARGET := $(TARGET_NAME)_libretro.dll
-   CC = gcc
-   CXX = g++
-   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(VERSION_SCRIPT)
-   LDFLAGS += -static-libgcc -static-libstdc++
-   ENDIANNESS_DEFINES := -DLSB_FIRST
+	TARGET := $(TARGET_NAME)_libretro.dll
+	CC = gcc
+	CXX = g++
+	SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(VERSION_SCRIPT)
+	LDFLAGS += -static-libgcc -static-libstdc++
+	ENDIANNESS_DEFINES := -DLSB_FIRST
+	LBITS := $(shell getconf LONG_BIT)
+	ifeq ($(LBITS),64)
+		USE_X64_DRC = 1
+	endif
 
 endif
 

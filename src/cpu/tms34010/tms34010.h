@@ -6,9 +6,7 @@
 #define TMS34010_H
 
 #include "burnint.h"
-#ifndef __LIBRETRO__
 #include <string>
-#endif
 //#include <list>
 //#include <fstream>
 //#include <array>
@@ -519,10 +517,8 @@ void reset(cpu_state *cpu);
 void write_ioreg(cpu_state *cpu, dword addr, word value);
 dword read_ioreg(cpu_state *cpu, dword addr);
 
-#ifndef __LIBRETRO__
 std::string dasm(dword addr, size_t *size);
 std::string new_dasm(dword pc, size_t *size);
-#endif
 }
 
 #endif // TMS34010_H
