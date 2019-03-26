@@ -1008,7 +1008,9 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 {
 	int width, height, game_aspect_x, game_aspect_y;
 	BurnDrvGetVisibleSize(&width, &height);
-	pVidImage = BurnMalloc(width * height * nBurnBpp);
+	if (pVidImage)
+		free(pVidImage);
+	pVidImage = (UINT8*)malloc(width * height * nBurnBpp);
 	BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
 	if (bVerticalMode)
 	{
@@ -1278,7 +1280,9 @@ static bool retro_load_game_common()
 			SetBurnHighCol(32);
 		}
 
-		pVidImage = BurnMalloc(width * height * nBurnBpp);
+		if (pVidImage)
+			free(pVidImage);
+		pVidImage = (UINT8*)malloc(width * height * nBurnBpp);
 
 		// Apply dipswitches
 		apply_dipswitch_from_variables();
@@ -1365,6 +1369,8 @@ void retro_unload_game(void)
 	if (driver_inited)
 	{
 		BurnStateSave(g_autofs_path, 0);
+		if (pVidImage)
+			free(pVidImage);
 		BurnDrvExit();
 		CDEmuExit();
 	}
