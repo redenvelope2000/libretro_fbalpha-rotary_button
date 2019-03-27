@@ -9,7 +9,9 @@
 
 #include "mips3_common.h"
 
+#ifndef __LIBRETRO__
 #include <string>
+#endif
 
 #if MIPS3_ENABLE_BREAKPOINTS
 #include <unordered_set>
@@ -68,7 +70,9 @@ public:
     void reset();
     bool run(int cycles, bool skip_bps=true);
 
+#ifndef __LIBRETRO__
     string dasm(uint32_t opcode, uint64_t pc);
+#endif
 
     enum {
         LR = 31
@@ -229,8 +233,10 @@ private:
     void MFLO(uint32_t opcode);
     void MTLO(uint32_t opcode);
 
+#ifndef __LIBRETRO__
     string dasm_cop0(uint32_t opcode, uint64_t pc);
     string dasm_cop1(uint32_t opcode, uint64_t pc);
+#endif
 };
 
 extern mips3 *g_mips;
