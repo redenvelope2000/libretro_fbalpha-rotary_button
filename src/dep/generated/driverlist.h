@@ -3828,6 +3828,7 @@ DRV		BurnDrvGekiridnj;
 DRV		BurnDrvGekiridn;
 DRV		BurnDrvpce_gekisboy;
 DRV		BurnDrvmd_gemfire;
+DRV		BurnDrvGeminij;
 DRV		BurnDrvGemini;
 DRV		BurnDrvGeminib;
 DRV		BurnDrvmd_gems;
@@ -16117,7 +16118,8 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvGekiridn,			// Gekirindan (Ver 2.3O 1995/09/21)
 	&BurnDrvpce_gekisboy,		// Gekisha Boy
 	&BurnDrvmd_gemfire,			// Gemfire (USA)
-	&BurnDrvGemini,				// Gemini Wing (Japan)
+	&BurnDrvGeminij,			// Gemini Wing (Japan)
+	&BurnDrvGemini,				// Gemini Wing (World)
 	&BurnDrvGeminib,			// Gemini Wing (World, bootleg)
 	&BurnDrvmd_gems,			// GEMS v2.8
 	&BurnDrvmd_genchaos,		// General Chaos (Euro, USA)

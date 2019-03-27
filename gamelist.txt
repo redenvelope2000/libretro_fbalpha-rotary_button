@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12020 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12021 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -3744,7 +3744,8 @@ This list contains all games supported by FB Alpha.
 | gekiridn	|  	| Gekirindan (Ver 2.3O 1995/09/21)			| 		| 1995	| Taito Corporat| Taito F3 Syste| 					|
 | pce_gekisboy	|  	| Gekisha Boy						| 		| 1992	| Irem		| PC Engine	| 					|
 | md_gemfire	|  	| Gemfire (USA)						| 		| 1992	| Koei		| Sega Megadrive| 					|
-| gemini	|  	| Gemini Wing (Japan)					| 		| 1987	| Tecmo		| Miscellaneous	| 					|
+| geminij	|  	| Gemini Wing (Japan)					| gemini	| 1987	| Tecmo		| Miscellaneous	| 					|
+| gemini	|  	| Gemini Wing (World)					| 		| 1987	| Tecmo		| Miscellaneous	| 					|
 | geminib	|  	| Gemini Wing (World, bootleg)				| gemini	| 1987	| Tecmo		| Miscellaneous	| 					|
 | md_gems	|  	| GEMS v2.8						| 		| 199?	| <unknown>	| Sega Megadrive| 					|
 | md_genchaos	|  	| General Chaos (Euro, USA)				| 		| 1994	| Electronic Art| Sega Megadrive| 					|
