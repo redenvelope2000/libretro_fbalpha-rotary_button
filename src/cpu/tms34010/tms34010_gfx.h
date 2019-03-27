@@ -5,9 +5,6 @@
 #ifndef TMS34010_GFX_H
 #define TMS34010_GFX_H
 
-#ifndef __LIBRETRO__
-#include <iostream>
-#endif
 #include "tms34010.h"
 #include "tms34010_defs.h"
 #include "tms34010_memacc.h"
