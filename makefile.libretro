@@ -447,6 +447,9 @@ else
 	# ifeq ($(LBITS),64)
 	#	USE_X64_DRC = 1
 	# endif
+	ifeq ($(MSYSTEM), MINGW64)
+		USE_X64_DRC = 1
+	endif
 
 endif
 
