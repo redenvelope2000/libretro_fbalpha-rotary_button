@@ -5989,6 +5989,7 @@ DRV		BurnDrvMidresu;
 DRV		BurnDrvmd_midres;
 DRV		BurnDrvMidres;
 DRV		BurnDrvMSX_midway;
+DRV		BurnDrvSsioprom;
 DRV		BurnDrvmd_mig29;
 DRV		BurnDrvmd_mig29j;
 DRV		BurnDrvmd_mig29u;
@@ -18316,6 +18317,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_midres,			// Midnight Resistance (USA)
 	&BurnDrvMidres,				// Midnight Resistance (World)
 	&BurnDrvMSX_midway,			// Midway (Jpn)
+	&BurnDrvSsioprom,			// Midway SSIO Sound Board Internal pROM [Internal pROM only, NOT WORKING]
 	&BurnDrvmd_mig29,			// Mig-29 Fighter Pilot (Euro)
 	&BurnDrvmd_mig29j,			// Mig-29 Fighter Pilot (Jpn)
 	&BurnDrvmd_mig29u,			// Mig-29 Fighter Pilot (USA)

@@ -79,6 +79,7 @@ There are several things to know :
 * You need a copy of neocdz.zip and neogeo.zip in your libretro system directory
 * You need to add `--subsystem neocd` to the command line
 * Supported format are ccd/sub/img iso (trurip), and single file MODE1/2352 bin/cue (use utilities like "CDmage" to convert your iso if needed)
+
 You can convert your unsupported isos by following this tutorial :
 * Get [CDMage 1.02.1](https://www.videohelp.com/software/CDMage) (freeware & no ads)
 * File > Open > select your iso (NB : for multi-track, select the .cue file, not the .iso file)

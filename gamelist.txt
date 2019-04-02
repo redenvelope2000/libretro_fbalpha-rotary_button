@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12052 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12053 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -5859,6 +5859,7 @@ This list contains all games supported by FB Alpha.
 | md_midres	|  	| Midnight Resistance (USA)				| 		| 1991	| Sega		| Sega Megadrive| 					|
 | midres	|  	| Midnight Resistance (World)				| 		| 1989	| Data East Corp| DEC0		| 					|
 | msx_midway	|  	| Midway (Jpn)						| 		| 1983	| Magicsoft	| MSX		| 					|
+| midssio	|   NW	| Midway SSIO Sound Board Internal pROM			| 		| 1981	| Midway	| SSIO		| Internal pROM only			|
 | md_mig29	|  	| Mig-29 Fighter Pilot (Euro)				| 		| 1993	| Domark	| Sega Megadrive| 					|
 | md_mig29j	|  	| Mig-29 Fighter Pilot (Jpn)				| md_mig29	| 1993	| Tengen	| Sega Megadrive| 					|
 | md_mig29u	|  	| Mig-29 Fighter Pilot (USA)				| md_mig29	| 1993	| Domark	| Sega Megadrive| 					|
