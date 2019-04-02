@@ -4,14 +4,14 @@
 #include "libretro.h"
 #ifndef IOS
 	// This is a bit hacky...
-	// Code using string type, char types and file functions will fail
+	// Code using string types, char types and file functions will fail
 	// on some toolchains if we don't include the following library before
 	// file_stream_transforms due to conflicting declarations.
 	// It also seems one of those includes provide math on msvc2017, so
 	// we'll lack M_PI if we don't define _USE_MATH_DEFINES right now.
 	#define _USE_MATH_DEFINES
 	#include <wchar.h>
-	#include <string>
+	#include <string.h>
 #endif
 #include "streams/file_stream_transforms.h"
 

@@ -834,8 +834,6 @@ void retro_init()
 void retro_deinit()
 {
 	BurnLibExit();
-	if (g_audio_buf)
-		free(g_audio_buf);
 }
 
 void retro_reset()
@@ -1371,8 +1369,11 @@ void retro_unload_game(void)
 		BurnStateSave(g_autofs_path, 0);
 		if (pVidImage)
 			free(pVidImage);
+		if (g_audio_buf)
+			free(g_audio_buf);
 		BurnDrvExit();
-		CDEmuExit();
+		if (nGameType == RETRO_GAME_TYPE_NEOCD)
+			CDEmuExit();
 	}
 	InputDeInit();
 	driver_inited = false;
@@ -1384,15 +1385,15 @@ unsigned retro_api_version() { return RETRO_API_VERSION; }
 
 static unsigned int BurnDrvGetIndexByName(const char* name)
 {
-   unsigned int ret = ~0U;
-   for (unsigned int i = 0; i < nBurnDrvCount; i++) {
-      nBurnDrvActive = i;
-      if (strcmp(BurnDrvGetText(DRV_NAME), name) == 0) {
-         ret = i;
-         break;
-      }
-   }
-   return ret;
+	unsigned int ret = ~0U;
+	for (unsigned int i = 0; i < nBurnDrvCount; i++) {
+		nBurnDrvActive = i;
+		if (strcmp(BurnDrvGetText(DRV_NAME), name) == 0) {
+			ret = i;
+			break;
+		}
+	}
+	return ret;
 }
 
 #ifdef ANDROID
