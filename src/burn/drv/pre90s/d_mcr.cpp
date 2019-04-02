@@ -777,7 +777,7 @@ static void __fastcall twotiger_vidram_write(UINT16 address, UINT8 data)
 	}
 }
 
-static UINT8 _fastcall twotiger_vidram_read(UINT16 address)
+static UINT8 __fastcall twotiger_vidram_read(UINT16 address)
 {
 	if ((address & 0xe800) == 0xe800) {
 		INT32 offs = ((address & 0x3ff) << 1) | ((address & 0x400) >> 10);

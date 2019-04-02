@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12021 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12052 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -2335,6 +2335,8 @@ This list contains all games supported by FB Alpha.
 | deluxe5	|  	| Deluxe 5 (ver. 0107, 07/01/2000, set 1)		| 		| 2000	| ESD		| Miscellaneous	| 					|
 | deluxe5a	|  	| Deluxe 5 (ver. 0107, 07/01/2000, set 2)		| deluxe5	| 2000	| ESD		| Miscellaneous	| 					|
 | deluxe5b	|  	| Deluxe 5 (ver. 0107, 07/01/2000, set 3)		| deluxe5	| 2000	| ESD		| Miscellaneous	| 					|
+| demoderbc	|  	| Demolition Derby (cocktail)				| demoderb	| 1984	| Bally Midway	| Miscellaneous	| 					|
+| demoderb	|  	| Demolition Derby					| 		| 1984	| Bally Midway	| Miscellaneous	| 					|
 | md_demoman	|  	| Demolition Man (Euro, USA)				| 		| 1995	| Acclaim Entert| Sega Megadrive| 					|
 | md_demomanp	|   NW	| Demolition Man (USA, Prototype)			| md_demoman	| 1995	| Acclaim Entert| Sega Megadrive| 					|
 | msx_demoncrystl|  	| Demon Crystal, The					| 		| 1986	| Radio Wave New| MSX		| 					|
@@ -2443,6 +2445,9 @@ This list contains all games supported by FB Alpha.
 | cdiscon1	|  	| Disco No.1 (DECO Cassette) (US)			| 		| 1982	| Data East Corp| Cassette Syste| 					|
 | discof	|  	| Disco No.1 (Rev.F)					| disco		| 1982	| Data East	| Miscellaneous	| 					|
 | disco		|  	| Disco No.1						| 		| 1982	| Data East	| Miscellaneous	| 					|
+| dotrone	|  	| Discs of Tron (Environmental)				| dotron	| 1983	| Bally Midway	| Miscellaneous	| 					|
+| dotrona	|  	| Discs of Tron (Upright alternate)			| dotron	| 1983	| Bally Midway	| Miscellaneous	| 					|
+| dotron	|  	| Discs of Tron (Upright)				| 		| 1983	| Bally Midway	| Miscellaneous	| 					|
 | md_aladdin	|  	| Disney's Aladdin (Euro)				| 		| 1993	| Sega		| Sega Megadrive| 					|
 | sms_aladdin	|  	| Disney's Aladdin (Euro, Bra, Kor)			| 		| 1994	| Sega		| Sega Master Sy| 					|
 | gg_aladdin	|  	| Disney's Aladdin (Euro, USA, Bra)			| 		| 1994	| Sega		| Sega Game Gear| 					|
@@ -2535,6 +2540,7 @@ This list contains all games supported by FB Alpha.
 | sg1k_dokidoki	|  	| Dokidoki Penguin Land (Jpn)				| 		| 1985	| Sega		| Sega SG-1000	| 					|
 | dolmen	|  	| Dolmen						| 		| 1995	| Afega		| NMK16		| 					|
 | md_domino	|  	| Domino (Rus)						| 		| 199?	| <unlicensed>	| Sega Megadrive| 					|
+| domino	|  	| Domino Man						| 		| 1982	| Bally Midway	| Miscellaneous	| 					|
 | md_dominus	|  	| Dominus (USA, Prototype)				| 		| 199?	| <unknown>	| Sega Megadrive| 					|
 | dommy		|  	| Dommy							| 		| 198?	| Technos	| Miscellaneous	| 					|
 | dondokodj	|  	| Don Doko Don (Japan)					| dondokod	| 1989	| Taito Corporat| Taito F2	| 					|
@@ -2728,6 +2734,7 @@ This list contains all games supported by FB Alpha.
 | drakton	|  	| Drakton (DK conversion)				| 		| 1984	| Epos Corporati| Miscellaneous	| No sound				|
 | drktnjr	|  	| Drakton (DKJr conversion)				| drakton	| 1984	| Epos Corporati| Miscellaneous	| No sound				|
 | keithlcy	|  	| Dramatic Adventure Quiz Keith & Lucy (Japan)		| 		| 1993	| Visco		| SSV		| 					|
+| dpoker	| D NW	| Draw Poker (Bally, 03-20)				| 		| 1985	| Bally		| Miscellaneous	| 					|
 | dreambal	|  	| Dream Ball (Japan V2.4)				| 		| 1993	| NDK / Data Eas| DECO IC16	| 					|
 | dland		|  	| Dream Land / Super Dream Land (bootleg of Bubble Bobbl| bublbobl	| 1987	| bootleg	| Taito Misc	| 					|
 | dremshpr	|  	| Dream Shopper						| 		| 1982	| Sanritsu	| Pac-man	| 					|
@@ -4678,6 +4685,7 @@ This list contains all games supported by FB Alpha.
 | jsk		| D NW	| Joryuu Syougi Kyoushitsu (Japan)			| 		| 1997	| Visco		| MSSV		| Unemulated CPU			|
 | md_joshua	|  	| Joshua & The Battle of Jericho (USA)			| 		| 1992	| Wisdom Tree	| Sega Megadrive| 					|
 | gg_striderr	|  	| Journey from Darkness - Strider Returns (Euro, USA)	| 		| 1992	| U.S. Gold	| Sega Game Gear| 					|
+| journey	|  	| Journey						| 		| 1983	| Bally Midway	| Miscellaneous	| 					|
 | cv_joust	|  	| Joust (Prototype)					| 		| 1983	| Atarisoft	| ColecoVision	| 					|
 | joustr	|  	| Joust (Solid Red label)				| joust		| 1982	| Williams	| 6809 System	| 					|
 | joust		|  	| Joust (White/Green label)				| 		| 1982	| Williams	| 6809 System	| 					|
@@ -4841,6 +4849,8 @@ This list contains all games supported by FB Alpha.
 | msx_keykaper	|  	| Keystone Kapers (Jpn)					| 		| 1984	| Pony Canyon	| MSX		| 					|
 | cv_keykaper	|  	| Keystone Kapers					| 		| 1984	| Activision	| ColecoVision	| 					|
 | msx_khazzad	|  	| Khazzad-Dum (Spa)					| 		| 1989	| System 4	| MSX		| 					|
+| kickc		|  	| Kick (cocktail)					| kick		| 1981	| Midway	| Miscellaneous	| 					|
+| kick		|  	| Kick (upright)					| 		| 1981	| Midway	| Miscellaneous	| 					|
 | kicknrunu	|  	| Kick and Run (US)					| kicknrun	| 1986	| Taito America | Miscellaneous	| 					|
 | kicknrun	|  	| Kick and Run (World)					| 		| 1986	| Taito Corporat| Miscellaneous	| 					|
 | gg_kickrush	|  	| Kick and Rush (Jpn)					| gg_tengenwc	| 1993	| SIMS		| Sega Game Gear| 					|
@@ -4858,6 +4868,7 @@ This list contains all games supported by FB Alpha.
 | pce_kickball	|  	| Kickball						| 		| 1990	| Masiya	| PC Engine	| 					|
 | kicker	|  	| Kicker						| 		| 1985	| Konami	| GX477		| 					|
 | kikcubicb	|  	| Kickle Cubele						| kikcubic	| 1988	| bootleg	| Miscellaneous	| 					|
+| kickman	|  	| Kickman (upright)					| kick		| 1981	| Midway	| Miscellaneous	| 					|
 | md_kidcham	|  	| Kid Chameleon (Euro, Korea, USA)			| 		| 1992	| Sega		| Sega Megadrive| 					|
 | kidnikiu	|  	| Kid Niki - Radical Ninja (US)				| kidniki	| 1986	| Irem (Data Eas| Irem M62	| 					|
 | kidniki	|  	| Kid Niki - Radical Ninja (World)			| 		| 1986	| Irem		| Irem M62	| 					|
@@ -5066,6 +5077,7 @@ This list contains all games supported by FB Alpha.
 | strahlj	|  	| Koutetsu Yousai Strahl (Japan set 1)			| strahl	| 1992	| UPL		| NMK16		| 					|
 | strahlja	|  	| Koutetsu Yousai Strahl (Japan set 2)			| strahl	| 1992	| UPL		| NMK16		| 					|
 | strahl	|  	| Koutetsu Yousai Strahl (World)			| 		| 1992	| UPL		| NMK16		| 					|
+| kroozr	|  	| Kozmik Kroozr						| 		| 1982	| Bally Midway	| Miscellaneous	| 					|
 | kozure	|  	| Kozure Ookami (Japan)					| 		| 1987	| Nichibutsu	| Miscellaneous	| 					|
 | msx_krakout	|  	| Krakout (Euro)					| 		| 1987	| Gremlin Graphi| MSX		| 					|
 | kram3		| X NW	| Kram (encrypted)					| kram		| 1982	| Taito America | Miscellaneous	| 					|
@@ -6503,6 +6515,7 @@ This list contains all games supported by FB Alpha.
 | md_nfl98	|  	| NFL 98 (USA)						| 		| 1997	| Sega		| Sega Megadrive| 					|
 | md_nfl94j	|  	| NFL Football '94 Starring Joe Montana (Jpn)		| md_nfl94	| 1994	| Sega		| Sega Megadrive| 					|
 | md_nfl94	|  	| NFL Football '94 Starring Joe Montana (USA)		| 		| 1993	| Sega		| Sega Megadrive| 					|
+| nflfoot	| D NW	| NFL Football						| 		| 1983	| Bally Midway	| Miscellaneous	| 					|
 | gg_nflqb96	|  	| NFL Quarterback Club '96 (Euro, USA)			| 		| 1995	| Acclaim Entert| Sega Game Gear| 					|
 | gg_nflqb	|  	| NFL Quarterback Club (World)				| 		| 1994	| Acclaim Entert| Sega Game Gear| 					|
 | md_nflqb	|  	| NFL Quarterback Club (World)				| 		| 1994	| Acclaim Entert| Sega Megadrive| 					|
@@ -8204,6 +8217,8 @@ This list contains all games supported by FB Alpha.
 | satansatind	|  	| Satan of Saturn (Inder S.A., bootleg)			| satansat	| 1981	| bootleg (Inder| Miscellaneous	| 					|
 | satansat	|  	| Satan of Saturn (set 1)				| 		| 1981	| SNK		| Miscellaneous	| 					|
 | satansata	|  	| Satan of Saturn (set 2)				| satansat	| 1981	| SNK		| Miscellaneous	| 					|
+| shollow	|  	| Satan's Hollow (set 1)				| 		| 1981	| Bally Midway	| Miscellaneous	| 					|
+| shollow2	|  	| Satan's Hollow (set 2)				| shollow	| 1981	| Bally Midway	| Miscellaneous	| 					|
 | sms_satell7	|  	| Satellite 7 (Jpn, MyCard)				| 		| 1985	| Sega		| Sega Master Sy| 					|
 | sms_satell7a	|  	| Satellite 7 (Jpn, Pirate?)				| sms_satell7	| 1985	| pirate	| Sega Master Sy| 					|
 | slampic	|  	| Saturday Night Slam Masters (bootleg (with PIC16c57), | slammast	| 1993	| bootleg	| CPS1		| No Sound				|
@@ -8656,6 +8671,7 @@ This list contains all games supported by FB Alpha.
 | soldividk	|  	| Sol Divide - The Sword Of Darkness (Korea)		| soldivid	| 1997	| Psikyo	| PS3-V1	| 					|
 | soldivid	|  	| Sol Divide - The Sword Of Darkness			| 		| 1997	| Psikyo	| PS3-V1	| 					|
 | md_soldeace	|  	| Sol-Deace (USA)					| 		| 1992	| Renovation	| Sega Megadrive| 					|
+| solarfox	|  	| Solar Fox (upright)					| 		| 1981	| Bally Midway	| Miscellaneous	| 					|
 | solrwarr	|  	| Solar-Warrior (US)					| xsleena	| 1986	| Technos Japan | Miscellaneous	| 					|
 | soldamj	|  	| Soldam (Japan)					| soldam	| 1992	| Jaleco	| Mega System 1	| 					|
 | soldam	|  	| Soldam						| 		| 1992	| Jaleco	| Mega System 1	| 					|
@@ -9963,6 +9979,12 @@ This list contains all games supported by FB Alpha.
 | taotaido	|  	| Tao Taido (set 1)					| 		| 1993	| Video System C| Miscellaneous	| 					|
 | taotaidoa	|  	| Tao Taido (set 2)					| taotaido	| 1993	| Video System C| Miscellaneous	| 					|
 | sg1k_wboyt	|  	| Taotailang (Tw)					| sg1k_wboy	| 1986?	| Unknown	| Sega SG-1000	| 					|
+| tapperg	|  	| Tapper (Budweiser, 1/27/84 - Alternate graphics)	| tapper	| 1983	| Bally Midway	| Miscellaneous	| 					|
+| tapper	|  	| Tapper (Budweiser, 1/27/84)				| 		| 1983	| Bally Midway	| Miscellaneous	| 					|
+| tappera	|  	| Tapper (Budweiser, 12/9/83)				| tapper	| 1983	| Bally Midway	| Miscellaneous	| 					|
+| tapperb	|  	| Tapper (Budweiser, Date Unknown)			| tapper	| 1983	| Bally Midway	| Miscellaneous	| 					|
+| rbtapper	|  	| Tapper (Root Beer)					| tapper	| 1984	| Bally Midway	| Miscellaneous	| 					|
+| sutapper	|  	| Tapper (Suntory)					| tapper	| 1983	| Bally Midway	| Miscellaneous	| 					|
 | cv_tapper	|  	| Tapper						| 		| 1984	| Coleco	| ColecoVision	| 					|
 | md_trgearth	|  	| Target Earth (USA)					| 		| 1990	| Dreamworks Gam| Sega Megadrive| 					|
 | targeth10	|  	| Target Hits (ver 1.0, Checksum FBCB)			| targeth	| 1994	| Gaelco	| Miscellaneous	| 					|
@@ -10721,6 +10743,7 @@ This list contains all games supported by FB Alpha.
 | tigeroad	|  	| Tiger Road (US)					| 		| 1987	| Capcom	| Miscellaneous	| 					|
 | tigeroadu	|  	| Tiger Road (US, Romstar license)			| tigeroad	| 1987	| Capcom (Romsta| Miscellaneous	| 					|
 | tg_tigerrod	|  	| Tiger Road						| 		| 1990	| NEC		| TurboGrafx 16	| 					|
+| timber	|  	| Timber						| 		| 1984	| Bally Midway	| Miscellaneous	| 					|
 | msx_timebomb	|  	| Time Bomb (Euro)					| 		| 1987	| Methodic Solut| MSX		| 					|
 | pce_timcrus2	|  	| Time Cruise II					| 		| 1991	| Face		| PC Engine	| 					|
 | tg_timcrus	|  	| Time Cruise						| 		| 1992	| TTI		| TurboGrafx 16	| 					|
@@ -10933,6 +10956,11 @@ This list contains all games supported by FB Alpha.
 | trojanr	|  	| Trojan (Romstar)					| trojan	| 1986	| Capcom (Romsta| Miscellaneous	| 					|
 | trojan	|  	| Trojan (US set 1)					| 		| 1986	| Capcom	| Miscellaneous	| 					|
 | trojana	|  	| Trojan (US set 2)					| trojan	| 1986	| Capcom	| Miscellaneous	| 					|
+| tron4		|  	| Tron (6/15)						| tron		| 1982	| Bally Midway	| Miscellaneous	| 					|
+| tron3		|  	| Tron (6/17)						| tron		| 1982	| Bally Midway	| Miscellaneous	| 					|
+| tron2		|  	| Tron (6/25)						| tron		| 1982	| Bally Midway	| Miscellaneous	| 					|
+| tron		|  	| Tron (8/9)						| 		| 1982	| Bally Midway	| Miscellaneous	| 					|
+| tronger	|  	| Tron (Germany)					| tron		| 1982	| Bally Midway	| Miscellaneous	| 					|
 | trophyh	|  	| Trophy Hunting - Bear & Moose V1.00			| 		| 2002	| Sammy USA Corp| Newer Seta	| Hangs are normal, just wait it out.	|
 | troangel	|  	| Tropical Angel					| 		| 1983	| Irem		| Miscellaneous	| 					|
 | md_troubsht	|  	| Trouble Shooter (USA)					| 		| 1991	| Vic Tokai	| Sega Megadrive| 					|
@@ -11041,6 +11069,8 @@ This list contains all games supported by FB Alpha.
 | twocrudea	|  	| Two Crude (US FT version)				| cbuster	| 1990	| Data East USA	| DECO IC16	| 					|
 | md_twocrude	|  	| Two Crude Dudes (Euro)				| 		| 1992	| Data East	| Sega Megadrive| 					|
 | md_twocrudeu	|  	| Two Crude Dudes (USA)					| md_twocrude	| 1992	| Data East	| Sega Megadrive| 					|
+| twotiger	|  	| Two Tigers (dedicated)				| 		| 1984	| Bally Midway	| Miscellaneous	| 					|
+| twotigerc	| D NW	| Two Tigers (Tron conversion)				| twotiger	| 1984	| Bally Midway	| Miscellaneous	| 					|
 | md_twotribe	|  	| Two Tribes - Populous II (Euro)			| 		| 1993	| Virgin Games	| Sega Megadrive| 					|
 | msx_txupi	|  	| Txupinazo!						| 		| 2007	| IMANOK	| MSX		| 					|
 | typhoon	|  	| Typhoon						| ajax		| 1987	| Konami	| GX770		| 					|
@@ -11318,6 +11348,7 @@ This list contains all games supported by FB Alpha.
 | vulgus	|  	| Vulgus (set 1)					| 		| 1984	| Capcom	| Miscellaneous	| 					|
 | vulgusa	|  	| Vulgus (set 2)					| vulgus	| 1984	| Capcom	| Miscellaneous	| 					|
 | pce_wring	|  	| W-ring - The Double Rings				| 		| 1990	| Naxat		| PC Engine	| 					|
+| wacko		|  	| Wacko							| 		| 1982	| Bally Midway	| Miscellaneous	| 					|
 | spec_wackdart	|  	| Wacky Darts (48K)					| 		| 1991	| Codemasters	| ZX Spectrum	| 					|
 | md_wackyrac	|  	| Wacky Races (USA, Prototype)				| 		| 199?	| <unknown>	| Sega Megadrive| 					|
 | md_wworldsp3	|  	| Wacky Worlds (Prototype, 19940808)			| md_wworlds	| 1994	| Sega		| Sega Megadrive| 					|
