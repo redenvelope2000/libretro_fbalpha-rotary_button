@@ -61,7 +61,7 @@ Your hardware is probably too slow to run the game with normal settings. Try the
 * Try setting a value for frameskip in core options.
 * Try disabling rewind, runahead, and anything related to the savestates system in retroarch.
 * Try lowering audio settings in the core options.
-If it is not enough, upgrade or overclock your hardware.
+* If it is not enough, upgrade or overclock your hardware.
 
 ### Game XXX has choppy sound, why ?
 Most likely for the same reason as above.
@@ -75,7 +75,19 @@ This libretro port also support various features which are usually buggy or abse
 There should be partial support through the new API relying on main ram exposition.
 
 ### Neogeo CD doesn't work, why ?
-The support is still a work in progress, there are several things to know :
+There are several things to know :
 * You need a copy of neocdz.zip and neogeo.zip in your libretro system directory
 * You need to add `--subsystem neocd` to the command line
 * Supported format are ccd/sub/img iso (trurip), and single file MODE1/2352 bin/cue (use utilities like "CDmage" to convert your iso if needed)
+You can convert your unsupported isos by following this tutorial :
+* Get [CDMage 1.02.1](https://www.videohelp.com/software/CDMage) (freeware & no ads)
+* File > Open > select your iso (NB : for multi-track, select the .cue file, not the .iso file)
+* File > Save As > write the name of your new file
+* Make sure you select MODE1/2352 in the second drop-down
+* Press OK, wait for the process to finish (a few seconds on my computer), and it’s done !
+
+### Killer instinct won't work, why ?
+There are several things to know :
+* It is only running at playable speed on x86_64 (other arch will basically need a cpu at 4Ghz because they lack a mips3 dynarec), and the core needs to be built like this to enable this dynarec : `make -j5 -f makefile.libretro USE_X64_DRC=1`
+* If your rom is at `[rom_dir]/kinst.zip`, you'll need the uncompressed disc image at `[rom_dir]/kinst/kinst.img`
+* To get the uncompressed disc image, you'll need to use the chdman tool from MAME on the chd from mame, the command looks like this : `chdman extracthd -i kinst.chd -o kinst.img`

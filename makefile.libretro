@@ -9,7 +9,7 @@ FASTMATH = 1
 USE_SPEEDHACKS = 1
 EXTERNAL_ZLIB = 0
 INCLUDE_7Z_SUPPORT = 1
-# enable x86_64 dynarec, however it's not working properly atm
+# enable x86_64 dynarec used in killer instinct
 USE_X64_DRC = 0
 AUTOGEN_DATS = 0
 HAVE_NEON = 0
@@ -442,15 +442,6 @@ else
 	SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(VERSION_SCRIPT)
 	LDFLAGS += -static-libgcc -static-libstdc++
 	ENDIANNESS_DEFINES := -DLSB_FIRST
-	# The following won't work when cross-building...
-	# LBITS := $(shell getconf LONG_BIT)
-	# ifeq ($(LBITS),64)
-	#	USE_X64_DRC = 1
-	# endif
-	ifeq ($(MSYSTEM), MINGW64)
-		USE_X64_DRC = 1
-	endif
-
 endif
 
 CC_SYSTEM = gcc
