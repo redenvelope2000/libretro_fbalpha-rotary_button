@@ -2,16 +2,29 @@
 #define __PORT_TYPEDEFS_H
 
 #include "libretro.h"
+#if 0
 #ifndef IOS
-	// This is a bit hacky...
+	// This is a nightmarish hack brought forth by file_stream_transform...
 	// Code using string types, char types and file functions will fail
-	// on some toolchains if we don't include the following library before
+	// on msvc2017 if we don't include the following libraries before
 	// file_stream_transforms due to conflicting declarations.
 	// It also seems one of those includes provide math on msvc2017, so
 	// we'll lack M_PI if we don't define _USE_MATH_DEFINES right now.
+	// Furthermore, <string> breaks FBA_DEBUG while <string.h> breaks
+	// msvc2017 x86 builds...
 	#define _USE_MATH_DEFINES
 	#include <wchar.h>
-	#include <string.h>
+	#ifndef _MSC_VER
+		#include <string.h>
+	#else
+		#include <string>
+	#endif
+#endif
+#endif
+#ifdef _MSC_VER
+	#define _USE_MATH_DEFINES
+	#include <wchar.h>
+	#include <string>
 #endif
 #include "streams/file_stream_transforms.h"
 
