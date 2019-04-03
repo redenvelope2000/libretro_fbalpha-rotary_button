@@ -21,7 +21,7 @@
 	#endif
 #endif
 #endif
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MINGW32__)
 	#define _USE_MATH_DEFINES
 	#include <wchar.h>
 	#include <string>
