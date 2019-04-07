@@ -369,7 +369,8 @@ static void set_controller_infos()
 		{ "Modern", RETROPAD_MODERN },
 		{ "Mouse (ball only)", RETROMOUSE_BALL },
 		{ "Mouse (full)", RETROMOUSE_FULL },
-		{ "Pointer (full)", RETROPOINTER_FULL }
+		{ "Pointer", RETRO_DEVICE_POINTER },
+		{ "Lightgun", RETRO_DEVICE_LIGHTGUN }
 	};
 
 	std::vector<retro_controller_info> controller_infos(nMaxPlayers+1);

@@ -9,7 +9,7 @@ static retro_input_poll_t poll_cb;
 
 static unsigned nDiagInputComboStartFrame = 0;
 static unsigned nDiagInputHoldFrameDelay = 0;
-static unsigned nDeviceType[5] = { RETROPAD_CLASSIC, RETROPAD_CLASSIC, RETROPAD_CLASSIC, RETROPAD_CLASSIC, RETROPAD_CLASSIC };
+static unsigned nDeviceType[5] = { -1, -1, -1, -1, -1 };
 static unsigned nSwitchCode = 0;
 static std::vector<retro_input_descriptor> normal_input_descriptors;
 static struct KeyBind sKeyBinds[255];
@@ -21,6 +21,7 @@ static bool bAllDiagInputPressed = true;
 static bool bDiagComboActivated = false;
 static bool bVolumeIsFireButton = false;
 static bool bInputInitialized = false;
+static bool bInputNeedRefresh = false;
 
 void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
 void retro_set_input_poll(retro_input_poll_t cb) { poll_cb = cb; }
@@ -196,19 +197,17 @@ static inline int CinpJoyAxis(int port, int axis)
 
 static INT32 pointerValues[5][2];
 
+static inline void CinpDirectCoord(int port, int axis)
+{
+	UINT16 val = (32767 + input_cb(port, nDeviceType[port], 0, sAxiBinds[port][axis].id));
+	INT32 width, height;
+	BurnDrvGetVisibleSize(&width, &height);
+	pointerValues[port][axis] = (INT32)((axis == 0 ? width : height) * (double(val)/double(65536)));
+	BurnGunSetCoords(port, pointerValues[port][0], pointerValues[port][1]);
+}
+
 static inline int CinpMouseAxis(int port, int axis)
 {
-	// When mode is 1 (pointer/lightgun), tell the mouse there is no
-	// movement and directly set coordinates
-	if (sAxiBinds[port][axis].mode == 1) {
-		UINT16 val = (32767 + input_cb(port, RETRO_DEVICE_POINTER, 0, sAxiBinds[port][axis].id));
-		INT32 width, height;
-		BurnDrvGetVisibleSize(&width, &height);
-		float temp = (float)(((axis == 0 ? width : height) * ((float)val/(float)65536)));
-		pointerValues[port][axis] = (INT32)temp;
-		BurnGunSetCoords(port, pointerValues[port][0], pointerValues[port][1]);
-		return 0;
-	}
 	return input_cb(port, RETRO_DEVICE_MOUSE, 0, sAxiBinds[port][axis].id);
 }
 
@@ -266,7 +265,7 @@ static INT32 InputTick()
 }
 
 // Analog to analog mapping
-static INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, unsigned port, unsigned axis, unsigned id, int index, char *szn, UINT8 nInput = GIT_JOYAXIS_FULL, INT32 nSliderValue = 0x8000, INT16 nSliderSpeed = 0x0E00, INT16 nSliderCenter = 10, UINT16 nAxisMode = 0)
+static INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, unsigned port, unsigned axis, unsigned id, int index, char *szn, UINT8 nInput = GIT_JOYAXIS_FULL, INT32 nSliderValue = 0x8000, INT16 nSliderSpeed = 0x0E00, INT16 nSliderCenter = 10)
 {
 	if(bButtonMapped) return 0;
 	switch (nInput)
@@ -313,7 +312,6 @@ static INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, unsigned port, un
 			pgi->Input.MouseAxis.nMouse = (UINT8)port;
 			sAxiBinds[port][axis].index = index;
 			sAxiBinds[port][axis].id = id;
-			sAxiBinds[port][axis].mode = nAxisMode;
 			retro_input_descriptor descriptor;
 			descriptor.port = port;
 			descriptor.device = RETRO_DEVICE_MOUSE;
@@ -323,33 +321,16 @@ static INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, unsigned port, un
 			normal_input_descriptors.push_back(descriptor);
 			break;
 		}
-		// I'm not sure the 2 following settings are needed in the libretro port
-		case GIT_JOYAXIS_NEG:
+		case GIT_DIRECT_COORD:
 		{
-			pgi->nInput = GIT_JOYAXIS_NEG;
-			pgi->Input.JoyAxis.nAxis = axis;
-			pgi->Input.JoyAxis.nJoy = (UINT8)port;
+			pgi->nInput = GIT_DIRECT_COORD;
+			pgi->Input.MouseAxis.nAxis = axis;
+			pgi->Input.MouseAxis.nMouse = (UINT8)port;
 			sAxiBinds[port][axis].index = index;
 			sAxiBinds[port][axis].id = id;
 			retro_input_descriptor descriptor;
 			descriptor.port = port;
-			descriptor.device = RETRO_DEVICE_ANALOG;
-			descriptor.index = index;
-			descriptor.id = id;
-			descriptor.description = szn;
-			normal_input_descriptors.push_back(descriptor);
-			break;
-		}
-		case GIT_JOYAXIS_POS:
-		{
-			pgi->nInput = GIT_JOYAXIS_POS;
-			pgi->Input.JoyAxis.nAxis = axis;
-			pgi->Input.JoyAxis.nJoy = (UINT8)port;
-			sAxiBinds[port][axis].index = index;
-			sAxiBinds[port][axis].id = id;
-			retro_input_descriptor descriptor;
-			descriptor.port = port;
-			descriptor.device = RETRO_DEVICE_ANALOG;
+			descriptor.device = nDeviceType[port];
 			descriptor.index = index;
 			descriptor.id = id;
 			descriptor.description = szn;
@@ -454,39 +435,87 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 	const char * drvname	= BurnDrvGetTextA(DRV_NAME);
 	const char * systemname = BurnDrvGetTextA(DRV_SYSTEM);
 
-	if (nDeviceType[nPlayer] == RETROPOINTER_FULL) {
+	if (nDeviceType[nPlayer] == RETRO_DEVICE_POINTER) {
 		if (strcmp("x-axis", szi + 3) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_POINTER_X, RETRO_DEVICE_POINTER, description, GIT_MOUSEAXIS, 0x8000, 0x0E00, 10, 1);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_POINTER_X, 0, description, GIT_DIRECT_COORD);
 		}
 		if (strcmp("y-axis", szi + 3) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_POINTER_Y, RETRO_DEVICE_POINTER, description, GIT_MOUSEAXIS, 0x8000, 0x0E00, 10, 1);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_POINTER_Y, 0, description, GIT_DIRECT_COORD);
 		}
 		if (strcmp("mouse x-axis", szi) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_POINTER_X, RETRO_DEVICE_POINTER, description, GIT_MOUSEAXIS, 0x8000, 0x0E00, 10, 1);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_POINTER_X, 0, description, GIT_DIRECT_COORD);
 		}
 		if (strcmp("mouse y-axis", szi) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_POINTER_Y, RETRO_DEVICE_POINTER, description, GIT_MOUSEAXIS, 0x8000, 0x0E00, 10, 1);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_POINTER_Y, 0, description, GIT_DIRECT_COORD);
+		}
+	}
+
+	if (nDeviceType[nPlayer] == RETRO_DEVICE_LIGHTGUN) {
+		if (strcmp("x-axis", szi + 3) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X, 0, description, GIT_DIRECT_COORD);
+		}
+		if (strcmp("y-axis", szi + 3) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y, 0, description, GIT_DIRECT_COORD);
+		}
+		if (strcmp("mouse x-axis", szi) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X, 0, description, GIT_DIRECT_COORD);
+		}
+		if (strcmp("mouse y-axis", szi) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y, 0, description, GIT_DIRECT_COORD);
 		}
 		if (strcmp("fire 1", szi + 3) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_POINTER_PRESSED, description, RETRO_DEVICE_POINTER);
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER, description, RETRO_DEVICE_LIGHTGUN);
 		}
 		if (strcmp("mouse button 1", szi) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_POINTER_PRESSED, description, RETRO_DEVICE_POINTER);
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("mouse button", szi) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("fire 2", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_AUX_A, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("mouse button 2", szi) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_AUX_A, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("fire 3", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_AUX_B, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("fire 4", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_AUX_C, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("up", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("down", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("left", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("right", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("start", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_START, description, RETRO_DEVICE_LIGHTGUN);
+		}
+		if (strcmp("coin", szi + 3) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_LIGHTGUN_SELECT, description, RETRO_DEVICE_LIGHTGUN);
 		}
 	}
 
 	if (nDeviceType[nPlayer] == RETROMOUSE_BALL || nDeviceType[nPlayer] == RETROMOUSE_FULL) {
 		if (strcmp("x-axis", szi + 3) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_MOUSE_X, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_MOUSE_X, 0, description, GIT_MOUSEAXIS);
 		}
 		if (strcmp("y-axis", szi + 3) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_MOUSE_Y, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_MOUSE_Y, 0, description, GIT_MOUSEAXIS);
 		}
 		if (strcmp("mouse x-axis", szi) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_MOUSE_X, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_MOUSE_X, 0, description, GIT_MOUSEAXIS);
 		}
 		if (strcmp("mouse y-axis", szi) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_MOUSE_Y, RETRO_DEVICE_MOUSE, description, GIT_MOUSEAXIS);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_MOUSE_Y, 0, description, GIT_MOUSEAXIS);
 		}
 		if (nDeviceType[nPlayer] == RETROMOUSE_FULL) {
 			// Handle mouse button mapping (i will keep it simple...)
@@ -494,6 +523,9 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_LEFT, description, RETRO_DEVICE_MOUSE);
 			}
 			if (strcmp("mouse button 1", szi) == 0) {
+				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_LEFT, description, RETRO_DEVICE_MOUSE);
+			}
+			if (strcmp("mouse button", szi) == 0) {
 				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_MOUSE_LEFT, description, RETRO_DEVICE_MOUSE);
 			}
 			if (strcmp("fire 2", szi + 3) == 0) {
@@ -1353,6 +1385,9 @@ INT32 GameInpAutoOne(struct GameInp* pgi, char* szi, char *szn)
 		if (bPlayerInInfo && nPlayer == -1)
 			nPlayer = szi[1] - '1';
 
+		// We don't know the device for the player yet, going further is absurd
+		//if (nDeviceType[nPlayer-1] == -1) return 0;
+
 		char* szb = szi + 3;
 
 		// "P1 XXX" - try to exclude the "P1 " from the szName
@@ -1495,6 +1530,8 @@ static INT32 GameInpReassign()
 	struct BurnInputInfo bii;
 	UINT32 i;
 
+	normal_input_descriptors.clear();
+
 	for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++) {
 		BurnDrvGetInputInfo(&bii, i);
 		GameInpAutoOne(pgi, bii.szInfo, bii.szName);
@@ -1598,8 +1635,32 @@ static bool PollDiagInput()
 	return false;
 }
 
+// Set the input descriptors
+static void SetInputDescriptors()
+{
+	struct retro_input_descriptor *input_descriptors = (struct retro_input_descriptor*)calloc(normal_input_descriptors.size() + 1, sizeof(struct retro_input_descriptor));
+
+	unsigned input_descriptor_idx = 0;
+
+	for (unsigned i = 0; i < normal_input_descriptors.size(); i++, input_descriptor_idx++)
+	{
+		input_descriptors[input_descriptor_idx] = normal_input_descriptors[i];
+	}
+
+	input_descriptors[input_descriptor_idx].description = NULL;
+
+	environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors);
+	free(input_descriptors);
+}
+
 void InputMake(void)
 {
+	if (bInputNeedRefresh) {
+		GameInpReassign();
+		SetInputDescriptors();
+		bInputNeedRefresh = false;
+	}
+
 	poll_cb();
 
 	if (PollDiagInput())
@@ -1673,6 +1734,9 @@ void InputMake(void)
 #else
 				*((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
 #endif
+				break;
+			case GIT_DIRECT_COORD:
+				CinpDirectCoord(pgi->Input.MouseAxis.nMouse, pgi->Input.MouseAxis.nAxis);
 				break;
 			case GIT_JOYAXIS_FULL:	{				// Joystick axis
 				INT32 nJoy = CinpJoyAxis(pgi->Input.JoyAxis.nJoy, pgi->Input.JoyAxis.nAxis);
@@ -1761,31 +1825,12 @@ void InputMake(void)
 	}
 }
 
-// Set the input descriptors
-static void SetInputDescriptors()
-{
-	struct retro_input_descriptor *input_descriptors = (struct retro_input_descriptor*)calloc(normal_input_descriptors.size() + 1, sizeof(struct retro_input_descriptor));
-
-	unsigned input_descriptor_idx = 0;
-
-	for (unsigned i = 0; i < normal_input_descriptors.size(); i++, input_descriptor_idx++)
-	{
-		input_descriptors[input_descriptor_idx] = normal_input_descriptors[i];
-	}
-
-	input_descriptors[input_descriptor_idx].description = NULL;
-
-	environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors);
-	free(input_descriptors);
-}
-
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
 	if (port < nMaxPlayers && nDeviceType[port] != device)
 	{
 		nDeviceType[port] = device;
-		GameInpReassign();
-		SetInputDescriptors();
+		bInputNeedRefresh = true;
 	}
 }
 
@@ -1804,7 +1849,7 @@ void InputInit()
 	check_variables();
 
 	// The list of input descriptors is filled, we can assign them to retroarch
-	SetInputDescriptors();
+	//SetInputDescriptors();
 
 	/* serialization quirks for netplay, cps3 seems problematic, neogeo, cps1 and 2 seem to be good to go 
 	uint64_t serialization_quirks = RETRO_SERIALIZATION_QUIRK_SINGLE_SESSION;

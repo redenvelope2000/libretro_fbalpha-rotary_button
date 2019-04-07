@@ -19,14 +19,14 @@ struct AxiBind
 	unsigned id_pos;
 	unsigned id_neg;
 	int index;
-	unsigned mode; // 0 = mouse / 1 = pointer/lightgun
 };
 
 #define RETROPAD_CLASSIC	RETRO_DEVICE_ANALOG
 #define RETROPAD_MODERN		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_ANALOG, 1)
 #define RETROMOUSE_BALL		RETRO_DEVICE_MOUSE
 #define RETROMOUSE_FULL		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 1)
-#define RETROPOINTER_FULL	RETRO_DEVICE_POINTER
+
+#define GIT_DIRECT_COORD	(0x11)
 
 #define JOY_NEG 0
 #define JOY_POS 1
