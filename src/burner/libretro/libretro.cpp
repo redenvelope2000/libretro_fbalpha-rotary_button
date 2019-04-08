@@ -1007,20 +1007,14 @@ void retro_cheat_set(unsigned, bool, const char*) {}
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
 	int width, height, game_aspect_x, game_aspect_y;
-	BurnDrvGetVisibleSize(&width, &height);
+	BurnDrvGetFullSize(&width, &height);
 	if (pVidImage)
 		free(pVidImage);
 	pVidImage = (UINT8*)malloc(width * height * nBurnBpp);
 	BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
-	if (bVerticalMode)
-	{
-		int tmp_height = width;
-		width = height;
-		height = tmp_height;
-	}
+
 	int maximum = width > height ? width : height;
 	struct retro_game_geometry geom = { (unsigned)width, (unsigned)height, (unsigned)maximum, (unsigned)maximum };
-
 
 	if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par)
 	{
@@ -1255,7 +1249,7 @@ static bool retro_load_game_common()
 
 		// Initializing display, autorotate if needed
 		INT32 width, height;
-		BurnDrvGetVisibleSize(&width, &height);
+		BurnDrvGetFullSize(&width, &height);
 		unsigned drv_flags = BurnDrvGetFlags();
 		unsigned rotation;
 		switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
