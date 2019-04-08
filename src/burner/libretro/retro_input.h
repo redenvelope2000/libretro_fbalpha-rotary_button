@@ -36,5 +36,6 @@ void SetDiagInpHoldFrameDelay(unsigned val);
 void InputMake(void);
 void InputInit();
 void InputDeInit();
+void SetControllerInfo();
 
 #endif

@@ -54,7 +54,6 @@ struct GameInp *pgi_reset;
 struct GameInp *pgi_diag;
 bool is_neogeo_game = false;
 bool allow_neogeo_mode = true;
-bool core_aspect_par = false;
 bool bVerticalMode = false;
 bool bAllowDepth32 = false;
 UINT32 nFrameskip = 1;
@@ -78,7 +77,6 @@ static UINT8 diag_input_select_l_r[] =  {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DE
 
 // Global core options
 static const struct retro_variable var_empty = { NULL, NULL };
-static const struct retro_variable var_fba_aspect = { "fba-aspect", "Core-provided aspect ratio; DAR|PAR" };
 static const struct retro_variable var_fba_allow_depth_32 = { "fba-allow-depth-32", "Use 32-bits color depth when available; disabled|enabled" };
 static const struct retro_variable var_fba_vertical_mode = { "fba-vertical-mode", "Vertical mode; disabled|enabled" };
 static const struct retro_variable var_fba_frameskip = { "fba-frameskip", "Frameskip; 0|1|2|3|4|5" };
@@ -228,7 +226,6 @@ void set_environment()
 #endif
 
 	// Add the Global core options
-	vars_systems.push_back(&var_fba_aspect);
 	vars_systems.push_back(&var_fba_allow_depth_32);
 	vars_systems.push_back(&var_fba_vertical_mode);
 	vars_systems.push_back(&var_fba_frameskip);
@@ -335,15 +332,6 @@ void check_variables(void)
 			nBurnCPUSpeedAdjust = 0x0200;
 		else
 			nBurnCPUSpeedAdjust = 0x0100;
-	}
-
-	var.key = var_fba_aspect.key;
-	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-	{
-		if (strcmp(var.value, "PAR") == 0)
-			core_aspect_par = true;
-		else
-			core_aspect_par = false;
 	}
 
 	var.key = var_fba_allow_depth_32.key;

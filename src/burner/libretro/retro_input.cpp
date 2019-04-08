@@ -1635,6 +1635,32 @@ static bool PollDiagInput()
 	return false;
 }
 
+void SetControllerInfo()
+{
+	static const struct retro_controller_description controller_description[] = {
+		{ "Classic", RETROPAD_CLASSIC },
+		{ "Modern", RETROPAD_MODERN },
+		{ "Mouse (ball only)", RETROMOUSE_BALL },
+		{ "Mouse (full)", RETROMOUSE_FULL },
+		{ "Pointer", RETRO_DEVICE_POINTER },
+		{ "Lightgun", RETRO_DEVICE_LIGHTGUN }
+	};
+
+	struct retro_controller_info *controller_infos = (struct retro_controller_info*)calloc(nMaxPlayers+1, sizeof(struct retro_controller_info));
+
+	for (int i = 0; i < nMaxPlayers; i++)
+	{
+		controller_infos[i].types = controller_description;
+		controller_infos[i].num_types = sizeof(controller_description) / sizeof(controller_description[0]);
+	}
+
+	controller_infos[nMaxPlayers].types = NULL;
+	controller_infos[nMaxPlayers].num_types = 0;
+
+	environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, controller_infos);
+	free(controller_infos);
+}
+
 // Set the input descriptors
 static void SetInputDescriptors()
 {
