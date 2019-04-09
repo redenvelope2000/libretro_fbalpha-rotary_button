@@ -435,7 +435,7 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 	const char * drvname	= BurnDrvGetTextA(DRV_NAME);
 	const char * systemname = BurnDrvGetTextA(DRV_SYSTEM);
 
-	if (nDeviceType[nPlayer] == RETRO_DEVICE_POINTER) {
+	if (nDeviceType[nPlayer] == RETRO_DEVICE_POINTER && BurnGunIsActive()) {
 		if (strcmp("x-axis", szi + 3) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_POINTER_X, 0, description, GIT_DIRECT_COORD);
 		}
@@ -450,7 +450,7 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 	}
 
-	if (nDeviceType[nPlayer] == RETRO_DEVICE_LIGHTGUN) {
+	if (nDeviceType[nPlayer] == RETRO_DEVICE_LIGHTGUN && BurnGunIsActive()) {
 		if (strcmp("x-axis", szi + 3) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X, 0, description, GIT_DIRECT_COORD);
 		}
@@ -1250,6 +1250,18 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 		if (strcmp("Start (right)", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
+		}
+	}
+	
+	// Discs of Tron
+	if ((parentrom && strcmp(parentrom, "dotron") == 0) ||
+		(drvname && strcmp(drvname, "dotron") == 0)
+	) {
+		if (strcmp("Dial", description) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
+		}
+		if (strcmp("Aim Analog", description) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
 		}
 	}
 	
