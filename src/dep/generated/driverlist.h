@@ -2056,6 +2056,7 @@ DRV		BurnDrvmd_crkdown;
 DRV		BurnDrvmd_crkdownu;
 DRV		BurnDrvHocrash;
 DRV		BurnDrvmd_crash;
+DRV		BurnDrvCrater;
 DRV		BurnDrvtg_cratermz;
 DRV		BurnDrvmd_crayon;
 DRV		BurnDrvgg_crayon;
@@ -2380,6 +2381,7 @@ DRV		BurnDrvDeluxe5;
 DRV		BurnDrvDeluxe5a;
 DRV		BurnDrvDeluxe5b;
 DRV		BurnDrvDemoderbc;
+DRV		BurnDrvDemoderm;
 DRV		BurnDrvDemoderb;
 DRV		BurnDrvmd_demoman;
 DRV		BurnDrvmd_demomanp;
@@ -5791,6 +5793,7 @@ DRV		BurnDrvmd_maten;
 DRV		BurnDrvmd_mathblst;
 DRV		BurnDrvmatrimbl;
 DRV		BurnDrvmatrim;
+DRV		BurnDrvMaxrpm;
 DRV		BurnDrvsg1k_circusc;
 DRV		BurnDrvMSX_maxima;
 DRV		BurnDrvMayday;
@@ -7482,6 +7485,7 @@ DRV		BurnDrvPdrift;
 DRV		BurnDrvpce_pdrift;
 DRV		BurnDrvgg_pdrive;
 DRV		BurnDrvmd_pdrive;
+DRV		BurnDrvPowerdrv;
 DRV		BurnDrvpce_power11;
 DRV		BurnDrvpce_powergat;
 DRV		BurnDrvpce_pgolf;
@@ -7938,6 +7942,8 @@ DRV		BurnDrvmd_rambo3a;
 DRV		BurnDrvmd_rambo3;
 DRV		BurnSpecrampage;
 DRV		BurnDrvsms_rampage;
+DRV		BurnDrvRampage2;
+DRV		BurnDrvRampage;
 DRV		BurnDrvRmpgwt11;
 DRV		BurnDrvRmpgwt;
 DRV		BurnDrvsms_rampart;
@@ -8396,6 +8402,7 @@ DRV		BurnDrvsms_sapoxule;
 DRV		BurnDrvsercharj;
 DRV		BurnDrvsercharu;
 DRV		BurnDrvsearchar;
+DRV		BurnDrvSarge;
 DRV		BurnDrvSarukani;
 DRV		BurnDrvMSX_sasa;
 DRV		BurnDrvMSX_sasaa;
@@ -9266,9 +9273,11 @@ DRV		BurnDrvmd_spotgo;
 DRV		BurnDrvmd_spotgou;
 DRV		BurnDrvSpringer;
 DRV		BurnSpecspyhunt;
+DRV		BurnDrvSpyhuntp;
 DRV		BurnDrvcv_spyhuntp1;
 DRV		BurnDrvcv_spyhuntp;
 DRV		BurnDrvcv_spyhunt;
+DRV		BurnDrvSpyhunt;
 DRV		BurnDrvmd_spykids4;
 DRV		BurnSpecspyvspy;
 DRV		BurnDrvsms_spyvsspyj;
@@ -9319,6 +9328,7 @@ DRV		BurnDrvMSX_starfrcea;
 DRV		BurnDrvsg1k_starfrcet;
 DRV		BurnDrvsg1k_starfrceta;
 DRV		BurnDrvStarforc;
+DRV		BurnDrvStargrds;
 DRV		BurnDrvsg1k_starjack1;
 DRV		BurnDrvsg1k_starjack;
 DRV		BurnDrvsg1k_starjack2;
@@ -14384,6 +14394,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_crkdownu,		// Crack Down (USA)
 	&BurnDrvHocrash,			// Crash (bootleg of Head On)
 	&BurnDrvmd_crash,			// Crash Bandicoot (Rus)
+	&BurnDrvCrater,				// Crater Raider
 	&BurnDrvtg_cratermz,		// Cratermaze
 	&BurnDrvmd_crayon,			// Crayon Shin-chan - Arashi o Yobu Enji (Jpn)
 	&BurnDrvgg_crayon,			// Crayon Shin-chan - Taiketsu! Kantamu Panic!! (Jpn)
@@ -14708,6 +14719,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvDeluxe5a,			// Deluxe 5 (ver. 0107, 07/01/2000, set 2)
 	&BurnDrvDeluxe5b,			// Deluxe 5 (ver. 0107, 07/01/2000, set 3)
 	&BurnDrvDemoderbc,			// Demolition Derby (cocktail)
+	&BurnDrvDemoderm,			// Demolition Derby (MCR-3 Mono Board Version)
 	&BurnDrvDemoderb,			// Demolition Derby
 	&BurnDrvmd_demoman,			// Demolition Man (Euro, USA)
 	&BurnDrvmd_demomanp,		// Demolition Man (USA, Prototype) [no comment, NOT WORKING]
@@ -18119,6 +18131,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_mathblst,		// Math Blaster - Episode 1 (USA)
 	&BurnDrvmatrimbl,			// Matrimelee / Shin Gouketsuji Ichizoku Toukon (bootleg)
 	&BurnDrvmatrim,				// Matrimelee / Shin Gouketsuji Ichizoku Toukon (NGM-2660) (NGH-2660)
+	&BurnDrvMaxrpm,				// Max RPM (ver 2)
 	&BurnDrvsg1k_circusc,		// Maxi Tuan ~ Circus Charlie (Tw)
 	&BurnDrvMSX_maxima,			// Maxima (Euro)
 	&BurnDrvMayday,				// Mayday (set 1)
@@ -19810,6 +19823,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvpce_pdrift,			// Power Drift
 	&BurnDrvgg_pdrive,			// Power Drive (Euro)
 	&BurnDrvmd_pdrive,			// Power Drive (Euro)
+	&BurnDrvPowerdrv,			// Power Drive
 	&BurnDrvpce_power11,		// Power Eleven
 	&BurnDrvpce_powergat,		// Power Gate
 	&BurnDrvpce_pgolf,			// Power Golf
@@ -20266,6 +20280,8 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_rambo3,			// Rambo III (World, v1.1)
 	&BurnSpecrampage,			// Rampage (48K)
 	&BurnDrvsms_rampage,		// Rampage (Euro, USA, Bra)
+	&BurnDrvRampage2,			// Rampage (Rev 2, 8/4/86)
+	&BurnDrvRampage,			// Rampage (Rev 3, 8/27/86)
 	&BurnDrvRmpgwt11,			// Rampage: World Tour (rev 1.1)
 	&BurnDrvRmpgwt,				// Rampage: World Tour (rev 1.3)
 	&BurnDrvsms_rampart,		// Rampart (Euro)
@@ -20724,6 +20740,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvsercharj,			// SAR - Search And Rescue (Japan)
 	&BurnDrvsercharu,			// SAR - Search And Rescue (US)
 	&BurnDrvsearchar,			// SAR - Search And Rescue (World)
+	&BurnDrvSarge,				// Sarge
 	&BurnDrvSarukani,			// Saru-Kani-Hamu-Zou (Japan)
 	&BurnDrvMSX_sasa,			// Sasa (Jpn)
 	&BurnDrvMSX_sasaa,			// Sasa (Jpn, Alt)
@@ -21594,9 +21611,11 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_spotgou,			// Spot Goes to Hollywood (USA)
 	&BurnDrvSpringer,			// Springer
 	&BurnSpecspyhunt,			// Spy Hunter (48K)
+	&BurnDrvSpyhuntp,			// Spy Hunter (Playtronic license)
 	&BurnDrvcv_spyhuntp1,		// Spy Hunter (Prototype, v13)
 	&BurnDrvcv_spyhuntp,		// Spy Hunter (Prototype, v22)
 	&BurnDrvcv_spyhunt,			// Spy Hunter
+	&BurnDrvSpyhunt,			// Spy Hunter
 	&BurnDrvmd_spykids4,		// Spy Kids 4 - All The Time In The World (Rus)
 	&BurnSpecspyvspy,			// Spy vs Spy (48K)
 	&BurnDrvsms_spyvsspyj,		// Spy vs Spy (Jpn, MyCard)
@@ -21647,6 +21666,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvsg1k_starfrcet,		// Star Force (Tw)
 	&BurnDrvsg1k_starfrceta,	// Star Force (Tw, Alt)
 	&BurnDrvStarforc,			// Star Force
+	&BurnDrvStargrds,			// Star Guards
 	&BurnDrvsg1k_starjack1,		// Star Jacker (Euro, Jpn, v1.1)
 	&BurnDrvsg1k_starjack,		// Star Jacker (Euro, Jpn, v1.2)
 	&BurnDrvsg1k_starjack2,		// Star Jacker (Jpn, v1.0)

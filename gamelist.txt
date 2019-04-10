@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12053 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12063 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -2018,6 +2018,7 @@ This list contains all games supported by FB Alpha.
 | md_crkdownu	|  	| Crack Down (USA)					| md_crkdown	| 1991	| Sage's Creatio| Sega Megadrive| 					|
 | hocrash	|  	| Crash (bootleg of Head On)				| headon	| 1979	| bootleg (Frabe| Vic Dual	| No sound				|
 | md_crash	|  	| Crash Bandicoot (Rus)					| md_zero	| 199?	| <unknown>	| Sega Megadrive| 					|
+| crater	|  	| Crater Raider						| 		| 1984	| Bally Midway	| MCR3		| 					|
 | tg_cratermz	|  	| Cratermaze						| 		| 1990	| NEC		| TurboGrafx 16	| 					|
 | md_crayon	|  	| Crayon Shin-chan - Arashi o Yobu Enji (Jpn)		| 		| 1994	| Ma-Ba		| Sega Megadrive| 					|
 | gg_crayon	|  	| Crayon Shin-chan - Taiketsu! Kantamu Panic!! (Jpn)	| 		| 1995	| Bandai	| Sega Game Gear| 					|
@@ -2336,6 +2337,7 @@ This list contains all games supported by FB Alpha.
 | deluxe5a	|  	| Deluxe 5 (ver. 0107, 07/01/2000, set 2)		| deluxe5	| 2000	| ESD		| Miscellaneous	| 					|
 | deluxe5b	|  	| Deluxe 5 (ver. 0107, 07/01/2000, set 3)		| deluxe5	| 2000	| ESD		| Miscellaneous	| 					|
 | demoderbc	|  	| Demolition Derby (cocktail)				| demoderb	| 1984	| Bally Midway	| Miscellaneous	| 					|
+| demoderm	|  	| Demolition Derby (MCR-3 Mono Board Version)		| demoderb	| 1984	| Bally Midway	| MCR3		| 					|
 | demoderb	|  	| Demolition Derby					| 		| 1984	| Bally Midway	| Miscellaneous	| 					|
 | md_demoman	|  	| Demolition Man (Euro, USA)				| 		| 1995	| Acclaim Entert| Sega Megadrive| 					|
 | md_demomanp	|   NW	| Demolition Man (USA, Prototype)			| md_demoman	| 1995	| Acclaim Entert| Sega Megadrive| 					|
@@ -5663,6 +5665,7 @@ This list contains all games supported by FB Alpha.
 | md_mathblst	|  	| Math Blaster - Episode 1 (USA)			| 		| 1994	| Davidson & Ass| Sega Megadrive| 					|
 | matrimbl	|  	| Matrimelee / Shin Gouketsuji Ichizoku Toukon (bootleg)| matrim	| 2002	| bootleg	| Neo Geo MVS	| 					|
 | matrim	|  	| Matrimelee / Shin Gouketsuji Ichizoku Toukon (NGM-2660| 		| 2002	| Noise Factory | Neo Geo MVS	| 					|
+| maxrpm	|  	| Max RPM (ver 2)					| 		| 1986	| Bally Midway	| MCR3		| 					|
 | sg1k_circusc	|  	| Maxi Tuan ~ Circus Charlie (Tw)			| 		| 198?	| Aaronix	| Sega SG-1000	| 					|
 | msx_maxima	|  	| Maxima (Euro)						| 		| 1984	| PSS		| MSX		| 					|
 | mayday	|  	| Mayday (set 1)					| 		| 1980	| Hoei		| 6809 System	| 					|
@@ -7318,6 +7321,7 @@ This list contains all games supported by FB Alpha.
 | pce_pdrift	|  	| Power Drift						| 		| 1990	| Asmik		| PC Engine	| 					|
 | gg_pdrive	|  	| Power Drive (Euro)					| 		| 1994	| U.S. Gold	| Sega Game Gear| 					|
 | md_pdrive	|  	| Power Drive (Euro)					| 		| 1994	| U.S. Gold	| Sega Megadrive| 					|
+| powerdrv	|  	| Power Drive						| 		| 1986	| Bally Midway	| MCR3		| 					|
 | pce_power11	|  	| Power Eleven						| 		| 1991	| Hudson	| PC Engine	| 					|
 | pce_powergat	|  	| Power Gate						| 		| 1991	| Pack-In-Video	| PC Engine	| 					|
 | pce_pgolf	|  	| Power Golf						| 		| 1989	| Hudson	| PC Engine	| 					|
@@ -7766,6 +7770,8 @@ This list contains all games supported by FB Alpha.
 | md_rambo3	|  	| Rambo III (World, v1.1)				| 		| 1989	| Sega		| Sega Megadrive| 					|
 | spec_rampage	|  	| Rampage (48K)						| 		| 1988	| Activision	| ZX Spectrum	| 					|
 | sms_rampage	|  	| Rampage (Euro, USA, Bra)				| 		| 1988	| Sega		| Sega Master Sy| 					|
+| rampage2	|  	| Rampage (Rev 2, 8/4/86)				| rampage	| 1986	| Bally Midway	| MCR3		| 					|
+| rampage	|  	| Rampage (Rev 3, 8/27/86)				| 		| 1986	| Bally Midway	| MCR3		| 					|
 | rmpgwt11	|  	| Rampage: World Tour (rev 1.1)				| rmpgwt	| 1997	| Midway	| MIDWAY Wolf-Un| 					|
 | rmpgwt	|  	| Rampage: World Tour (rev 1.3)				| 		| 1997	| Midway	| MIDWAY Wolf-Un| 					|
 | sms_rampart	|  	| Rampart (Euro)					| 		| 1991	| Tengen	| Sega Master Sy| 					|
@@ -8210,6 +8216,7 @@ This list contains all games supported by FB Alpha.
 | searcharj	|  	| SAR - Search And Rescue (Japan)			| searchar	| 1989	| SNK		| Miscellaneous	| 					|
 | searcharu	|  	| SAR - Search And Rescue (US)				| searchar	| 1989	| SNK		| Miscellaneous	| 					|
 | searchar	|  	| SAR - Search And Rescue (World)			| 		| 1989	| SNK		| Miscellaneous	| 					|
+| sarge		|  	| Sarge							| 		| 1985	| Bally Midway	| MCR3		| 					|
 | sarukani	|  	| Saru-Kani-Hamu-Zou (Japan)				| vblokbrk	| 1997	| Kaneko / Media| Super Kaneko N| 					|
 | msx_sasa	|  	| Sasa (Jpn)						| 		| 1984	| ASCII		| MSX		| 					|
 | msx_sasaa	|  	| Sasa (Jpn, Alt)					| msx_sasa	| 1984	| ASCII		| MSX		| 					|
@@ -9068,9 +9075,11 @@ This list contains all games supported by FB Alpha.
 | md_spotgou	|  	| Spot Goes to Hollywood (USA)				| md_spotgo	| 1995	| Acclaim Entert| Sega Megadrive| 					|
 | springer	|  	| Springer						| 		| 1982	| Orca		| Miscellaneous	| 					|
 | spec_spyhunt	|  	| Spy Hunter (48K)					| 		| 1985	| U.S. Gold	| ZX Spectrum	| 					|
+| spyhuntp	|  	| Spy Hunter (Playtronic license)			| spyhunt	| 1983	| Bally Midway (| MCR3		| 					|
 | cv_spyhuntp1	|  	| Spy Hunter (Prototype, v13)				| cv_spyhunt	| 1984	| Coleco	| ColecoVision	| 					|
 | cv_spyhuntp	|  	| Spy Hunter (Prototype, v22)				| cv_spyhunt	| 1984	| Coleco	| ColecoVision	| 					|
 | cv_spyhunt	|  	| Spy Hunter						| 		| 1984	| Coleco	| ColecoVision	| 					|
+| spyhunt	|  	| Spy Hunter						| 		| 1983	| Bally Midway	| MCR3		| 					|
 | md_spykids4	|  	| Spy Kids 4 - All The Time In The World (Rus)		| md_dinotale	| 199?	| <unlicensed>	| Sega Megadrive| 					|
 | spec_spyvspy	|  	| Spy vs Spy (48K)					| 		| 1985	| Beyond Softwar| ZX Spectrum	| 					|
 | sms_spyvsspyj	|  	| Spy vs Spy (Jpn, MyCard)				| sms_spyvsspy	| 1986	| Sega		| Sega Master Sy| 					|
@@ -9121,6 +9130,7 @@ This list contains all games supported by FB Alpha.
 | sg1k_starfrcet|  	| Star Force (Tw)					| sg1k_starfrce	| 1985?	| Aaronix	| Sega SG-1000	| 					|
 | sg1k_starfrceta|  	| Star Force (Tw, Alt)					| sg1k_starfrce	| 1985?	| Aaronix	| Sega SG-1000	| 					|
 | starforc	|  	| Star Force						| 		| 1984	| Tehkan	| Miscellaneous	| 					|
+| stargrds	|  	| Star Guards						| 		| 1987	| Bally Midway	| MCR3		| 					|
 | sg1k_starjack1|  	| Star Jacker (Euro, Jpn, v1.1)				| sg1k_starjack	| 1983	| Sega		| Sega SG-1000	| 					|
 | sg1k_starjack	|  	| Star Jacker (Euro, Jpn, v1.2)				| 		| 1983	| Sega		| Sega SG-1000	| 					|
 | sg1k_starjack2|  	| Star Jacker (Jpn, v1.0)				| sg1k_starjack	| 1983	| Sega		| Sega SG-1000	| 					|
