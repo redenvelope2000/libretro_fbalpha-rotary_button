@@ -264,7 +264,7 @@ static INT32 InputTick()
 }
 
 // Analog to analog mapping
-static INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, unsigned port, unsigned axis, unsigned id, int index, char *szn, UINT8 nInput = GIT_JOYAXIS_FULL, INT32 nSliderValue = 0x8000, INT16 nSliderSpeed = 0x0E00, INT16 nSliderCenter = 10)
+static INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, unsigned port, unsigned axis, unsigned id, int index, char *szn, UINT8 nInput = GIT_JOYAXIS_FULL, INT32 nSliderValue = 0x8000, INT16 nSliderSpeed = 0x0800, INT16 nSliderCenter = 10)
 {
 	if(bButtonMapped) return 0;
 	switch (nInput)
@@ -607,22 +607,10 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 	}
 
-	// Recommandation from http://neosource.1emulation.com/forums/index.php?topic=2991.0 (Power Drift)
-	if ((parentrom && strcmp(parentrom, "pdrift") == 0) ||
-		(drvname && strcmp(drvname, "pdrift") == 0)
-	) {
-		if (strcmp("Steering", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER, 0x8000, 0x0800, 10);
-		}
-	}
-
 	// Car steer a little too much with default setting + use L/R for Shift Down/Up (Super Monaco GP)
 	if ((parentrom && strcmp(parentrom, "smgp") == 0) ||
 		(drvname && strcmp(drvname, "smgp") == 0)
 	) {
-		if (strcmp("Left/Right", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER, 0x8000, 0x0C00, 10);
-		}
 		if (strcmp("Shift Down", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
 		}
@@ -636,7 +624,7 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		(drvname && strcmp(drvname, "nightstr") == 0)
 	) {
 		if (strcmp("Stick Y", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER, 0x8000, 0x0700, 0);
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER);
 		}
 	}
 	
@@ -767,19 +755,6 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 		if (strcmp("Turn + (digital)", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
-		}
-	}
-	
-	// Chequered Flag, Konami GT, Hyper Crash
-	if ((parentrom && strcmp(parentrom, "chqflag") == 0) ||
-		(drvname && strcmp(drvname, "chqflag") == 0) ||
-		(parentrom && strcmp(parentrom, "konamigt") == 0) ||
-		(drvname && strcmp(drvname, "konamigt") == 0) ||
-		(parentrom && strcmp(parentrom, "hcrash") == 0) ||
-		(drvname && strcmp(drvname, "hcrash") == 0)
-	) {
-		if (strcmp("Wheel", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER);
 		}
 	}
 	
@@ -1375,6 +1350,9 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		if (strcmp("x-axis", szi + 3) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER);
 		}
+		if (strcmp("mouse x-axis", szi) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER);
+		}
 	}
 
 	return 0;
@@ -1867,6 +1845,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 			if (nDeviceType[i] == -1)
 				bAllDevicesReady = false;
 		}
+		// All devices id were set, we can do the following
 		if (bAllDevicesReady) {
 			GameInpReassign();
 			SetInputDescriptors();
