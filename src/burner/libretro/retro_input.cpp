@@ -21,7 +21,6 @@ static bool bAllDiagInputPressed = true;
 static bool bDiagComboActivated = false;
 static bool bVolumeIsFireButton = false;
 static bool bInputInitialized = false;
-static bool bInputNeedRefresh = false;
 
 void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
 void retro_set_input_poll(retro_input_poll_t cb) { poll_cb = cb; }
@@ -1693,12 +1692,6 @@ static void SetInputDescriptors()
 
 void InputMake(void)
 {
-	if (bInputNeedRefresh) {
-		GameInpReassign();
-		SetInputDescriptors();
-		bInputNeedRefresh = false;
-	}
-
 	poll_cb();
 
 	if (PollDiagInput())
@@ -1868,7 +1861,16 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 	if (port < nMaxPlayers && nDeviceType[port] != device)
 	{
 		nDeviceType[port] = device;
-		bInputNeedRefresh = true;
+		bool bAllDevicesReady = true;
+		for (int i = 0; i < nMaxPlayers; i++)
+		{
+			if (nDeviceType[i] == -1)
+				bAllDevicesReady = false;
+		}
+		if (bAllDevicesReady) {
+			GameInpReassign();
+			SetInputDescriptors();
+		}
 	}
 }
 
