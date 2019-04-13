@@ -909,7 +909,7 @@ static INT32 SpyhuntGfxDecode()
 
 	memcpy (tmp, DrvGfxROM2, nGraphicsLen[2]);
 
-	GfxDecode((nGraphicsLen[2] * 8) / (16 * 16), 2, 16, 16, Plane0, XOffs0, YOffs0, 0x080, tmp, DrvGfxROM2);
+	GfxDecode((nGraphicsLen[2] * 8 * 2) / (16 * 16), 2, 16, 16, Plane0, XOffs0, YOffs0, 0x080, tmp, DrvGfxROM2);
 
 	BurnFree(tmp);
 
@@ -999,10 +999,6 @@ static INT32 DrvLoadRoms(bool bLoad)
 	nGraphicsLen[0] = gLoad[0] - DrvGfxROM0;
 	nGraphicsLen[1] = gLoad[1] - DrvGfxROM1;
 	nGraphicsLen[2] = gLoad[2] - DrvGfxROM2;
-
-    if (is_spyhunt && nGraphicsLen[2] == 0x800) { // spyhuntp missing text fix
-        nGraphicsLen[2] = 0x1000;
-    }
 
 	return 0;
 }
@@ -1284,7 +1280,7 @@ static INT32 SpyhuntDraw()
         }
         if (lamp&0x08) {
             // smoke
-            RenderZoomedTile(pTransDraw, DrvGfxROM1, 0x02f, 0, 0, nScreenWidth-16, 80, 0, 0, 32, 32, 0x10000/2, 0x10000/2);
+            RenderZoomedTile(pTransDraw, DrvGfxROM1, 0x019, 0, 0, nScreenWidth-16, 80, 0, 0, 32, 32, 0x10000/2, 0x10000/2);
         }
         if (lamp&0x02) {
             // missile (pre-rotated)

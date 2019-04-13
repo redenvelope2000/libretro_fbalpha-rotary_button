@@ -10,27 +10,73 @@ static UINT16 dacvalue;
 static UINT16 csd_status;
 static INT32 csd_in_reset;
 static INT32 csd_is_intialized = 0;
+static UINT16 *csd_ram = NULL;
+extern INT32 ssio_spyhunter;
+
+// muting & pop-supression logic
+struct anti_pop {
+    UINT16 lastdacvalue;
+    UINT16 cm30ctr;
+    INT32 ending;
+    INT32 mute;
+    INT32 booting;
+};
+
+static anti_pop ml;
 
 static void csd_porta_w(UINT16, UINT8 data)
 {
-	dacvalue = (data << 2) | (dacvalue & 3);
-   // if (dacvalue !=0) bprintf(0, _T("%X,"), dacvalue);
-    if (dacvalue == 0x02 || dacvalue == 0x03) dacvalue = 0xFE; // silly hack gets rid of pops in spyhunter when the music starts/stops
-	DACWrite16Signed(0, 0x4000 + (dacvalue << 6));
+    if (!ml.mute) {
+        ml.lastdacvalue = dacvalue;
+        dacvalue = (data << 2) | (dacvalue & 3);
+    }
+
+    if (ssio_spyhunter) {
+        // csd_ram[0x30/2] continuously counts down as music is playing
+        // if its stopped, or 0 - nothing is playing.  Let's zero-out the dac
+        // so that we don't get loud clicks or pops before or after the music.
+        // 0x4000 + (0x100 << 6) ends up being 0 in the dac.
+        // extra notes:
+        // porta is called every sample, playing or not.
+        // portb is only called when music is playing (if needed)
+        if (ml.cm30ctr == csd_ram[0x30/2] || csd_ram[0x30/2] == 0) {
+            if (ml.mute == 0) {
+                // counter stopped, begin the ending process.
+                //bprintf(0, _T("csd ending.\n"));
+                dacvalue = ml.lastdacvalue;
+                ml.ending = 1;
+            }
+            // ramp dac from +-dc to 0 (0x100)
+            if (dacvalue > 0x100) dacvalue--;
+            else if (dacvalue < 0x100) dacvalue++;
+            else if (dacvalue == 0x100 && ml.ending) {
+                // we've gracefully ended a tune, or got stable after boot-up
+                //bprintf(0, _T("csd %S.\n"), (ml.booting) ? "booted" : "sound ending");
+                ml.ending = 0;
+                ml.booting = 0;
+                ml.lastdacvalue = 0x100;
+            }
+            ml.mute = 1;
+        } else ml.mute = 0;
+
+        ml.cm30ctr = csd_ram[0x30/2];
+    }
+
+    if (!ml.booting)
+        DACWrite16Signed(0, 0x4000 + (dacvalue << 6));
 }
 
 static void csd_portb_w(UINT16, UINT8 data)
 {
-	dacvalue = (dacvalue & ~0x3) | (data >> 6);
-   // if (dacvalue !=0) bprintf(0, _T("%X,"), dacvalue);
-    if (dacvalue == 0x02 || dacvalue == 0x03) dacvalue = 0xFE; // see "silly hack", above
-	DACWrite16Signed(0, 0x4000 + (dacvalue << 6));
+    if (!ml.mute) {
+        ml.lastdacvalue = dacvalue;
+        dacvalue = (dacvalue & ~0x3) | (data >> 6);
+    }
 
-    //if (~pia_get_ddr_b(0) & 0x30) csd_status = (data >> 4) & 3;
-    UINT8 z_mask = pia_get_ddr_b(0);
-    if (~z_mask & 0x10)  csd_status = (csd_status & ~1) | ((data >> 4) & 1);
-    if (~z_mask & 0x20)  csd_status = (csd_status & ~2) | ((data >> 4) & 2);
+    if (!ml.booting)
+        DACWrite16Signed(0, 0x4000 + (dacvalue << 6));
 
+    if (~pia_get_ddr_b(0) & 0x30) csd_status = (data >> 4) & 3;
 }
 
 static void csd_irq(int state)
@@ -127,7 +173,14 @@ void csd_reset()
 
 	csd_status = 0;
 	csd_in_reset = 0;
-	dacvalue = 0;
+    dacvalue = 0;
+
+    // pop-suppression
+    ml.lastdacvalue = 0;
+    ml.ending = 0;
+    ml.mute = 0;
+    ml.booting = (ssio_spyhunter) ? 1 : 0;
+    ml.cm30ctr = 0;
 }
 
 static const pia6821_interface pia_intf = {
@@ -138,6 +191,7 @@ static const pia6821_interface pia_intf = {
 
 void csd_init(UINT8 *rom, UINT8 *ram)
 {
+    csd_ram = (UINT16*)ram;
 	SekInit(0, 0x68000);
 	SekOpen(0);
 	SekMapMemory(rom,			0x000000, 0x007fff, MAP_ROM);
@@ -165,7 +219,8 @@ void csd_exit()
 	SekExit();
 	pia_init();
 	DACExit();
-	csd_is_intialized = 0;
+    csd_is_intialized = 0;
+    csd_ram = NULL;
 }
 
 void csd_scan(INT32 nAction, INT32 *pnMin)
@@ -180,6 +235,7 @@ void csd_scan(INT32 nAction, INT32 *pnMin)
 
 		SCAN_VAR(csd_status);
 		SCAN_VAR(csd_in_reset);
-		SCAN_VAR(dacvalue);
+        SCAN_VAR(dacvalue);
+        SCAN_VAR(ml);
 	}
 }
