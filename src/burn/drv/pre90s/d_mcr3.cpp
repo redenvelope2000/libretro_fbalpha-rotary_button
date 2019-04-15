@@ -71,6 +71,8 @@ static INT32 sprite_color_mask = 0;
 static INT32 flip_screen_x = 0;
 static INT32 nGraphicsLen[3];
 
+static INT32 nExtraCycles[3];
+
 static UINT8 DrvJoy1[8];
 static UINT8 DrvJoy2[8];
 static UINT8 DrvJoy3[8];
@@ -707,7 +709,8 @@ static UINT8 __fastcall spyhunt_read_port(UINT16 address)
 
 static void ctc_interrupt(INT32 state)
 {
-	ZetSetIRQLine(0, state ? CPU_IRQSTATUS_ACK : CPU_IRQSTATUS_NONE);
+    if (state) ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
+    //ZetSetIRQLine(0, state ? CPU_IRQSTATUS_ACK : CPU_IRQSTATUS_NONE);
 }
 
 static tilemap_callback( bg )
@@ -763,7 +766,9 @@ static INT32 DrvDoReset(INT32 clear_mem)
     lamp = 0;
     last_op4 = 0;
 
-	return 0;
+    nExtraCycles[0] = nExtraCycles[1] = nExtraCycles[2] = 0;
+
+    return 0;
 }
 
 static INT32 MemIndex()
@@ -927,8 +932,8 @@ static void sound_system_init(INT32 sound_system)
 
 	switch (sound_system)
 	{
-		case 0: soundsgood_init(Drv68KROM, Drv68KRAM); break;
-		case 1: tcs_init(DrvSndROM, DrvSndRAM); break;
+		case 0: soundsgood_init(0, 0, Drv68KROM, Drv68KRAM); break;
+		case 1: tcs_init(0, 0, 0, DrvSndROM, DrvSndRAM); break;
 
 		case 2:
 		{
@@ -1372,7 +1377,7 @@ static INT32 DrvFrame()
 
 	INT32 nInterleave = 480;
 	INT32 nCyclesTotal[2] = { 5000000 / 30, 8000000 / 30 };
-	INT32 nCyclesDone[2] = { 0, 0 };
+	INT32 nCyclesDone[2] = { nExtraCycles[0], 0 };
 
 	ZetOpen(0);
 	SekOpen(0);
@@ -1402,6 +1407,8 @@ static INT32 DrvFrame()
 	SekClose();
 	ZetClose();
 
+    nExtraCycles[0] = nCyclesDone[0] - nCyclesTotal[0];
+
 	if (pBurnDraw) {
 		BurnDrvRedraw();
 	}
@@ -1424,7 +1431,7 @@ static INT32 TcsFrame()
 
 	INT32 nInterleave = 480;
 	INT32 nCyclesTotal[2] = { 5000000 / 30, 2000000 / 30 };
-	INT32 nCyclesDone[2] = { 0, 0 };
+	INT32 nCyclesDone[2] = { nExtraCycles[0], 0 };
 
 	ZetOpen(0);
 	M6809Open(0);
@@ -1452,6 +1459,8 @@ static INT32 TcsFrame()
 	M6809Close();
 	ZetClose();
 
+    nExtraCycles[0] = nCyclesDone[0] - nCyclesTotal[0];
+
 	if (pBurnDraw) {
 		BurnDrvRedraw();
 	}
@@ -1477,10 +1486,14 @@ static INT32 CSDSSIOFrame()
 
 	INT32 nInterleave = 480;
 	INT32 nCyclesTotal[3] = { 5000000 / 30, 8000000 / 30, 2000000 / 30 };
-	INT32 nCyclesDone[3] = { 0, 0, 0};
+	INT32 nCyclesDone[3] = { nExtraCycles[0], nExtraCycles[1], nExtraCycles[2] };
 	INT32 nSoundBufferPos = 0;
 
-	if (has_csd) SekOpen(0);
+    if (has_csd) {
+        SekOpen(0);
+        SekIdle(nExtraCycles[1]);
+        nExtraCycles[1] = 0;
+    }
 
 	for (INT32 i = 0; i < nInterleave; i++)
 	{
@@ -1506,7 +1519,7 @@ static INT32 CSDSSIOFrame()
 		if (has_ssio)
 		{
 			ZetOpen(1);
-			nCyclesDone[2] += ZetRun(nCyclesTotal[2] / nInterleave);
+            nCyclesDone[2] += ZetRun(((i + 1) * nCyclesTotal[2] / nInterleave) - nCyclesDone[2]);
 			ssio_14024_clock(nInterleave);
 			ZetClose();
 		}
@@ -1555,7 +1568,13 @@ static INT32 CSDSSIOFrame()
         }
 	}
 
-	if (has_csd) SekClose();
+    if (has_csd) {
+        nExtraCycles[1] = nCyclesDone[1] - SekTotalCycles();
+        SekClose();
+    }
+
+    nExtraCycles[0] = nCyclesDone[0] - nCyclesTotal[0];
+    nExtraCycles[2] = nCyclesDone[2] - nCyclesTotal[2];
 
 	if (pBurnDraw) {
 		BurnDrvRedraw();
@@ -1580,8 +1599,9 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		ba.szName = "All Ram";
 		BurnAcb(&ba);
 
+        ScanVar(DrvNVRAM, 0x800, "WORK RAM"); // also nv...
+
 		ZetScan(nAction);
-		z80ctc_scan(nAction);
 
 		tcs_scan(nAction, pnMin);
 		csd_scan(nAction, pnMin);
@@ -1602,14 +1622,12 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 
         SCAN_VAR(lamp);
         SCAN_VAR(last_op4);
+
+        SCAN_VAR(nExtraCycles);
 	}
 
 	if (nAction & ACB_NVRAM) {
-		ba.Data		= DrvNVRAM;
-		ba.nLen		= 0x00800;
-		ba.nAddress	= 0;
-		ba.szName	= "NV RAM";
-		BurnAcb(&ba);
+        ScanVar(DrvNVRAM, 0x800, "NV RAM");
 	}
 
 	return 0;
@@ -1714,7 +1732,7 @@ struct BurnDriver BurnDrvDemoderm = {
 	"demoderm", "demoderb", NULL, NULL, "1984",
 	"Demolition Derby (MCR-3 Mono Board Version)\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 4, HARDWARE_MISC_PRE90S, GBF_ACTION, 0,
 	NULL, demodermRomInfo, demodermRomName, NULL, NULL, NULL, NULL, DemodermInputInfo, DemodermDIPInfo,
 	DemodermInit, DrvExit, TcsFrame, DrvDraw, DrvScan, &DrvRecalc, 0x40,
 	512, 480, 4, 3
@@ -1761,7 +1779,7 @@ struct BurnDriver BurnDrvSarge = {
 	"sarge", NULL, NULL, NULL, "1985",
 	"Sarge\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 4, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING, 4, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
 	NULL, sargeRomInfo, sargeRomName, NULL, NULL, NULL, NULL, SargeInputInfo, SargeDIPInfo,
 	SargeInit, DrvExit, TcsFrame, DrvDraw, DrvScan, &DrvRecalc, 0x40,
 	512, 480, 4, 3
@@ -1840,7 +1858,7 @@ struct BurnDriver BurnDrvMaxrpm = {
 	"maxrpm", NULL, NULL, NULL, "1986",
 	"Max RPM (ver 2)\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 2, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING, 2, HARDWARE_MISC_PRE90S, GBF_RACING, 0,
 	NULL, maxrpmRomInfo, maxrpmRomName, NULL, NULL, NULL, NULL, RampageInputInfo, RampageDIPInfo, //MaxrpmInputInfo, MaxrpmDIPInfo,
 	MaxrpmInit, DrvExit, TcsFrame, DrvDraw, DrvScan, &DrvRecalc, 0x40,
 	512, 480, 4, 3
@@ -1895,14 +1913,16 @@ static INT32 RampageInit()
 	sound_input_bank = 4;
 	port_write_handler = rampage_write_callback;
 
-	return DrvInit(0);
+    soundsgood_rampage = 1; // for sound-cleanup in soundsgood
+
+    return DrvInit(0);
 }
 
 struct BurnDriver BurnDrvRampage = {
 	"rampage", NULL, NULL, NULL, "1986",
 	"Rampage (Rev 3, 8/27/86)\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 3, HARDWARE_MISC_PRE90S, GBF_SCRFIGHT, 0,
+	BDF_GAME_WORKING, 3, HARDWARE_MISC_PRE90S, GBF_ACTION, 0,
 	NULL, rampageRomInfo, rampageRomName, NULL, NULL, NULL, NULL, RampageInputInfo, RampageDIPInfo,
 	RampageInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x40,
 	512, 480, 4, 3
@@ -1938,7 +1958,7 @@ struct BurnDriver BurnDrvRampage2 = {
 	"rampage2", "rampage", NULL, NULL, "1986",
 	"Rampage (Rev 2, 8/4/86)\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_PRE90S, GBF_ACTION, 0,
 	NULL, rampage2RomInfo, rampage2RomName, NULL, NULL, NULL, NULL, RampageInputInfo, RampageDIPInfo,
 	RampageInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x40,
 	512, 480, 4, 3
@@ -1981,7 +2001,7 @@ struct BurnDriver BurnDrvPowerdrv = {
 	"powerdrv", NULL, NULL, NULL, "1986",
 	"Power Drive\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 3, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING, 3, HARDWARE_MISC_PRE90S, GBF_RACING, 0,
 	NULL, powerdrvRomInfo, powerdrvRomName, NULL, NULL, NULL, NULL, PowerdrvInputInfo, PowerdrvDIPInfo,
 	PowerdrvInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x40,
 	512, 480, 4, 3
@@ -2064,7 +2084,7 @@ struct BurnDriver BurnDrvStargrds = {
 	"stargrds", NULL, NULL, NULL, "1987",
 	"Star Guards\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 4, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING, 4, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
 	NULL, stargrdsRomInfo, stargrdsRomName, NULL, NULL, NULL, NULL, StargrdsInputInfo, StargrdsDIPInfo,
 	StargrdsInit, DrvExit, DrvFrame, DrvDraw, DrvScan, &DrvRecalc, 0x40,
 	512, 480, 4, 3
@@ -2179,7 +2199,7 @@ struct BurnDriver BurnDrvSpyhunt = {
 	"spyhunt", NULL, "midssio", NULL, "1983",
 	"Spy Hunter\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED, 2, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED, 2, HARDWARE_MISC_PRE90S, GBF_ACTION | GBF_SHOOT, 0,
 	NULL, spyhuntRomInfo, spyhuntRomName, NULL, NULL, NULL, NULL, SpyhuntInputInfo, SpyhuntDIPInfo,
 	SpyhuntInit, DrvExit, CSDSSIOFrame, SpyhuntDraw, DrvScan, &DrvRecalc, 0x40,
 	480, 480, 3, 4
@@ -2228,7 +2248,7 @@ struct BurnDriver BurnDrvSpyhuntp = {
 	"spyhuntp", "spyhunt", "midssio", NULL, "1983",
 	"Spy Hunter (Playtronic license)\0", NULL, "Bally Midway (Playtronic license)", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED, 2, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING | BDF_CLONE | BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED, 2, HARDWARE_MISC_PRE90S, GBF_ACTION | GBF_SHOOT, 0,
 	NULL, spyhuntpRomInfo, spyhuntpRomName, NULL, NULL, NULL, NULL, SpyhuntInputInfo, SpyhuntDIPInfo,
 	SpyhuntInit, DrvExit, CSDSSIOFrame, SpyhuntDraw, DrvScan, &DrvRecalc, 0x40,
 	480, 480, 3, 4
@@ -2296,7 +2316,7 @@ struct BurnDriver BurnDrvCrater = {
 	"crater", NULL, "midssio", NULL, "1984",
 	"Crater Raider\0", NULL, "Bally Midway", "MCR3",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 2, HARDWARE_MISC_PRE90S, GBF_MISC, 0,
+	BDF_GAME_WORKING, 2, HARDWARE_MISC_PRE90S, GBF_SHOOT, 0,
 	NULL, craterRomInfo, craterRomName, NULL, NULL, NULL, NULL, CraterInputInfo, CraterDIPInfo,
 	CraterInit, DrvExit, CSDSSIOFrame, SpyhuntDraw, DrvScan, &DrvRecalc, 0x40,
 	480, 480, 4, 3
