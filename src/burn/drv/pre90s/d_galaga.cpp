@@ -883,7 +883,7 @@ static void GalagaMachineInit()
 	BurnSampleInit(1);
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
 	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
-
+   
    machine.rdAddrList = GalagaZ80ReadList;
    machine.wrAddrList = GalagaZ80WriteList;
    
@@ -1601,7 +1601,7 @@ static void DigDugMachineInit()
 	BurnSampleInit(1);
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
 	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
-
+   
    machine.rdAddrList = DigDugZ80ReadList;
    machine.wrAddrList = DigDugZ80WriteList;
    
@@ -2030,12 +2030,13 @@ static struct BurnRomInfo XeviousRomDesc[] = {
 STD_ROM_PICK(Xevious)
 STD_ROM_FN(Xevious)
 
+
 static struct BurnSampleInfo XeviousSampleDesc[] = {
 #if !defined (ROM_VERIFY)
-	{ "explo1.wav", SAMPLE_NOLOOP },	/* ground target explosion */
-	{ "explo2.wav", SAMPLE_NOLOOP },	/* Solvalou explosion */
-	{ "explo3.wav", SAMPLE_NOLOOP },	/* credit */
-	{ "explo4.wav", SAMPLE_NOLOOP },	/* Garu Zakato explosion */
+	{ "explo1.wav", SAMPLE_NOLOOP },	// ground target explosion 
+	{ "explo2.wav", SAMPLE_NOLOOP },	// Solvalou explosion 
+	{ "explo3.wav", SAMPLE_NOLOOP },	// credit 
+	{ "explo4.wav", SAMPLE_NOLOOP },	// Garu Zakato explosion 
 #endif
    { "",           0 }
 };
@@ -2043,11 +2044,15 @@ static struct BurnSampleInfo XeviousSampleDesc[] = {
 STD_SAMPLE_PICK(Xevious)
 STD_SAMPLE_FN(Xevious)
 
+
 static INT32 XeviousInit(void);
 static INT32 XeviousMemIndex(void);
 static void XeviousMachineInit(void);
 static UINT8 XeviousPlayFieldRead(UINT16 Offset);
-static UINT8 XeviousSharedRAMRead(UINT16 Offset);
+static UINT8 XeviousWorkRAMRead(UINT16 Offset);
+static UINT8 XeviousSharedRAM1Read(UINT16 Offset);
+static UINT8 XeviousSharedRAM2Read(UINT16 Offset);
+static UINT8 XeviousSharedRAM3Read(UINT16 Offset);
 static UINT8 XeviousZ80ReadInputs(UINT16 Offset);
 static void Xevious_bs_wr(UINT16 Offset, UINT8 dta);
 static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta);
@@ -2056,7 +2061,10 @@ static void XeviousBGColorRAMWrite(UINT16 Offset, UINT8 Dta);
 static void XeviousBGCharRAMWrite(UINT16 Offset, UINT8 Dta);
 static void XeviousFGColorRAMWrite(UINT16 Offset, UINT8 Dta);
 static void XeviousFGCharRAMWrite(UINT16 Offset, UINT8 Dta);
-static void XeviousSharedRAMWrite(UINT16 Offset, UINT8 Dta);
+static void XeviousWorkRAMWrite(UINT16 Offset, UINT8 Dta);
+static void XeviousSharedRAM1Write(UINT16 Offset, UINT8 Dta);
+static void XeviousSharedRAM2Write(UINT16 Offset, UINT8 Dta);
+static void XeviousSharedRAM3Write(UINT16 Offset, UINT8 Dta);
 static INT32 XeviousDraw(void);
 static void XeviousCalcPalette(void);
 static void XeviousRenderSprites(void);
@@ -2066,7 +2074,10 @@ static struct CPU_Rd_Table XeviousZ80ReadList[] =
 	{ 0x6800, 0x6807, NamcoZ80ReadDip            }, 
    { 0x7000, 0x700f, XeviousZ80ReadInputs       },
 	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd          },
-   { 0x7800, 0xcfff, XeviousSharedRAMRead       },
+   { 0x7800, 0x7fff, XeviousWorkRAMRead         },
+   { 0x8000, 0x8fff, XeviousSharedRAM1Read      },
+   { 0x9000, 0x9fff, XeviousSharedRAM2Read      },
+   { 0xa000, 0xafff, XeviousSharedRAM3Read      },
    { 0xf000, 0xffff, XeviousPlayFieldRead       },
    { 0x0000, 0x0000, NULL                       },
 };
@@ -2081,7 +2092,10 @@ static struct CPU_Wr_Table XeviousZ80WriteList[] =
 //	{ 0x6830, 0x6830, WatchDogWriteNotImplemented }, 
 	{ 0x7000, 0x700f, XeviousZ80WriteIoChip      },
 	{ 0x7100, 0x7100, NamcoZ80WriteIoCmd         },
-   { 0x7800, 0xafff, XeviousSharedRAMWrite      },
+   { 0x7800, 0x7fff, XeviousWorkRAMWrite        },
+   { 0x8000, 0x8fff, XeviousSharedRAM1Write     },
+   { 0x9000, 0x9fff, XeviousSharedRAM2Write     },
+   { 0xa000, 0xafff, XeviousSharedRAM3Write     },
    { 0xb000, 0xb7ff, XeviousFGColorRAMWrite     },
    { 0xb800, 0xbfff, XeviousBGColorRAMWrite     },
    { 0xc000, 0xc7ff, XeviousFGCharRAMWrite      },
@@ -2157,29 +2171,35 @@ static struct PlaneOffsets
    /* 2 bits per pixel */
    /* 8 x 8 characters */
    /* every char takes 8 consecutive bytes */
-   { 0, 512 * 8 },
+   { 0, 512 * 8 * 8 },
 
 /* sprite set #1 */
    /* 128 sprites */
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 64 consecutive bytes */
-   { 0x0000, 0x0004, 0x2000 },
+   { 0x10004, 0x00000, 0x00004 }, // 0x0000 + { 128*64*8+4, 0, 4 }
 
 /* sprite set #2 */
-   { 0x2004, 0x4000, 0x4004 },
+   { 0x00000, 0x10000, 0x10004 }, // 0x2000 + { 0, 128*64*8, 128*64*8+4 }
 
 /* sprite set #3 */
-   { 0x6000, 0x6004, 0 },
+   { 0x08000, 0x00000, 0x00004 }, // 0x6000 + { 64*64*8, 0, 4 }
    
 };
 
 static UINT8 xevious_bs[2];
 
+static UINT8 *xevious_workram;
 static UINT8 *xevious_fg_videoram;
 static UINT8 *xevious_fg_colorram;
 static UINT8 *xevious_bg_videoram;
 static UINT8 *xevious_bg_colorram;
+
+
+static UINT8 *rom2a;
+static UINT8 *rom2b;
+static UINT8 *rom2c;
 
 static INT32 XeviousInit()
 {
@@ -2243,27 +2263,31 @@ static INT32 XeviousInit()
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites1, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom, graphics.Sprites);
+	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites1, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + (0x0000), graphics.Sprites);
 
    /* sprite set #2 */
    /* 128 sprites */
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites2, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3, graphics.Sprites + 128*16*16);
+	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites2, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + (0x2000), graphics.Sprites + (128*16*16));
 
    /* sprite set #3 */
    /* 64 sprites */
    /* 3 bits per pixel (one is always 0) */
    /* 16 x 16 sprites */
    /* every sprite takes 64 consecutive bytes */
-	GfxDecode(0x40, 3, 16, 16, xeviousOffsets.sprites3, SpriteXOffsets, SpriteYOffsets, 16*16, DrvTempRom + 128*16*16*3 + 128*16*16*3, graphics.Sprites + 128*16*16 + 128*16*16);
+	GfxDecode(0x40, 3, 16, 16, xeviousOffsets.sprites3, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + (0x6000), graphics.Sprites + (128*16*16) + (128*16*16));
 
    // Load PlayFieldData
 
-	if (0 != BurnLoadRom(PlayFieldData + 0x00000,  14,  1)) return 1;
+/*	if (0 != BurnLoadRom(PlayFieldData + 0x00000,  14,  1)) return 1;
 	if (0 != BurnLoadRom(PlayFieldData + 0x01000,  15,  1)) return 1;
 	if (0 != BurnLoadRom(PlayFieldData + 0x03000,  16,  1)) return 1;
+*/   
+	if (0 != BurnLoadRom(rom2a,  14,  1)) return 1;
+	if (0 != BurnLoadRom(rom2b,  15,  1)) return 1;
+	if (0 != BurnLoadRom(rom2c,  16,  1)) return 1;
    
 	// Load the PROMs
 	if (0 != BurnLoadRom(memory.PROM.Palette,    17, 1)) return 1;
@@ -2301,18 +2325,22 @@ static INT32 XeviousMemIndex()
 	NamcoSoundProm = Next;              Next += 0x00200;
 	
 	memory.RAM.Start = Next;
-	memory.RAM.Shared1 = Next;          Next += 0x03800;
-	memory.RAM.Shared2 = memory.RAM.Shared1  +  0x01800;
-	memory.RAM.Shared3 = memory.RAM.Shared1  +  0x02800;
+   xevious_workram = Next;             Next += 0x00800;
+	memory.RAM.Shared1 = Next;          Next += 0x01000;
+	memory.RAM.Shared2 = Next;          Next += 0x01000;
+	memory.RAM.Shared3 = Next;          Next += 0x01000;
 	memory.RAM.Video = Next;            Next += 0x02000;
 
 	memory.RAM.Size = Next - memory.RAM.Start;
 
-	graphics.bgTiles = Next;            Next += 0x00200 * 8 * 8 * 2;
-	PlayFieldData = Next;               Next += 0x04000;
+	graphics.bgTiles = Next;            Next += 0x00200 * 8 * 8;
+	rom2a = Next;                       Next += 0x01000;
+	rom2b = Next;                       Next += 0x02000;
+	rom2c = Next;                       Next += 0x01000;
+	PlayFieldData = rom2a;
 	graphics.fgChars = Next;            Next += 0x00200 * 8 * 8;
-	graphics.Sprites = Next;            Next += 0x00240 * 16 * 16 * 3;
-	graphics.Palette = (UINT32*)Next;   Next += 0x300 * sizeof(UINT32);
+	graphics.Sprites = Next;            Next += 0x00140 * 16 * 16;
+	graphics.Palette = (UINT32*)Next;   Next += 0x480 * sizeof(UINT32);
 
 	memory.All.Size = Next - memory.All.Start;
 
@@ -2321,24 +2349,25 @@ static INT32 XeviousMemIndex()
 
 static tilemap_scan ( xevious_bg )
 {
-   return (row+2) * 64 + col;
+   return (row) * 64 + col;
 }
 
 static tilemap_callback ( xevious_bg )
 {
    UINT8 code = xevious_bg_videoram[offs];
    UINT8 attr = xevious_bg_colorram[offs];
+   
    TILE_SET_INFO(
       0, 
-      code + ((attr & 0x01) << 8), 
+      (UINT16)(code + ((attr & 0x01) << 8)), 
       ((attr & 0x3c) >> 2) | ((code & 0x80) >> 3) | ((attr & 0x03) << 5), 
-      0
+      ((attr & 0xc0) >> 6)
    );
 }
 
 static tilemap_scan ( xevious_fg )
 {
-   return (row+2) * 64 + (col);
+   return (row) * 64 + (col);
 }
 
 static tilemap_callback ( xevious_fg )
@@ -2349,7 +2378,7 @@ static tilemap_callback ( xevious_fg )
       1, 
       code, 
       ((attr & 0x03) << 4) | ((attr & 0x3c) >> 2), 
-      0
+      ((attr & 0xc0) >> 6)
    );
    
 }
@@ -2361,7 +2390,8 @@ static void XeviousMachineInit()
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x8fff, MAP_RAM);
+	ZetMapMemory(xevious_workram,    0x7800, 0x7fff, MAP_RAM);
+   ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x8fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x9fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xafff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
@@ -2372,7 +2402,8 @@ static void XeviousMachineInit()
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x8fff, MAP_RAM);
+	ZetMapMemory(xevious_workram,    0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x8fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x9fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xafff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
@@ -2383,7 +2414,8 @@ static void XeviousMachineInit()
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(memory.RAM.Shared1, 0x7800, 0x8fff, MAP_RAM);
+	ZetMapMemory(xevious_workram,    0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x8fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x9fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xafff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
@@ -2391,7 +2423,7 @@ static void XeviousMachineInit()
 	
 	NamcoSoundInit(18432000 / 6 / 32, 3, 0);
 	NacmoSoundSetAllRoutes(0.90 * 10.0 / 16.0, BURN_SND_ROUTE_BOTH);
-	BurnSampleInit(1);
+	BurnSampleInit(0);
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
 	machine.bHasSamples = BurnSampleGetStatus(0) != -1;
 
@@ -2406,10 +2438,10 @@ static void XeviousMachineInit()
 	GenericTilesInit();
 
    GenericTilemapInit(0, xevious_bg_map_scan, xevious_bg_map_callback, 8, 8, 64, 32);
-	GenericTilemapSetGfx(0, graphics.bgTiles, 2, 8, 8, 0x10000, 0x100, 0x7f);
+	GenericTilemapSetGfx(0, graphics.bgTiles, 2, 8, 8, 512 * 8 * 8, 0, 0x7f);
 
    GenericTilemapInit(1, xevious_fg_map_scan, xevious_fg_map_callback, 8, 8, 64, 32);
-	GenericTilemapSetGfx(1, graphics.fgChars, 1, 8, 8, 0x8000, 0, 0x3f);
+	GenericTilemapSetGfx(1, graphics.fgChars, 1, 8, 8, 512 * 8 * 8, 0x400, 0x3f);
 	GenericTilemapSetTransparent(1, 0);
 	
    GenericTilemapSetOffsets(TMAP_GLOBAL, 0, 0);
@@ -2419,49 +2451,56 @@ static void XeviousMachineInit()
    
    controls.player1Port = 0;
    controls.player2Port = 1;
+
 }
 
 static UINT8 XeviousPlayFieldRead(UINT16 Offset)
 {
-   UINT32 dat1 = 0;
+   UINT16 addr_2b = ( ((xevious_bs[1] & 0x7e) << 6) | 
+                      ((xevious_bs[0] & 0xfe) >> 1) );
    
-   INT32 addr_2b = ( ((xevious_bs[1] & 0x7e) << 6) | 
-                     ((xevious_bs[0] & 0xfe) >> 1) );
+   UINT8 dat_2b = rom2b[addr_2b];
+
+   UINT16 addr_2a = addr_2b >> 1;
    
+   UINT8 dat_2a = rom2a[addr_2a]; 
    if (addr_2b & 1)
    {
-      dat1 = ( ((UINT32)(PlayFieldData[0x0000 + (addr_2b >> 1)] & 0xf0) << 4) | 
-                         PlayFieldData[0x1000 +  addr_2b      ]               );
+      dat_2a >>= 4; 
    }
    else
    {
-      dat1 = ( ((UINT32)(PlayFieldData[0x0000 + (addr_2b >> 1)] & 0x0f) << 8) | 
-                         PlayFieldData[0x1000 +  addr_2b      ]               );
+      dat_2a &=  0x0f;
    }
    
-   INT32 addr_2c = (dat1 & 0x01ff) << 2;
-   if (Offset & 1)
+   UINT16 addr_2c = (UINT16)dat_2b << 2;
+   if (dat_2a & 1)
    {
-      addr_2c += (1 << 11);
+      addr_2c += 0x0400;
    }
-   if ((xevious_bs[0] & 1) ^ ((dat1 >> 10) & 1) )
+   if ((xevious_bs[0] & 1) ^ ((dat_2a >> 2) & 1) )
    {
       addr_2c |= 1;
    }
-   if ((xevious_bs[1] & 1) ^ ((dat1 >> 9) & 1) )
+   if ((xevious_bs[1] & 1) ^ ((dat_2a >> 1) & 1) )
    {
       addr_2c |= 2;
    }
 
-   UINT8 dat2 = PlayFieldData[0x3000 + addr_2c];
-   if (!(Offset & 1))
+   UINT8 dat_2c = 0;
+   if (Offset & 1)
    {
-      dat2 = (dat2 & 0x3f) | ((dat2 & 0x80) >> 1) | ((dat2 & 0x40) << 1);
-      dat2 ^= (dat1 >> 4) & 0x40;
-      dat2 ^= (dat1 >> 2) & 0x80;
+      dat_2c = rom2c[addr_2c + 0x0800];
+   }
+   else
+   {
+      dat_2c = rom2c[addr_2c];
+      dat_2c = (dat_2c & 0x3f) | ((dat_2c & 0x80) >> 1) | ((dat_2c & 0x40) << 1);
+      dat_2c ^= ((dat_2a << 4) & 0x40);
+      dat_2c ^= ((dat_2a << 6) & 0x80);
    }
    
-   return dat2;
+   return dat_2c;
 }
 
 static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
@@ -2505,6 +2544,22 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
                else
                   jp = (jp & ~0x0f) | 0x08; */
                jp = namcoControls[jp & 0x0f] | (jp & 0xf0);
+               
+               switch (jp)
+               {
+                  case 0:
+                     BurnSamplePlay(0);
+                     break;
+                  case 2:
+                     BurnSamplePlay(1);
+                     break;
+                  case 4:
+                     BurnSamplePlay(2);
+                     break;
+                  case 6:
+                     BurnSamplePlay(3);
+                     break;
+               }
             }
 
             return jp; //updateJoyAndButtons(Offset, jp);
@@ -2535,10 +2590,34 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
    return 0xff;
 }
 		
-static UINT8 XeviousSharedRAMRead(UINT16 Offset)
+static UINT8 XeviousWorkRAMRead(UINT16 Offset)
 {
-   if (0x5800 > Offset) // 0x7800 - 0xcfff
-      return memory.RAM.Shared1[Offset];
+   if (0x0800 > Offset) // 0x7800 - 0x7fff
+      return xevious_workram[Offset];
+   
+   return 0;
+}
+
+static UINT8 XeviousSharedRAM1Read(UINT16 Offset)
+{
+   if (0x1000 > Offset) // 0x8000 - 0x87ff
+      return memory.RAM.Shared1[Offset & 0x07ff];
+   
+   return 0;
+}
+
+static UINT8 XeviousSharedRAM2Read(UINT16 Offset)
+{
+   if (0x1000 > Offset) // 0x9000 - 0x97ff
+      return memory.RAM.Shared2[Offset & 0x07ff];
+   
+   return 0;
+}
+
+static UINT8 XeviousSharedRAM3Read(UINT16 Offset)
+{
+   if (0x1000 > Offset) // 0xa000 - 0xa7ff
+      return memory.RAM.Shared3[Offset & 0x07ff];
    
    return 0;
 }
@@ -2550,7 +2629,7 @@ static void Xevious_bs_wr(UINT16 Offset, UINT8 dta)
 
 static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta)
 {
-   ioChip.Buffer[Offset] = dta;
+   ioChip.Buffer[Offset & 0x0f] = dta;
    
    switch (ioChip.CustomCommand & 0x0f)
    {
@@ -2602,8 +2681,8 @@ static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta)
       {
          if (6 == Offset)
          {
-            /* it is not known how the parameters control the explosion. */
-				/* We just use samples. */
+            // it is not known how the parameters control the explosion. 
+				// We just use samples. 
 				if (memcmp(ioChip.Buffer,"\x40\x40\x40\x01\xff\x00\x20",7) == 0)
 				{
 					BurnSamplePlay(0); //sample_start (0, 0, 0);
@@ -2619,7 +2698,8 @@ static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta)
 				else if (memcmp(ioChip.Buffer,"\x30\x80\x80\x01\xff\x00\x10",7) == 0)
 				{
 					BurnSamplePlay(3); //sample_start (0, 3, 0);
-				}         }
+				}
+         }
          break;
       }
    }
@@ -2672,30 +2752,46 @@ static void Xevious_vh_latch_w(UINT16 Offset, UINT8 dta)
 
 static void XeviousBGColorRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   xevious_bg_colorram[Offset] = Dta;
+   *(xevious_bg_colorram + (Offset & 0x7ff)) = Dta;
 }
 
 static void XeviousBGCharRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   xevious_bg_videoram[Offset] = Dta;
+   *(xevious_bg_videoram + (Offset & 0x7ff)) = Dta;
 }
 
 static void XeviousFGColorRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   xevious_fg_colorram[Offset] = Dta;
+   *(xevious_fg_colorram + (Offset & 0x7ff)) = Dta;
 }
 
 static void XeviousFGCharRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   xevious_fg_videoram[Offset] = Dta;
+   *(xevious_fg_videoram + (Offset & 0x7ff)) = Dta;
 }
 
-static void XeviousSharedRAMWrite(UINT16 Offset, UINT8 Dta)
+static void XeviousWorkRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   if ((0x0000 <= Offset) && (0x5800 > Offset)) // 0x7800 - 0xafff
-      memory.RAM.Shared1[Offset] = Dta;
-   if ((0x3800 <= Offset) && (0x5800 > Offset)) // 0xb000 - 0xcfff
-      memory.RAM.Video[Offset - 0x3800] = Dta;
+   if ((0x0000 <= Offset) && (0x0800 > Offset)) // 0x7800 - 0x7fff
+      xevious_workram[Offset] = Dta;
+}
+
+static void XeviousSharedRAM1Write(UINT16 Offset, UINT8 Dta)
+{
+   if ((0x0000 <= Offset) && (0x1000 > Offset)) // 0x8000 - 0x87ff
+      memory.RAM.Shared1[Offset & 0x07ff] = Dta;
+}
+
+static void XeviousSharedRAM2Write(UINT16 Offset, UINT8 Dta)
+{
+   if ((0x0000 <= Offset) && (0x1000 > Offset)) // 0x9000 - 0x97ff
+      memory.RAM.Shared2[Offset & 0x07ff] = Dta;
+}
+
+static void XeviousSharedRAM3Write(UINT16 Offset, UINT8 Dta)
+{
+   if ((0x0000 <= Offset) && (0x1000 > Offset)) // 0xa000 - 0xa7ff
+      memory.RAM.Shared3[Offset & 0x07ff] = Dta;
 }
 
 static INT32 XeviousDraw()
@@ -2703,19 +2799,13 @@ static INT32 XeviousDraw()
 	BurnTransferClear();
 	XeviousCalcPalette();
    
-	GenericTilemapSetScrollX(0, 0);
-	GenericTilemapSetScrollY(0, 0);
-   GenericTilemapSetOffsets(0, 0, 0);
    GenericTilemapSetEnable(0, 1);
    GenericTilemapDraw(0, pTransDraw, 0 | TMAP_DRAWOPAQUE);
 
-	XeviousRenderSprites();
+   XeviousRenderSprites();
 
-	GenericTilemapSetScrollX(1, 0);
-	GenericTilemapSetScrollY(1, 0);
-   GenericTilemapSetOffsets(1, 0, 0);
    GenericTilemapSetEnable(1, 1);
-	GenericTilemapDraw(1, pTransDraw, 0 | TMAP_TRANSPARENT);
+   GenericTilemapDraw(1, pTransDraw, 0 | TMAP_TRANSPARENT);
 
 	BurnTransferCopy(graphics.Palette);
    
@@ -2736,23 +2826,21 @@ static void XeviousCalcPalette()
 		Palette[i] = BurnHighCol(r, g, b, 0);
 	}
    
-   Palette[128] = BurnHighCol(0, 0, 0, 0); // Transparency Colour for Sprites
+   Palette[0x80] = BurnHighCol(0, 0, 0, 0); // Transparency Colour for Sprites
 
 	/* bg_select */
-//	for (INT32 i = 0; i < XEVIOUS_BG_COLOR_CODES * XEVIOUS_BG_COLOR_GRAN; i ++) 
-	for (INT32 i = 0; i < 0x100; i ++) 
+	for (INT32 i = 0; i < (128 * 4); i ++) 
    {
-      code = ( (memory.PROM.CharLookup[                         i] & 0x0f)       | 
-              ((memory.PROM.CharLookup[XEVIOUS_BG_COLOR_CODES + i] & 0x0f) << 4) );
-		graphics.Palette[0x100 + i] = Palette[code];
+      code = ( (memory.PROM.CharLookup[        i] & 0x0f)       | 
+              ((memory.PROM.CharLookup[0x200 + i] & 0x0f) << 4) );
+		graphics.Palette[i] = Palette[code];
 	}
 
 	/* sprites */
-//	for (INT32 i = 0; i < XEVIOUS_SPRITE_COLOR_CODES * XEVIOUS_SPRITE_COLOR_GRAN; i ++) 
-	for (INT32 i = 0; i < 0x100; i ++) 
+	for (INT32 i = 0; i < (64 * 8); i ++) 
    {
-      code = ( (memory.PROM.SpriteLookup[i                             ] & 0x0f)       |
-              ((memory.PROM.SpriteLookup[XEVIOUS_SPRITE_COLOR_CODES + i] & 0x0f) << 4) );
+      code = ( (memory.PROM.SpriteLookup[i        ] & 0x0f)       |
+              ((memory.PROM.SpriteLookup[0x200 + i] & 0x0f) << 4) );
       if (code & 0x80)
          graphics.Palette[0x200 + i] = Palette[code & 0x7f];
       else
@@ -2760,48 +2848,46 @@ static void XeviousCalcPalette()
 	}
 
 	/* characters - direct mapping */
-//	for (INT32 i = 0; i < XEVIOUS_FG_COLOR_CODES * XEVIOUS_FG_COLOR_GRAN; i += 2)
-	for (INT32 i = 0; i < 0x80; i += 2)
+	for (INT32 i = 0; i < (64 * 2); i += 2)
 	{
-		graphics.Palette[i+0] = Palette[0x80];
-		graphics.Palette[i+1] = Palette[i / 2];
+		graphics.Palette[0x400 + i + 0] = Palette[0x80];
+		graphics.Palette[0x400 + i + 1] = Palette[i / 2];
 	}
 
 }
 
 static void XeviousRenderSprites()
 {
-	UINT8 *SpriteRam2 = memory.RAM.Shared1 + 0xf80;
+	UINT8 *SpriteRam2 = memory.RAM.Shared1 + 0x780;
 	UINT8 *SpriteRam3 = memory.RAM.Shared2 + 0x780;
 	UINT8 *SpriteRam1 = memory.RAM.Shared3 + 0x780;
-	
+   
 	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
    {
-		static const INT32 GfxOffset[2][2] = {
+      static const INT32 GfxOffset[2][2] = {
 			{ 0, 1 },
 			{ 2, 3 }
 		};
       
-      INT32 Sprite =      SpriteRam1[Offset + 0] & 0x7f;
-      INT32 Bank =      ((SpriteRam1[Offset + 0] & 0x80) >> 7) + 2;
+      INT32 Sprite =      SpriteRam1[Offset + 0];
       
       if (SpriteRam3[Offset + 0] & 0x80)
       {
          Sprite &= 0x3f;
-         Bank = 4;
+         Sprite += 0x100;
       }
       
       INT32 Colour =      SpriteRam1[Offset + 1] & 0x7f;
-		INT32 xFlip =      (SpriteRam3[Offset + 0] & 0x04);
-		INT32 yFlip =      (SpriteRam3[Offset + 0] & 0x08);
+		INT32 xFlip =      (SpriteRam3[Offset + 0] & 0x04) >> 2;
+		INT32 yFlip =      (SpriteRam3[Offset + 0] & 0x08) >> 3;
 		if (machine.FlipScreen) 
       {
-			xFlip = !xFlip;
-			yFlip = !yFlip;
+			xFlip = 1 - xFlip;
+			yFlip = 1 - yFlip;
 		}
 		
 		INT32 sx =        ((SpriteRam2[Offset + 1] - 40) + 
-                         (SpriteRam3[Offset + 1] & 1) * 0x100);
+                         (SpriteRam3[Offset + 1] & 1 ) * 0x100);
 		INT32 sy = 28*8 -  (SpriteRam2[Offset + 0] - 1);
       
       UINT32 Orient =     SpriteRam3[Offset + 0] & 0x03;
@@ -2829,17 +2915,17 @@ static void XeviousRenderSprites()
                switch (Orient)
                {
                   case 3:
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                   case 2:
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                   case 1:
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                   case 0:
                   default:
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                }
 				} else 
@@ -2847,17 +2933,17 @@ static void XeviousRenderSprites()
                switch (Orient)
                {
                   case 3:
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                   case 2:
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                   case 1:
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                   case 0:
                   default:
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
+							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
                      break;
                }
 				}
@@ -2911,9 +2997,9 @@ static INT32 DrvDoReset()
 		ZetClose();
 	}
 	
-	BurnSampleReset();
-	NamcoSoundReset();
-
+   BurnSampleReset();
+   NamcoSoundReset();
+   
    machineReset();
    
 	input.PrevInValue = 0xff;
@@ -2974,7 +3060,7 @@ static void Namco54XXWrite(INT32 Data)
 					// bosco
 					// galaga
 					// xevious
-					BurnSamplePlay(0);
+               BurnSamplePlay(0);
 //				else if (memcmp(namco54xx.Config1,"\x10\x00\x80\xff",4) == 0)
 					// xevious
 //					sample_start(0, 1, 0);
@@ -2991,7 +3077,7 @@ static void Namco54XXWrite(INT32 Data)
 				/*else*/ if (0 == memcmp(namco54xx.Config2,"\x30\x30\x03\xdf",NAMCO54XX_CFG2_SIZE))
 					// bosco
 					// galaga
-					BurnSamplePlay(1);
+               BurnSamplePlay(1);
 //				else if (memcmp(namco54xx.Config2,"\x60\x30\x03\x66",4) == 0)
 					// polepos
 //					sample_start( 0, 0, 0 );
@@ -3271,8 +3357,10 @@ static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta)
 static INT32 DrvExit()
 {
 	GenericTilesExit();
-	NamcoSoundExit();
-	BurnSampleExit();
+   
+   NamcoSoundExit();
+   BurnSampleExit();
+   
 	ZetExit();
 
 	earom_exit();
@@ -3461,9 +3549,10 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 	
 	if (nAction & ACB_DRIVER_DATA) {
 		ZetScan(nAction);			// Scan Z80
-		NamcoSoundScan(nAction, pnMin);
-		BurnSampleScan(nAction, pnMin);
-
+      
+      NamcoSoundScan(nAction, pnMin);
+      BurnSampleScan(nAction, pnMin);
+      
 		// Scan critical driver variables
 		SCAN_VAR(cpus.CPU1.FireIRQ);
 		SCAN_VAR(cpus.CPU2.FireIRQ);
