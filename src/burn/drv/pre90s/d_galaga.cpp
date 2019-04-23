@@ -1,5 +1,6 @@
 // Galaga & Dig-Dug driver for FB Alpha, based on the MAME driver by Nicola Salmoria & previous work by Martin Scragg, Mirko Buffoni, Aaron Giles
 // Dig Dug added July 27, 2015
+// Xevious added April 22, 2019
 
 // notes: galaga freeplay mode doesn't display "freeplay" - need to investigate.
 
@@ -294,7 +295,7 @@ static struct Game_Params
 static void machineReset(void);
 static INT32 DrvDoReset(void);
 static void Namco54XXWrite(INT32 Data);
-static UINT8 NamcoZ80ReadDip(UINT16 Offset);
+static UINT8 NamcoZ80ReadDip(UINT16 Offset, UINT32 DipCount);
 static UINT8 NamcoZ80ReadIoCmd(UINT16 Offset);
 static UINT8 __fastcall NamcoZ80ProgRead(UINT16 addr);
 static UINT8 updateCoinAndCredit(UINT8 gameID);
@@ -340,10 +341,12 @@ static struct BurnInputInfo GalagaInputList[] =
 
 STDINPUTINFO(Galaga)
 
+#define GALAGA_NUM_OF_DIPSWITCHES      3
+
 static struct BurnDIPInfo GalagaDIPList[]=
 {
 	// Default Values
-	{0x0c, 0xff, 0xff, 0x80, NULL                     },
+	{0x0c, 0xff, 0x80, 0x80, NULL                     },
 	{0x0d, 0xff, 0xff, 0xf7, NULL                     },
 	{0x0e, 0xff, 0xff, 0x97, NULL                     },
 	
@@ -668,7 +671,7 @@ static INT32 GalagaInit(void);
 static INT32 GallagInit(void);
 static INT32 GalagaMemIndex(void);
 static void GalagaMachineInit(void);
-static UINT8 GalagaZ80Read7000(UINT16 offset);
+static UINT8 GalagaZ80ReadDip(UINT16 Offset);
 static UINT8 GalagaZ80ReadInputs(UINT16 offset);
 static void GalagaZ80Write7007(UINT16 offset, UINT8 dta);
 static void GalagaZ80WriteStars(UINT16 Offset, UINT8 dta);
@@ -681,9 +684,8 @@ static void GalagaRenderSprites(void);
 
 static struct CPU_Rd_Table GalagaZ80ReadList[] =
 {
-	{ 0x6800, 0x6807, NamcoZ80ReadDip         }, 
-   { 0x7000, 0x7000, GalagaZ80Read7000       },
-   { 0x7001, 0x7002, GalagaZ80ReadInputs     },
+	{ 0x6800, 0x6807, GalagaZ80ReadDip        }, 
+   { 0x7000, 0x7002, GalagaZ80ReadInputs     },
 	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd       },
 	{ 0x0000, 0x0000, NULL                    },
 };
@@ -900,35 +902,46 @@ static void GalagaMachineInit()
    controls.player2Port = 2;
 }
 
-static UINT8 GalagaZ80Read7000(UINT16 offset)
+static UINT8 GalagaZ80ReadDip(UINT16 offset)
 {
-   if ( (0x71 == ioChip.CustomCommand) ||
-        (0xb1 == ioChip.CustomCommand) )
-   {
-      if (ioChip.Mode) 
-      {
-         return input.Ports[0];
-      } 
-      else 
-      {
-         return updateCoinAndCredit(NAMCO_GALAGA);
-      }
-   }
-   
-   return 0xff;
+   return NamcoZ80ReadDip(offset, GALAGA_NUM_OF_DIPSWITCHES);
 }
 
 static UINT8 GalagaZ80ReadInputs(UINT16 Offset)
 {
+   UINT8 retVal = 0xff;
+   
    if ( (0x71 == ioChip.CustomCommand) ||
         (0xb1 == ioChip.CustomCommand) )
    {
-      UINT8 jp = input.Ports[Offset];
-
-      return updateJoyAndButtons(Offset, jp);
+      switch (Offset)
+      {
+         case 0:
+         {
+            if (ioChip.Mode) 
+            {
+               retVal = input.Ports[0];
+            } 
+            else 
+            {
+               retVal = updateCoinAndCredit(NAMCO_GALAGA);
+            }
+         }
+         break;
+            
+         case 1:
+         case 2:
+         {
+            retVal = updateJoyAndButtons(Offset, input.Ports[Offset]);
+         }   
+         break;
+            
+         default:
+            break;
+      }
    }
    
-   return 0xff;
+   return retVal;
 }
 
 static void GalagaZ80Write7007(UINT16 offset, UINT8 dta)
@@ -1257,13 +1270,14 @@ static struct BurnInputInfo DigdugInputList[] =
 	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.PortBits[2].Current[4], "p2 fire 1" },
 
 	{"Service"              , BIT_DIGITAL  , &input.PortBits[0].Current[7], "service"   },
+	{"Reset"                , BIT_DIGITAL  , &input.Reset,                  "reset"     },
 	{"Dip 1"                , BIT_DIPSWITCH, &input.Dip[0],                 "dip"       },
 	{"Dip 2"                , BIT_DIPSWITCH, &input.Dip[1],                 "dip"       },
-	{"Reset"                , BIT_DIGITAL  , &input.Reset,                  "reset"     },
 };
 
 STDINPUTINFO(Digdug)
 
+#define DIGDUG_NUM_OF_DIPSWITCHES      2
 
 static struct BurnDIPInfo DigdugDIPList[]=
 {
@@ -1373,6 +1387,7 @@ STD_ROM_FN(digdug)
 static INT32 DigdugInit(void);
 static INT32 DigDugMemIndex(void);
 static void DigDugMachineInit(void);
+static UINT8 DigDugZ80ReadDip(UINT16 Offset);
 static UINT8 DigDugZ80ReadInputs(UINT16 Offset);
 static void DigDug_pf_latch_w(UINT16 offset, UINT8 data);
 static void DigDugZ80Writeb840(UINT16 offset, UINT8 dta);
@@ -1383,7 +1398,7 @@ static void DigDugRenderSprites(void);
 
 static struct CPU_Rd_Table DigDugZ80ReadList[] =
 {
-	{ 0x6800, 0x6807, NamcoZ80ReadDip         }, 
+	{ 0x6800, 0x6807, DigDugZ80ReadDip        }, 
    { 0x7000, 0x700f, DigDugZ80ReadInputs     }, 
 	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd       },
    // EAROM Read
@@ -1625,6 +1640,11 @@ static void DigDugMachineInit()
    
    controls.player1Port = 1;
    controls.player2Port = 2;
+}
+
+static UINT8 DigDugZ80ReadDip(UINT16 offset)
+{
+   return NamcoZ80ReadDip(offset, DIGDUG_NUM_OF_DIPSWITCHES);
 }
 
 static UINT8 DigDugZ80ReadInputs(UINT16 Offset)
@@ -1915,6 +1935,8 @@ static struct BurnInputInfo XeviousInputList[] =
 
 STDINPUTINFO(Xevious)
 
+#define XEVIOUS_NUM_OF_DIPSWITCHES     2
+
 static struct BurnDIPInfo XeviousDIPList[]=
 {
 	// Default Values
@@ -2053,6 +2075,7 @@ static UINT8 XeviousWorkRAMRead(UINT16 Offset);
 static UINT8 XeviousSharedRAM1Read(UINT16 Offset);
 static UINT8 XeviousSharedRAM2Read(UINT16 Offset);
 static UINT8 XeviousSharedRAM3Read(UINT16 Offset);
+static UINT8 XeviousZ80ReadDip(UINT16 Offset);
 static UINT8 XeviousZ80ReadInputs(UINT16 Offset);
 static void Xevious_bs_wr(UINT16 Offset, UINT8 dta);
 static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta);
@@ -2071,7 +2094,7 @@ static void XeviousRenderSprites(void);
 
 static struct CPU_Rd_Table XeviousZ80ReadList[] =
 {
-	{ 0x6800, 0x6807, NamcoZ80ReadDip            }, 
+	{ 0x6800, 0x6807, XeviousZ80ReadDip          }, 
    { 0x7000, 0x700f, XeviousZ80ReadInputs       },
 	{ 0x7100, 0x7100, NamcoZ80ReadIoCmd          },
    { 0x7800, 0x7fff, XeviousWorkRAMRead         },
@@ -2503,6 +2526,11 @@ static UINT8 XeviousPlayFieldRead(UINT16 Offset)
    return dat_2c;
 }
 
+static UINT8 XeviousZ80ReadDip(UINT16 Offset)
+{
+   return NamcoZ80ReadDip(Offset, XEVIOUS_NUM_OF_DIPSWITCHES);
+}
+
 static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
 {
    switch (ioChip.CustomCommand & 0x0f) 
@@ -2740,6 +2768,7 @@ static void Xevious_vh_latch_w(UINT16 Offset, UINT8 dta)
       case 7:
       {
          // flipscreen
+         machine.FlipScreen = dta & 1;
          break;
       }
       default:
@@ -2858,97 +2887,135 @@ static void XeviousCalcPalette()
 
 static void XeviousRenderSprites()
 {
+   static const INT32 codeMask[4] = { 0x1FF, 0x1FE, 0x1FD, 0x1FC };
+   
+   static const INT32 xOffset[4][4][2] = {
+      { // + 0
+         {  0,    0     },
+         {  0,    16    },
+         {  0,    16    },
+         {  0,    16    }
+      },
+      { // + 1
+         {  0,    0     },
+         {  0,    16    },
+         {  0,    0     },
+         {  16,   0     }
+      },
+      { // + 2
+         {  0,    0     },
+         {  0,    0     },
+         {  0,    16    },
+         {  0,    16    }
+      },
+      { // + 3
+         {  0,    0     },
+         {  0,    0     },
+         {  0,    0     },
+         {  16,   0     }
+      },
+   };
+
+   static const INT32 yOffset[4][4][2] = {
+      { // + 0
+         {  0,    0     },
+         {  0,    -16   },
+         {  -16,  0     },
+         {  -16,  0     }
+      },
+      { // + 1
+         {  0,    0     },
+         {  0,    -16   },
+         {  0,    0     },
+         {  -16,  0     }
+      },
+      { // + 2
+         {  0,    0     },
+         {  0,    0     },
+         {  0,    -16   },
+         {  0,    -16   }
+      },
+      { // + 3
+         {  0,    0     },
+         {  0,    0     },
+         {  0,    0     },
+         {  0,    -16   }
+      },
+   };
+   
 	UINT8 *SpriteRam2 = memory.RAM.Shared1 + 0x780;
 	UINT8 *SpriteRam3 = memory.RAM.Shared2 + 0x780;
 	UINT8 *SpriteRam1 = memory.RAM.Shared3 + 0x780;
    
 	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
    {
-      static const INT32 GfxOffset[2][2] = {
-			{ 0, 1 },
-			{ 2, 3 }
-		};
-      
-      INT32 Sprite =      SpriteRam1[Offset + 0];
-      
-      if (SpriteRam3[Offset + 0] & 0x80)
+      if (0 == (SpriteRam1[Offset + 1] & 0x40))
       {
-         Sprite &= 0x3f;
-         Sprite += 0x100;
-      }
-      
-      INT32 Colour =      SpriteRam1[Offset + 1] & 0x7f;
-		INT32 xFlip =      (SpriteRam3[Offset + 0] & 0x04) >> 2;
-		INT32 yFlip =      (SpriteRam3[Offset + 0] & 0x08) >> 3;
-		if (machine.FlipScreen) 
-      {
-			xFlip = 1 - xFlip;
-			yFlip = 1 - yFlip;
-		}
-		
-		INT32 sx =        ((SpriteRam2[Offset + 1] - 40) + 
-                         (SpriteRam3[Offset + 1] & 1 ) * 0x100);
-		INT32 sy = 28*8 -  (SpriteRam2[Offset + 0] - 1);
-      
-      UINT32 Orient =     SpriteRam3[Offset + 0] & 0x03;
-      
-      INT32 hSize = Orient & 0x01;
-      INT32 vSize = (Orient & 0x02) >> 1;
-		
-		for (INT32 y = 0; y <= vSize; y ++) 
-      {
-			for (INT32 x = 0; x <= hSize; x ++) 
+         INT32 Sprite =      SpriteRam1[Offset + 0];
+         
+         if (SpriteRam3[Offset + 0] & 0x80)
          {
-				INT32 Code = Sprite + GfxOffset[y ^ (vSize * yFlip)][x ^ (hSize * xFlip)];
-				INT32 xPos = (sx + 16 * x);
-				INT32 yPos =  sy + 16 * y;
-
-				if (xPos < 8) 
-               xPos += 0x100; // that's a wrap!
-
-				if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
-				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
-
-				if ( ((xPos > 0) && (xPos < nScreenWidth-16)) && 
-                 ((yPos > 0) && (yPos < nScreenHeight-16)) ) 
+            Sprite &= 0x3f;
+            Sprite += 0x100;
+         }
+         
+         INT32 Colour =      SpriteRam1[Offset + 1] & 0x7f;
+         INT32 xFlip =      (SpriteRam3[Offset + 0] & 0x04) >> 2;
+         INT32 yFlip =      (SpriteRam3[Offset + 0] & 0x08) >> 3;
+         if (machine.FlipScreen) 
+         {
+            xFlip = 1 - xFlip;
+            yFlip = 1 - yFlip;
+         }
+         
+         INT32 sx =        ((SpriteRam2[Offset + 1] - 40) + 
+                            (SpriteRam3[Offset + 1] & 1 ) * 0x100);
+         INT32 sy = 28*8 -  (SpriteRam2[Offset + 0] - 1);
+         
+         UINT32 Orient =     SpriteRam3[Offset + 0] & 0x03;
+         
+         INT32 hSize = Orient & 0x01;
+         //INT32 vSize = (Orient & 0x02) >> 1;
+         Sprite &= codeMask[Orient & 0x03];
+         
+         for (INT32 codeOffset = 0; codeOffset <= Orient; codeOffset += hSize? 1 : 2)
+         {
+            INT32 Code = Sprite + codeOffset;
+            INT32 xPos = sx + xOffset[codeOffset][Orient][xFlip];
+            INT32 yPos = sy + yOffset[codeOffset][Orient][yFlip];
+            
+            if (Orient)
             {
-               switch (Orient)
-               {
-                  case 3:
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 2:
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 1:
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 0:
-                  default:
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-               }
-				} else 
+               printf("\n%x: %x, %x; %x, %x, %x, %x", Offset, 
+                  SpriteRam1[Offset], SpriteRam1[Offset+1], 
+                  SpriteRam2[Offset], SpriteRam2[Offset+1], 
+                  SpriteRam3[Offset], SpriteRam3[Offset+1]
+               );
+               printf("\n%d/%d: %x, %x", codeOffset, Orient, xFlip, yFlip);
+               printf("\n%d/%d: %x, %x:%x, %x:%x", codeOffset, Orient, Code, sx, xPos, sy, yPos);
+            }
+
+            if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
+            if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
+
+            switch (Orient)
             {
-               switch (Orient)
-               {
-                  case 3:
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 2:
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 1:
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 0:
-                  default:
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                     break;
-               }
-				}
-			}
-		}
+               case 3:
+                  Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
+                  break;
+               case 2:
+                  Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
+                  break;
+               case 1:
+                  Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
+                  break;
+               case 0:
+               default:
+                  Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
+                  break;
+            }
+         }
+      }
 	}
 }
 
@@ -3129,12 +3196,17 @@ static void Namco54XXWrite(INT32 Data)
 	}
 }
 
-static UINT8 NamcoZ80ReadDip(UINT16 Offset)
+static UINT8 NamcoZ80ReadDip(UINT16 Offset, UINT32 DipCount)
 {
-   INT32 Bit0 = (input.Dip[1] >> Offset) & 0x01;
-   INT32 Bit1 = (input.Dip[0] >> Offset) & 0x01;
+   UINT8 retVal = 0;
+   
+   for (UINT32 count = 0; count < DipCount; count ++)
+   {
+      retVal <<= 1;
+      retVal |=  ((input.Dip[count] >> Offset) & 0x01);
+   }
 
-   return (Bit1 << 1) | Bit0;
+   return retVal;
 }
 
 static UINT8 NamcoZ80ReadIoCmd(UINT16 Offset)
