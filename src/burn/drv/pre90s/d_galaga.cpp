@@ -300,6 +300,21 @@ static struct Game_Params
    UINT8 coinInserted;
 } gameVars;
 
+struct Namco_Sprite_Params
+{
+   INT32 Sprite;
+   INT32 Colour;
+   INT32 sx;
+   INT32 sy;
+   INT32 xFlip;
+   INT32 yFlip;
+   INT32 xSize;
+   INT32 ySize;
+   INT32 Orient;
+   INT32 PaletteBits;
+   INT32 PaletteOffset;
+};
+
 static void machineReset(void);
 static INT32 DrvDoReset(void);
 static void Namco54XXWrite(INT32 Data);
@@ -317,7 +332,14 @@ static void NamcoZ80WriteIoChip(UINT16 Offset, UINT8 dta);
 static void NamcoZ80WriteIoCmd(UINT16 Offset, UINT8 dta);
 static void NamcoZ80WriteFlipScreen(UINT16 Offset, UINT8 dta);
 static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta);
-static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3, UINT32 paletteBits, UINT32 paletteOffset);
+static void NamcoRenderSprites(
+   UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3, 
+   void GetSpriteParams(
+      struct Namco_Sprite_Params *spriteParams, 
+      UINT32 Offset, 
+      UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3
+   )
+);
 static INT32 DrvExit(void);
 static void DrvPreMakeInputs(void);
 static void DrvMakeInputs(void);
@@ -689,6 +711,7 @@ static void GalagaCalcPalette(void);
 static void GalagaInitStars(void);
 static void GalagaRenderStars(void);
 static void GalagaRenderSprites(void);
+static void GalagaGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3);
 
 static struct CPU_Rd_Table GalagaZ80ReadList[] =
 {
@@ -1246,17 +1269,38 @@ static void GalagaRenderStars()
 	}
 }
 
+static void GalagaGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3)
+{
+   spriteParams->Sprite =    SpriteRam1[Offset + 0] & 0x7f;
+   spriteParams->Colour =    SpriteRam1[Offset + 1] & 0x3f;
+   spriteParams->sx =        SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
+   spriteParams->sy =        NAMCO_NO_OF_ROWS * 8 - 
+                             SpriteRam2[Offset + 0] + 1;
+   spriteParams->xFlip =    (SpriteRam3[Offset + 0] & 0x01);
+   spriteParams->yFlip =    (SpriteRam3[Offset + 0] & 0x02) >> 1;
+   spriteParams->xSize =    (SpriteRam3[Offset + 0] & 0x04) >> 2;
+   spriteParams->ySize =    (SpriteRam3[Offset + 0] & 0x08) >> 3;
+   spriteParams->Orient =    SpriteRam3[Offset + 0] & 0x03;
+   spriteParams->sy -= 16 * spriteParams->ySize;
+
+   if (machine.FlipScreen) 
+   {
+      spriteParams->xFlip  = 1 - spriteParams->xFlip;
+      spriteParams->yFlip  = 1 - spriteParams->yFlip;
+      spriteParams->Orient = 3 - spriteParams->Orient;
+   }
+
+   spriteParams->PaletteBits   = GALAGA_NUM_OF_SPRITE_PALETTE_BITS;
+   spriteParams->PaletteOffset = GALAGA_PALETTE_OFFSET_SPRITE;
+}
+
 static void GalagaRenderSprites()
 {
 	UINT8 *SpriteRam1 = memory.RAM.Shared1 + 0x380;
 	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
 	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
 
-   NamcoRenderSprites(
-      SpriteRam1, SpriteRam2, SpriteRam3, 
-      GALAGA_NUM_OF_SPRITE_PALETTE_BITS, 
-      GALAGA_PALETTE_OFFSET_SPRITE
-   );
+   NamcoRenderSprites(SpriteRam1, SpriteRam2, SpriteRam3, GalagaGetSpriteParams);
 }
 
 /* === Dig Dug === */
@@ -1405,6 +1449,7 @@ static void DigDugZ80Writeb840(UINT16 offset, UINT8 dta);
 static void DigDugZ80WriteIoChip(UINT16 offset, UINT8 dta);
 static INT32 DigDugDraw(void);
 static void DigDugCalcPalette(void);
+static void DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3);
 static void DigDugRenderSprites(void);
 
 static struct CPU_Rd_Table DigDugZ80ReadList[] =
@@ -1441,12 +1486,12 @@ static struct CPU_Wr_Table DigDugZ80WriteList[] =
 #define DIGDUG_NUM_OF_SPRITE_PALETTE_BITS 2
 #define DIGDUG_NUM_OF_BGTILE_PALETTE_BITS 2
 
-#define DIGDUG_PALETTE_OFFSET_CHARS       0
+#define DIGDUG_PALETTE_OFFSET_BGTILES     0x0
 #define DIGDUG_PALETTE_OFFSET_SPRITE      0x100
-#define DIGDUG_PALETTE_OFFSET_BGTILES     0x200
-#define DIGDUG_PALETTE_SIZE_CHARS         0x100
+#define DIGDUG_PALETTE_OFFSET_CHARS       0x200
+#define DIGDUG_PALETTE_SIZE_BGTILES       0x100
 #define DIGDUG_PALETTE_SIZE_SPRITES       0x100
-#define DIGDUG_PALETTE_SIZE_BGTILES       0x040
+#define DIGDUG_PALETTE_SIZE_CHARS         0x20
 #define DIGDUG_PALETTE_SIZE (DIGDUG_PALETTE_SIZE_CHARS + \
                              DIGDUG_PALETTE_SIZE_SPRITES + \
                              DIGDUG_PALETTE_SIZE_BGTILES)
@@ -1581,10 +1626,10 @@ static INT32 DigDugMemIndex()
 	memory.RAM.Size            = Next - memory.RAM.Start;
 
 	PlayFieldData              = Next; Next += 0x01000;
-	graphics.fgChars           = Next; Next += 0x00080 * 8 * 8 * 1;
-	graphics.bgTiles           = Next; Next += 0x00100 * 8 * 8 * 2;
-	graphics.Sprites           = Next; Next += 0x00100 * 16 * 16 * 2;
-	graphics.Palette           = (UINT32*)Next; Next += 0x300 * sizeof(UINT32);
+	graphics.fgChars           = Next; Next += DIGDUG_NUM_OF_CHAR * 8 * 8;
+	graphics.bgTiles           = Next; Next += DIGDUG_NUM_OF_BGTILE * 8 * 8;
+	graphics.Sprites           = Next; Next += DIGDUG_NUM_OF_SPRITE * 16 * 16;
+	graphics.Palette           = (UINT32*)Next; Next += DIGDUG_PALETTE_SIZE * sizeof(UINT32);
 
 	memory.All.Size            = Next - memory.All.Start;
 
@@ -1639,8 +1684,8 @@ static tilemap_callback ( digdug_fg )
 
 static void DigDugMachineInit()
 {
-	ZetInit(0);
-	ZetOpen(0);
+	ZetInit(CPU1);
+	ZetOpen(CPU1);
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
@@ -1650,8 +1695,8 @@ static void DigDugMachineInit()
 	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
 	ZetClose();
 	
-	ZetInit(1);
-	ZetOpen(1);
+	ZetInit(CPU2);
+	ZetOpen(CPU2);
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
@@ -1661,8 +1706,8 @@ static void DigDugMachineInit()
 	ZetMapMemory(memory.RAM.Shared3, 0x9800, 0x9bff, MAP_RAM);
 	ZetClose();
 	
-	ZetInit(2);
-	ZetOpen(2);
+	ZetInit(CPU3);
+	ZetOpen(CPU3);
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
@@ -1691,11 +1736,11 @@ static void DigDugMachineInit()
 	GenericTilemapSetGfx(
       0, 
       graphics.bgTiles, 
-      2, 
+      DIGDUG_NUM_OF_BGTILE_PALETTE_BITS, 
       8, 8, 
-      0x04000, 
-      0x100, 
-      0xff
+      DIGDUG_NUM_OF_BGTILE * 8 * 8, 
+      DIGDUG_PALETTE_OFFSET_BGTILES, 
+      DIGDUG_PALETTE_SIZE_BGTILES - 1
    );
 	GenericTilemapSetTransparent(0, 0);
 	
@@ -1708,11 +1753,11 @@ static void DigDugMachineInit()
 	GenericTilemapSetGfx(
       1, 
       graphics.fgChars, 
-      1, 
+      DIGDUG_NUM_OF_CHAR_PALETTE_BITS, 
       8, 8, 
-      0x4000, 
-      0x0, 
-      0x1f
+      DIGDUG_NUM_OF_CHAR * 8 * 8, 
+      DIGDUG_PALETTE_OFFSET_CHARS, 
+      DIGDUG_PALETTE_SIZE_CHARS - 1
    );
 	GenericTilemapSetTransparent(1, 0);
    
@@ -1864,11 +1909,13 @@ static INT32 DigDugDraw()
 	return 0;
 }
 
+#define DIGDUG_3BIT_PALETTE_SIZE    32
+
 static void DigDugCalcPalette()
 {
-	UINT32 Palette[96];
+	UINT32 Palette[DIGDUG_3BIT_PALETTE_SIZE];
 	
-	for (INT32 i = 0; i < 32; i ++) 
+	for (INT32 i = 0; i < DIGDUG_3BIT_PALETTE_SIZE; i ++) 
    {
       INT32 r = Colour3Bit[(memory.PROM.Palette[i] >> 0) & 0x07];
       INT32 g = Colour3Bit[(memory.PROM.Palette[i] >> 3) & 0x07];
@@ -1877,24 +1924,53 @@ static void DigDugCalcPalette()
 		Palette[i] = BurnHighCol(r, g, b, 0);
 	}
 
-	/* characters - direct mapping */
-	for (INT32 i = 0; i < 16; i ++)
-	{
-		graphics.Palette[i*2+0] = Palette[0];
-		graphics.Palette[i*2+1] = Palette[i];
+	/* bg_select */
+	for (INT32 i = 0; i < DIGDUG_PALETTE_SIZE_BGTILES; i ++) 
+   {
+		graphics.Palette[DIGDUG_PALETTE_OFFSET_BGTILES + i] = 
+         Palette[memory.PROM.CharLookup[i] & 0x0f];
 	}
 
 	/* sprites */
-	for (INT32 i = 0; i < 0x100; i ++) 
+	for (INT32 i = 0; i < DIGDUG_PALETTE_SIZE_SPRITES; i ++) 
    {
-		graphics.Palette[0x200 + i] = Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
+		graphics.Palette[DIGDUG_PALETTE_OFFSET_SPRITE + i] = 
+         Palette[(memory.PROM.SpriteLookup[i] & 0x0f) + 0x10];
 	}
 
-	/* bg_select */
-	for (INT32 i = 0; i < 0x100; i ++) 
-   {
-		graphics.Palette[0x100 + i] = Palette[memory.PROM.CharLookup[i] & 0x0f];
+	/* characters - direct mapping */
+	for (INT32 i = 0; i < DIGDUG_PALETTE_SIZE_CHARS; i += 2)
+	{
+		graphics.Palette[DIGDUG_PALETTE_OFFSET_CHARS + i + 0] = Palette[0];
+		graphics.Palette[DIGDUG_PALETTE_OFFSET_CHARS + i + 1] = Palette[i/2];
 	}
+
+}
+
+static void DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3)
+{
+   INT32 Sprite =   SpriteRam1[Offset + 0];
+   spriteParams->Sprite =   Sprite;
+   spriteParams->Colour =   SpriteRam1[Offset + 1] & 0x3f;
+   spriteParams->sx =       SpriteRam2[Offset + 1] - 40 + 1;
+   if (8 > spriteParams->sx) spriteParams->sx += 0x100;
+   spriteParams->sy =       NAMCO_NO_OF_ROWS * 8 - 
+                            SpriteRam2[Offset + 0] + 1;
+   spriteParams->xFlip =   (SpriteRam3[Offset + 0] & 0x01);
+   spriteParams->yFlip =   (SpriteRam3[Offset + 0] & 0x02) >> 1;
+   spriteParams->Orient =   SpriteRam3[Offset + 0] & 0x03;
+
+   spriteParams->xSize = (Sprite & 0x80) >> 7;
+   spriteParams->ySize = spriteParams->xSize;
+	spriteParams->sy -= 16 * spriteParams->xSize;
+   spriteParams->sy = (spriteParams->sy & 0xff) - 32;
+
+   if (spriteParams->xSize)
+		spriteParams->Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
+
+   spriteParams->PaletteBits = DIGDUG_NUM_OF_SPRITE_PALETTE_BITS;
+   spriteParams->PaletteOffset = DIGDUG_PALETTE_OFFSET_SPRITE;
+   
 }
 
 static void DigDugRenderSprites()
@@ -1903,6 +1979,9 @@ static void DigDugRenderSprites()
 	UINT8 *SpriteRam2 = memory.RAM.Shared2 + 0x380;
 	UINT8 *SpriteRam3 = memory.RAM.Shared3 + 0x380;
 	
+   NamcoRenderSprites(SpriteRam1, SpriteRam2, SpriteRam3, DigDugGetSpriteParams);
+   
+#if 0
 	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
    {
 		static const INT32 GfxOffset[2][2] = {
@@ -1912,6 +1991,7 @@ static void DigDugRenderSprites()
 		INT32 Sprite =   SpriteRam1[Offset + 0];
 		INT32 Colour =   SpriteRam1[Offset + 1] & 0x3f;
 		INT32 sx =       SpriteRam2[Offset + 1] - 40 + 1;
+      if (8 > sx) sx += 0x100;
 		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
 		INT32 xFlip =   (SpriteRam3[Offset + 0] & 0x01);
 		INT32 yFlip =   (SpriteRam3[Offset + 0] & 0x02) >> 1;
@@ -1939,9 +2019,6 @@ static void DigDugRenderSprites()
 				INT32 Code = Sprite + GfxOffset[y ^ (sSize * yFlip)][x ^ (sSize * xFlip)];
 				INT32 xPos = (sx + 16 * x);
 				INT32 yPos =  sy + 16 * y;
-
-				if (xPos < 8) 
-               xPos += 0x100; // that's a wrap!
 
 				if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
 				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
@@ -1987,6 +2064,7 @@ static void DigDugRenderSprites()
 			}
 		}
 	}
+#endif
 }
 
 /* === XEVIOUS === */
@@ -3517,51 +3595,36 @@ static const INT32 GfxOffset[2][2] = {
    { 0, 1 },
    { 2, 3 }
 };
-static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3, UINT32 paletteBits, UINT32 paletteOffset)
+static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3, void GetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3))
 {
+   struct Namco_Sprite_Params spriteParams;
+   
 	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
    {
-		INT32 Sprite =    SpriteRam1[Offset + 0] & 0x7f;
-		INT32 Colour =    SpriteRam1[Offset + 1] & 0x3f;
-		INT32 sx =        SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
-		INT32 sy =        NAMCO_NO_OF_ROWS * 8 - 
-                        SpriteRam2[Offset + 0] + 1;
-		INT32 xFlip =    (SpriteRam3[Offset + 0] & 0x01);
-		INT32 yFlip =    (SpriteRam3[Offset + 0] & 0x02) >> 1;
-		INT32 xSize =    (SpriteRam3[Offset + 0] & 0x04) >> 2;
-		INT32 ySize =    (SpriteRam3[Offset + 0] & 0x08) >> 3;
-      INT32 Orient =    SpriteRam3[Offset + 0] & 0x03;
-		sy -= 16 * ySize;
-
-		if (machine.FlipScreen) 
+      GetSpriteParams(&spriteParams, Offset, SpriteRam1, SpriteRam2, SpriteRam3);
+      
+		for (INT32 y = 0; y <= spriteParams.ySize; y ++) 
       {
-			xFlip = !xFlip;
-			yFlip = !yFlip;
-         Orient = 3 - Orient;
-		}
-
-		for (INT32 y = 0; y <= ySize; y ++) 
-      {
-			for (INT32 x = 0; x <= xSize; x ++) 
+			for (INT32 x = 0; x <= spriteParams.xSize; x ++) 
          {
-				INT32 Code = Sprite + GfxOffset[y ^ (ySize * yFlip)][x ^ (xSize * xFlip)];
-				INT32 xPos = sx + 16 * x;
-				INT32 yPos = sy + 16 * y;
+				INT32 Code = spriteParams.Sprite + GfxOffset[y ^ (spriteParams.ySize * spriteParams.yFlip)][x ^ (spriteParams.xSize * spriteParams.xFlip)];
+				INT32 xPos = spriteParams.sx + 16 * x;
+				INT32 yPos = spriteParams.sy + 16 * y;
 
             if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
 				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
 
-            switch (Orient)
+            switch (spriteParams.Orient)
             {
                case 3:
                   Render16x16Tile_Mask_FlipXY_Clip(
                      pTransDraw, 
                      Code, 
                      xPos, yPos, 
-                     Colour, 
-                     paletteBits, 
+                     spriteParams.Colour, 
+                     spriteParams.PaletteBits, 
                      0, 
-                     paletteOffset, 
+                     spriteParams.PaletteOffset, 
                      graphics.Sprites
                   );
                   break;
@@ -3570,10 +3633,10 @@ static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *Spri
                      pTransDraw, 
                      Code, 
                      xPos, yPos, 
-                     Colour, 
-                     paletteBits, 
+                     spriteParams.Colour, 
+                     spriteParams.PaletteBits, 
                      0, 
-                     paletteOffset, 
+                     spriteParams.PaletteOffset, 
                      graphics.Sprites
                   );
                   break;
@@ -3582,10 +3645,10 @@ static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *Spri
                      pTransDraw, 
                      Code, 
                      xPos, yPos, 
-                     Colour, 
-                     paletteBits, 
+                     spriteParams.Colour, 
+                     spriteParams.PaletteBits, 
                      0, 
-                     paletteOffset, 
+                     spriteParams.PaletteOffset, 
                      graphics.Sprites
                   );
                   break;
@@ -3595,10 +3658,10 @@ static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *Spri
                      pTransDraw, 
                      Code, 
                      xPos, yPos, 
-                     Colour, 
-                     paletteBits, 
+                     spriteParams.Colour, 
+                     spriteParams.PaletteBits, 
                      0, 
-                     paletteOffset, 
+                     spriteParams.PaletteOffset, 
                      graphics.Sprites
                   );
                   break;
@@ -3607,7 +3670,7 @@ static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *Spri
 		}
 	}
 }
-   
+
 static INT32 DrvExit()
 {
 	GenericTilesExit();
