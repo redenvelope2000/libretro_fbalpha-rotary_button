@@ -1981,12 +1981,6 @@ static UINT32 DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UI
    if (spriteParams->Flags & ySize)
    {
       spriteParams->yStart -= 16;
-      /*
-      if (spriteParams->Flags & yFlip)
-      {
-         spriteParams->yStep = -16;
-      }
-      */
    }
    
    if (spriteParams->Flags & xSize)
@@ -3074,12 +3068,18 @@ static UINT32 XeviousGetSpriteParams(struct Namco_Sprite_Params *spriteParams, U
       spriteParams->Sprite = Sprite;
       spriteParams->Colour = SpriteRam1[Offset + 1] & 0x7f;
 
-      spriteParams->yStart = ((SpriteRam2[Offset + 1] - 40) + (SpriteRam3[Offset + 1] & 1 ) * 0x100);
-      spriteParams->xStart = NAMCO_SCREEN_WIDTH - (SpriteRam2[Offset + 0] - 1);
+      spriteParams->xStart = ((SpriteRam2[Offset + 1] - 40) + (SpriteRam3[Offset + 1] & 1 ) * 0x100);
+      spriteParams->yStart = NAMCO_SCREEN_WIDTH - (SpriteRam2[Offset + 0] - 1);
       spriteParams->xStep = 16;
       spriteParams->yStep = 16;
       
-      spriteParams->Flags = SpriteRam3[Offset + 0] & 0x0f;
+      spriteParams->Flags = ((SpriteRam3[Offset + 0] & 0x03) << 2) | 
+                            ((SpriteRam3[Offset + 0] & 0x0c) >> 2);
+      
+      if (spriteParams->Flags & ySize)
+      {
+         spriteParams->yStart -= 16;
+      }
       
       spriteParams->PaletteBits = XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS;
       spriteParams->PaletteOffset = XEVIOUS_PALETTE_OFFSET_SPRITE;
