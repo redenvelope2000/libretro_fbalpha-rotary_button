@@ -14,10 +14,10 @@
  *  +---+
  *  |   |
  *  |   |
- *  |   | height, y, tilemap_width
+ *  |   | screen_height, x, tilemap_width
  *  |   |
  *  +---+
- *  width, x, tilemap_height
+ *  screen_width, y, tilemap_height
  */
 #define NAMCO_SCREEN_WIDTH    224
 #define NAMCO_SCREEN_HEIGHT   288
@@ -2021,21 +2021,23 @@ static struct BurnInputInfo XeviousInputList[] =
 	{"Right"             , BIT_DIGITAL,    &input.PortBits[0].Current[1], "p1 right"  },
 	{"Down"              , BIT_DIGITAL,    &input.PortBits[0].Current[2], "p1 down"   },
 	{"Left"              , BIT_DIGITAL,    &input.PortBits[0].Current[3], "p1 left"   },
-	{"Fire 1"            , BIT_DIGITAL,    &input.PortBits[0].Current[4], "p1 fire 1" },
-	{"Fire 2"            , BIT_DIGITAL,    &input.PortBits[0].Current[5], "p1 fire 2" },
+	{"P1 Button 1"       , BIT_DIGITAL,    &input.PortBits[0].Current[5], "p1 fire 1" },
+   // hack! CUF - must remap this input to DIP1.0
+	{"P1 Button 2"       , BIT_DIGITAL,    &input.PortBits[0].Current[4], "p1 fire 2" },
 	
 	{"Up (Cocktail)"     , BIT_DIGITAL,    &input.PortBits[1].Current[0], "p2 up"     },
 	{"Right (Cocktail)"  , BIT_DIGITAL,    &input.PortBits[1].Current[1], "p2 right"  },
 	{"Down (Cocktail)"   , BIT_DIGITAL,    &input.PortBits[1].Current[2], "p2 down"   },
 	{"Left (Cocktail)"   , BIT_DIGITAL,    &input.PortBits[1].Current[3], "p2 left"   },
-	{"Fire 1 (Cocktail)" , BIT_DIGITAL,    &input.PortBits[1].Current[4], "p2 fire 1" },
-	{"Fire 2 (Cocktail)" , BIT_DIGITAL,    &input.PortBits[1].Current[5], "p2 fire 2" },
+	{"Fire 1 (Cocktail)" , BIT_DIGITAL,    &input.PortBits[1].Current[5], "p2 fire 1" },
+   // hack! CUF - must remap this input to DIP1.4
+	{"Fire 2 (Cocktail)" , BIT_DIGITAL,    &input.PortBits[1].Current[4], "p2 fire 2" },
 
-	{"Coin 1"            , BIT_DIGITAL,    &input.PortBits[2].Current[4], "p1 coin"   },
 	{"Start 1"           , BIT_DIGITAL,    &input.PortBits[2].Current[2], "p1 start"  },
-	{"Coin 2"            , BIT_DIGITAL,    &input.PortBits[2].Current[5], "p2 coin"   },
 	{"Start 2"           , BIT_DIGITAL,    &input.PortBits[2].Current[3], "p2 start"  },
-	{"Service"           , BIT_DIGITAL,    &input.PortBits[2].Current[6], "service"   },
+	{"Coin 1"            , BIT_DIGITAL,    &input.PortBits[2].Current[4], "p1 coin"   },
+	{"Coin 2"            , BIT_DIGITAL,    &input.PortBits[2].Current[5], "p2 coin"   },
+	{"Service"           , BIT_DIGITAL,    &input.PortBits[2].Current[7], "service"   },
 
 };
 
@@ -2739,22 +2741,6 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
                else
                   jp = (jp & ~0x0f) | 0x08; */
                jp = namcoControls[jp & 0x0f] | (jp & 0xf0);
-               
-               switch (jp)
-               {
-                  case 0:
-                     BurnSamplePlay(0);
-                     break;
-                  case 2:
-                     BurnSamplePlay(1);
-                     break;
-                  case 4:
-                     BurnSamplePlay(2);
-                     break;
-                  case 6:
-                     BurnSamplePlay(3);
-                     break;
-               }
             }
 
             return jp; //updateJoyAndButtons(Offset, jp);
@@ -3280,11 +3266,13 @@ static UINT8 NamcoZ80ReadDip(UINT16 Offset, UINT32 DipCount)
 {
    UINT8 retVal = 0;
    
-   for (UINT32 count = 0; count < DipCount; count ++)
+   for (UINT32 count = DipCount; count > 0; count --)
    {
       retVal <<= 1;
-      retVal |=  ((input.Dip[count] >> Offset) & 0x01);
+      retVal |=  ((input.Dip[count-1] >> Offset) & 0x01);
    }
+   
+   if (0 == Offset) printf("\nDip Rd %x", retVal);
 
    return retVal;
 }
@@ -3614,7 +3602,8 @@ static INT32 DrvExit()
 	return 0;
 }
 
-static void DrvPreMakeInputs() {
+static void DrvPreMakeInputs() 
+{
 	// silly bit of code to keep the joystick button pressed for only 1 frame
 	// needed for proper pumping action in digdug & highscore name entry.
 	memcpy(&input.PortBits[controls.player1Port].Last[0], &input.PortBits[controls.player1Port].Current[0], sizeof(input.PortBits[controls.player1Port].Current));
@@ -3653,6 +3642,16 @@ static void DrvMakeInputs()
 	input.Ports[1] = 0xff;
 	input.Ports[2] = 0xff;
 
+   switch (machine.Game)
+   {
+      case NAMCO_XEVIOUS:
+         break;
+         
+      default:
+         DrvPreMakeInputs();
+         break;
+   }
+   
 	// Compile Digital Inputs
 	for (INT32 i = 0; i < 8; i ++) 
    {
@@ -3662,8 +3661,24 @@ static void DrvMakeInputs()
 	}
 
    // galaga only - service mode
-	if (NAMCO_GALAGA == machine.Game) 
-		input.Ports[0] = (input.Ports[0] & ~0x80) | (input.Dip[0] & 0x80);
+	switch (machine.Game) 
+   {
+      case NAMCO_GALAGA:
+         input.Ports[0] = (input.Ports[0] & ~0x80) | (input.Dip[0] & 0x80);
+         break;
+         
+      case NAMCO_XEVIOUS:
+         // Hack! CUF - remap the blaster button to the DIP1 inputs
+         input.Dip[0] &= 0xEE;
+         input.Dip[0] |= ((input.Ports[0] & 0x10) >> 4);
+         input.Dip[0] |=  (input.Ports[1] & 0x10);
+         
+         printf("\n%x %x %x %x", input.Ports[0], input.Ports[1], input.Dip[0], input.Dip[1]);
+         break;
+         
+      default:
+         break;
+   }
 }
 
 static INT32 DrvFrame()
@@ -3671,7 +3686,6 @@ static INT32 DrvFrame()
 	
 	if (input.Reset) DrvDoReset();
 
-	DrvPreMakeInputs();
 	DrvMakeInputs();
 
 	INT32 nSoundBufferPos = 0;
