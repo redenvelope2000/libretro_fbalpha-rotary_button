@@ -1671,18 +1671,12 @@ static INT32 DigDugMemIndex()
 	return 0;
 }
 
-static tilemap_scan (digdug_bg )
+static tilemap_scan (digdug)
 {
-	INT32 offs;
+	if ((col - 2) & 0x20)
+		return (row + 2 + (((col - 2) & 0x1f) << 5));
 
-	row += 2;
-	col -= 2;
-	if (col & 0x20)
-		offs = row + ((col & 0x1f) << 5);
-	else
-		offs = col + (row << 5);
-
-	return offs;
+   return (col - 2 + ((row + 2) << 5));
 }
 
 static tilemap_callback ( digdug_bg )
@@ -1692,20 +1686,6 @@ static tilemap_callback ( digdug_bg )
    INT32 pfColour = (pfval >> 4) + (gameVars.playcolor << 4);
    
 	TILE_SET_INFO(0, pfval, pfColour, 0);
-}
-
-static tilemap_scan (digdug_fg )
-{
-   INT32 row2 = row + 2;
-   INT32 col2 = col - 2;
-
-	if (col2 & 0x20)
-   {
-		return (row2 + ((col2 & 0x1f) << 5));
-	}
-   
-   return (col2 + (row2 << 5));
-
 }
 
 static tilemap_callback ( digdug_fg )
@@ -1764,7 +1744,7 @@ static void DigDugMachineInit()
 	GenericTilesInit();
    GenericTilemapInit(
       0, 
-      digdug_bg_map_scan, digdug_bg_map_callback, 
+      digdug_map_scan, digdug_bg_map_callback, 
       8, 8, 
       NAMCO_TMAP_WIDTH, NAMCO_TMAP_HEIGHT
    );
@@ -1781,7 +1761,7 @@ static void DigDugMachineInit()
 	
    GenericTilemapInit(
       1, 
-      digdug_fg_map_scan, digdug_fg_map_callback, 
+      digdug_map_scan, digdug_fg_map_callback, 
       8, 8, 
       NAMCO_TMAP_WIDTH, NAMCO_TMAP_HEIGHT
    );
@@ -1989,15 +1969,35 @@ static UINT32 DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UI
    else               spriteParams->Sprite = Sprite;
    spriteParams->Colour = SpriteRam1[Offset + 1] & 0x3f;
 
-   spriteParams->yStart = SpriteRam2[Offset + 1] - 40 + 1;
-   if (8 > spriteParams->yStart) spriteParams->yStart += 0x100;
-   spriteParams->xStart = NAMCO_SCREEN_WIDTH - SpriteRam2[Offset + 0] + 1;
+   spriteParams->xStart = SpriteRam2[Offset + 1] - 40 + 1;
+   if (8 > spriteParams->xStart) spriteParams->xStart += 0x100;
+   spriteParams->yStart = NAMCO_SCREEN_WIDTH - SpriteRam2[Offset + 0] + 1;
    spriteParams->xStep = 16;
    spriteParams->yStep = 16;
 
    spriteParams->Flags = SpriteRam3[Offset + 0] & 0x03;
    spriteParams->Flags |= ((Sprite & 0x80) >> 4) | ((Sprite & 0x80) >> 5);
 
+   if (spriteParams->Flags & ySize)
+   {
+      spriteParams->yStart -= 16;
+      /*
+      if (spriteParams->Flags & yFlip)
+      {
+         spriteParams->yStep = -16;
+      }
+      */
+   }
+   
+   if (spriteParams->Flags & xSize)
+   {
+      if (spriteParams->Flags & xFlip)
+      {
+         spriteParams->xStart += 16;
+         spriteParams->xStep  = -16;
+      }
+   }
+   
    spriteParams->PaletteBits = DIGDUG_NUM_OF_SPRITE_PALETTE_BITS;
    spriteParams->PaletteOffset = DIGDUG_PALETTE_OFFSET_SPRITE;
    
