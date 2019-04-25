@@ -10,8 +10,21 @@
 #include "samples.h"
 #include "earom.h"
 
-#define NAMCO_NO_OF_COLS  36
-#define NAMCO_NO_OF_ROWS  28
+/* Weird video definitions...
+ *  +---+
+ *  |   |
+ *  |   |
+ *  |   | height, y, tilemap_width
+ *  |   |
+ *  +---+
+ *  width, x, tilemap_height
+ */
+#define NAMCO_SCREEN_WIDTH    224
+#define NAMCO_SCREEN_HEIGHT   288
+
+#define NAMCO_TMAP_WIDTH      36
+#define NAMCO_TMAP_HEIGHT     28
+
 
 static const INT32 Colour2Bit[4] = { 
    0x00, 0x47, 0x97, 0xde 
@@ -300,17 +313,29 @@ static struct Game_Params
    UINT8 coinInserted;
 } gameVars;
 
+enum SpriteFlags
+{
+   X_FLIP = 0,
+   Y_FLIP,
+   X_SIZE,
+   Y_SIZE
+};
+
+#define xFlip (1 << X_FLIP)
+#define yFlip (1 << Y_FLIP)
+#define xSize (1 << X_SIZE)
+#define ySize (1 << Y_SIZE)
+#define Orient (xFlip | yFlip)
+
 struct Namco_Sprite_Params
 {
    INT32 Sprite;
    INT32 Colour;
-   INT32 sx;
-   INT32 sy;
-   INT32 xFlip;
-   INT32 yFlip;
-   INT32 xSize;
-   INT32 ySize;
-   INT32 Orient;
+   INT32 xStart;
+   INT32 yStart;
+   INT32 xStep;
+   INT32 yStep;
+   INT32 Flags;
    INT32 PaletteBits;
    INT32 PaletteOffset;
 };
@@ -334,7 +359,7 @@ static void NamcoZ80WriteFlipScreen(UINT16 Offset, UINT8 dta);
 static void __fastcall NamcoZ80ProgWrite(UINT16 addr, UINT8 dta);
 static void NamcoRenderSprites(
    UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3, 
-   void GetSpriteParams(
+   UINT32 GetSpriteParams(
       struct Namco_Sprite_Params *spriteParams, 
       UINT32 Offset, 
       UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3
@@ -711,7 +736,7 @@ static void GalagaCalcPalette(void);
 static void GalagaInitStars(void);
 static void GalagaRenderStars(void);
 static void GalagaRenderSprites(void);
-static void GalagaGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3);
+static UINT32 GalagaGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3);
 
 static struct CPU_Rd_Table GalagaZ80ReadList[] =
 {
@@ -949,18 +974,14 @@ static INT32 GalagaMemIndex()
 	return 0;
 }
 
-static tilemap_scan (galaga_fg )
+static tilemap_scan ( galaga_fg )
 {
-   INT32 row2 = row + 2;
-   INT32 col2 = col - 2;
-
-	if (col2 & 0x20)
+	if ((col - 2) & 0x20)
    {
-		return (row2 + ((col2 & 0x1f) << 5));
+		return (row + 2 + (((col - 2) & 0x1f) << 5));
 	}
-   
-   return (col2 + (row2 << 5));
 
+   return col - 2 + ((row + 2) << 5);
 }
 
 static tilemap_callback ( galaga_fg )
@@ -1021,7 +1042,7 @@ static void GalagaMachineInit()
       0, 
       galaga_fg_map_scan, galaga_fg_map_callback, 
       8, 8, 
-      NAMCO_NO_OF_COLS, NAMCO_NO_OF_ROWS
+      NAMCO_TMAP_WIDTH, NAMCO_TMAP_HEIGHT
    );
 	GenericTilemapSetGfx(
       0, 
@@ -1269,29 +1290,43 @@ static void GalagaRenderStars()
 	}
 }
 
-static void GalagaGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3)
+static UINT32 GalagaGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3)
 {
    spriteParams->Sprite =    SpriteRam1[Offset + 0] & 0x7f;
    spriteParams->Colour =    SpriteRam1[Offset + 1] & 0x3f;
-   spriteParams->sx =        SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
-   spriteParams->sy =        NAMCO_NO_OF_ROWS * 8 - 
-                             SpriteRam2[Offset + 0] + 1;
-   spriteParams->xFlip =    (SpriteRam3[Offset + 0] & 0x01);
-   spriteParams->yFlip =    (SpriteRam3[Offset + 0] & 0x02) >> 1;
-   spriteParams->xSize =    (SpriteRam3[Offset + 0] & 0x04) >> 2;
-   spriteParams->ySize =    (SpriteRam3[Offset + 0] & 0x08) >> 3;
-   spriteParams->Orient =    SpriteRam3[Offset + 0] & 0x03;
-   spriteParams->sy -= 16 * spriteParams->ySize;
-
-   if (machine.FlipScreen) 
+   
+   spriteParams->xStart =    SpriteRam2[Offset + 1] - 40 + (0x100 * (SpriteRam3[Offset + 1] & 0x03));
+   spriteParams->yStart =    NAMCO_SCREEN_WIDTH - SpriteRam2[Offset + 0] + 1;
+   spriteParams->xStep =     16;
+   spriteParams->yStep =     16;
+   
+   spriteParams->Flags =     SpriteRam3[Offset + 0] & 0x0f;
+   
+   if (spriteParams->Flags & ySize)
    {
-      spriteParams->xFlip  = 1 - spriteParams->xFlip;
-      spriteParams->yFlip  = 1 - spriteParams->yFlip;
-      spriteParams->Orient = 3 - spriteParams->Orient;
+      if (spriteParams->Flags & yFlip)
+      {
+         spriteParams->yStep = -16;
+      }
+      else
+      {
+         spriteParams->yStart -= 16;
+      }
    }
-
+   
+   if (spriteParams->Flags & xSize)
+   {
+      if (spriteParams->Flags & xFlip)
+      {
+         spriteParams->xStart += 16;
+         spriteParams->xStep  = -16;
+      }
+   }
+   
    spriteParams->PaletteBits   = GALAGA_NUM_OF_SPRITE_PALETTE_BITS;
    spriteParams->PaletteOffset = GALAGA_PALETTE_OFFSET_SPRITE;
+   
+   return 1;
 }
 
 static void GalagaRenderSprites()
@@ -1449,7 +1484,7 @@ static void DigDugZ80Writeb840(UINT16 offset, UINT8 dta);
 static void DigDugZ80WriteIoChip(UINT16 offset, UINT8 dta);
 static INT32 DigDugDraw(void);
 static void DigDugCalcPalette(void);
-static void DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3);
+static UINT32 DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3);
 static void DigDugRenderSprites(void);
 
 static struct CPU_Rd_Table DigDugZ80ReadList[] =
@@ -1731,7 +1766,7 @@ static void DigDugMachineInit()
       0, 
       digdug_bg_map_scan, digdug_bg_map_callback, 
       8, 8, 
-      NAMCO_NO_OF_COLS, NAMCO_NO_OF_ROWS
+      NAMCO_TMAP_WIDTH, NAMCO_TMAP_HEIGHT
    );
 	GenericTilemapSetGfx(
       0, 
@@ -1748,7 +1783,7 @@ static void DigDugMachineInit()
       1, 
       digdug_fg_map_scan, digdug_fg_map_callback, 
       8, 8, 
-      NAMCO_NO_OF_COLS, NAMCO_NO_OF_ROWS
+      NAMCO_TMAP_WIDTH, NAMCO_TMAP_HEIGHT
    );
 	GenericTilemapSetGfx(
       1, 
@@ -1947,30 +1982,26 @@ static void DigDugCalcPalette()
 
 }
 
-static void DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3)
+static UINT32 DigDugGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3)
 {
-   INT32 Sprite =   SpriteRam1[Offset + 0];
-   spriteParams->Sprite =   Sprite;
-   spriteParams->Colour =   SpriteRam1[Offset + 1] & 0x3f;
-   spriteParams->sx =       SpriteRam2[Offset + 1] - 40 + 1;
-   if (8 > spriteParams->sx) spriteParams->sx += 0x100;
-   spriteParams->sy =       NAMCO_NO_OF_ROWS * 8 - 
-                            SpriteRam2[Offset + 0] + 1;
-   spriteParams->xFlip =   (SpriteRam3[Offset + 0] & 0x01);
-   spriteParams->yFlip =   (SpriteRam3[Offset + 0] & 0x02) >> 1;
-   spriteParams->Orient =   SpriteRam3[Offset + 0] & 0x03;
+   INT32 Sprite = SpriteRam1[Offset + 0];
+   if (Sprite & 0x80) spriteParams->Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
+   else               spriteParams->Sprite = Sprite;
+   spriteParams->Colour = SpriteRam1[Offset + 1] & 0x3f;
 
-   spriteParams->xSize = (Sprite & 0x80) >> 7;
-   spriteParams->ySize = spriteParams->xSize;
-	spriteParams->sy -= 16 * spriteParams->xSize;
-   spriteParams->sy = (spriteParams->sy & 0xff) - 32;
+   spriteParams->yStart = SpriteRam2[Offset + 1] - 40 + 1;
+   if (8 > spriteParams->yStart) spriteParams->yStart += 0x100;
+   spriteParams->xStart = NAMCO_SCREEN_WIDTH - SpriteRam2[Offset + 0] + 1;
+   spriteParams->xStep = 16;
+   spriteParams->yStep = 16;
 
-   if (spriteParams->xSize)
-		spriteParams->Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
+   spriteParams->Flags = SpriteRam3[Offset + 0] & 0x03;
+   spriteParams->Flags |= ((Sprite & 0x80) >> 4) | ((Sprite & 0x80) >> 5);
 
    spriteParams->PaletteBits = DIGDUG_NUM_OF_SPRITE_PALETTE_BITS;
    spriteParams->PaletteOffset = DIGDUG_PALETTE_OFFSET_SPRITE;
    
+   return 1;
 }
 
 static void DigDugRenderSprites()
@@ -1981,90 +2012,6 @@ static void DigDugRenderSprites()
 	
    NamcoRenderSprites(SpriteRam1, SpriteRam2, SpriteRam3, DigDugGetSpriteParams);
    
-#if 0
-	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
-   {
-		static const INT32 GfxOffset[2][2] = {
-			{ 0, 1 },
-			{ 2, 3 }
-		};
-		INT32 Sprite =   SpriteRam1[Offset + 0];
-		INT32 Colour =   SpriteRam1[Offset + 1] & 0x3f;
-		INT32 sx =       SpriteRam2[Offset + 1] - 40 + 1;
-      if (8 > sx) sx += 0x100;
-		INT32 sy = 256 - SpriteRam2[Offset + 0] + 1;
-		INT32 xFlip =   (SpriteRam3[Offset + 0] & 0x01);
-		INT32 yFlip =   (SpriteRam3[Offset + 0] & 0x02) >> 1;
-      UINT32 Orient =  SpriteRam3[Offset + 0] & 0x03;
-		
-      INT32 sSize = (Sprite & 0x80) >> 7;
-
-		sy -= 16 * sSize;
-		sy = (sy & 0xff) - 32;
-
-		if (sSize)
-			Sprite = (Sprite & 0xc0) | ((Sprite & ~0xc0) << 2);
-
-		if (machine.FlipScreen) 
-      {
-			xFlip = !xFlip;
-			yFlip = !yFlip;
-         Orient = 3 - Orient;
-		}
-
-		for (INT32 y = 0; y <= sSize; y ++) 
-      {
-			for (INT32 x = 0; x <= sSize; x ++) 
-         {
-				INT32 Code = Sprite + GfxOffset[y ^ (sSize * yFlip)][x ^ (sSize * xFlip)];
-				INT32 xPos = (sx + 16 * x);
-				INT32 yPos =  sy + 16 * y;
-
-				if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
-				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
-
-				if ( ((xPos > 0) && (xPos < nScreenWidth-16)) && 
-                 ((yPos > 0) && (yPos < nScreenHeight-16)) ) 
-            {
-               switch (Orient)
-               {
-                  case 3:
-							Render16x16Tile_Mask_FlipXY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 2:
-							Render16x16Tile_Mask_FlipY(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 1:
-							Render16x16Tile_Mask_FlipX(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 0:
-                  default:
-							Render16x16Tile_Mask(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-               }
-				} else 
-            {
-               switch (Orient)
-               {
-                  case 3:
-							Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 2:
-							Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 1:
-							Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-                  case 0:
-                  default:
-							Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 2, 0, 0x200, graphics.Sprites);
-                     break;
-               }
-				}
-			}
-		}
-	}
-#endif
 }
 
 /* === XEVIOUS === */
@@ -2165,15 +2112,6 @@ static struct BurnDIPInfo XeviousDIPList[]=
 	{0x01, 0x01, 0x80, 0x80, "Upright"                },
 	{0x01, 0x01, 0x80, 0x00, "Cocktail"               },
 	
-
-/*	{0   , 0xfe, 0   , 2   , "Demo Sounds"            },
-	{0x0c, 0x01, 0x08, 0x08, "Off"                    },
-	{0x0c, 0x01, 0x08, 0x00, "On"                     },
-	
-	{0   , 0xfe, 0   , 2   , "Rack Test"              },
-	{0x0c, 0x01, 0x20, 0x20, "Off"                    },
-	{0x0c, 0x01, 0x20, 0x00, "On"                     },
-*/	
 };
 
 STDDIPINFO(Xevious)
@@ -2255,6 +2193,7 @@ static void XeviousSharedRAM2Write(UINT16 Offset, UINT8 Dta);
 static void XeviousSharedRAM3Write(UINT16 Offset, UINT8 Dta);
 static INT32 XeviousDraw(void);
 static void XeviousCalcPalette(void);
+static UINT32 XeviousGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3);
 static void XeviousRenderSprites(void);
 
 static struct CPU_Rd_Table XeviousZ80ReadList[] =
@@ -2293,64 +2232,49 @@ static struct CPU_Wr_Table XeviousZ80WriteList[] =
    { 0x0000, 0x0000, NULL                       },
 };
 
-#define XEVIOUS_FG_COLOR_CODES      64
-#define XEVIOUS_FG_COLOR_PLANES     1
-#define XEVIOUS_FG_COLOR_GRAN       1 << (XEVIOUS_FG_COLOR_PLANES - 1)
-#define XEVIOUS_BG_COLOR_CODES      128
-#define XEVIOUS_BG_COLOR_PLANES     2
-#define XEVIOUS_BG_COLOR_GRAN       1 << (XEVIOUS_BG_COLOR_PLANES - 1)
-#define XEVIOUS_SPRITE_COLOR_CODES  64
-#define XEVIOUS_SPRITE_COLOR_PLANES 3
-#define XEVIOUS_SPRITE_COLOR_GRAN   1 << (XEVIOUS_SPRITE_COLOR_PLANES - 1)
+#define XEVIOUS_NO_OF_COLS                   64
+#define XEVIOUS_NO_OF_ROWS                   32
 
-/* foreground characters */
-//static INT32 XeviousFGCharPlaneOffsets[XEVIOUS_FG_COLOR_PLANES] = { 0 }; 
+#define XEVIOUS_NUM_OF_CHAR_PALETTE_BITS     1
+#define XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS   3
+#define XEVIOUS_NUM_OF_BGTILE_PALETTE_BITS   2
 
-/* background tiles */
-   /* 512 characters */
-   /* 2 bits per pixel */
-   /* 8 x 8 characters */
-   /* every char takes 8 consecutive bytes */
-/*static INT32 XeviousBGCharPlaneOffsets[XEVIOUS_BG_COLOR_PLANES] = { 
-   0, 
-   512 * 8 
-};
-*/
+#define XEVIOUS_PALETTE_OFFSET_BGTILES       0x0
+#define XEVIOUS_PALETTE_SIZE_BGTILES         (0x80 * 4)
+#define XEVIOUS_PALETTE_OFFSET_SPRITE        (XEVIOUS_PALETTE_OFFSET_BGTILES + \
+                                              XEVIOUS_PALETTE_SIZE_BGTILES)
+#define XEVIOUS_PALETTE_SIZE_SPRITES         (0x40 * 8)
+#define XEVIOUS_PALETTE_OFFSET_CHARS         (XEVIOUS_PALETTE_OFFSET_SPRITE + \
+                                              XEVIOUS_PALETTE_SIZE_SPRITES)
+#define XEVIOUS_PALETTE_SIZE_CHARS           (0x40 * 2)
+#define XEVIOUS_PALETTE_SIZE (XEVIOUS_PALETTE_SIZE_CHARS + \
+                              XEVIOUS_PALETTE_SIZE_SPRITES + \
+                              XEVIOUS_PALETTE_SIZE_BGTILES)
+                             
+#define XEVIOUS_NUM_OF_CHAR                  0x200
+#define XEVIOUS_SIZE_OF_CHAR_IN_BYTES        (8 * 8)
+
+#define XEVIOUS_NUM_OF_SPRITE1               0x080
+#define XEVIOUS_NUM_OF_SPRITE2               0x080
+#define XEVIOUS_NUM_OF_SPRITE3               0x040
+#define XEVIOUS_NUM_OF_SPRITE                (XEVIOUS_NUM_OF_SPRITE1 + \
+                                              XEVIOUS_NUM_OF_SPRITE2 + \
+                                              XEVIOUS_NUM_OF_SPRITE3)
+#define XEVIOUS_SIZE_OF_SPRITE_IN_BYTES      0x200
+
+#define XEVIOUS_NUM_OF_BGTILE                0x200
+#define XEVIOUS_SIZE_OF_BGTILE_IN_BYTES      (8 * 8)
+
 static INT32 XeviousCharXOffsets[8] = 	{ 0, 1, 2, 3, 4, 5, 6, 7 };
 static INT32 XeviousCharYOffsets[8] = 	{ 0*8, 1*8, 2*8, 3*8, 4*8, 5*8, 6*8, 7*8 };
 
-/* sprite set #1 */
-   /* 128 sprites */
-   /* 3 bits per pixel */
-   /* 16 x 16 sprites */
-   /* every sprite takes 128 (64?) consecutive bytes */
-/*static INT32 XeviousSprite1PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
-   0x0000, //0, 
-   0x0004, //4, 
-   0x2000 // 128*16*16 
-};
-*/
-/* sprite set #2 */
-/*static INT32 XeviousSprite2PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
-   0x2004, // 128*16*16+4, 
-   0x4000, // 256*16*16, 
-   0x4004, // 256*16*16+4 
-};
-*/
-/* sprite set #3 */
-/*static INT32 XeviousSprite3PlaneOffsets[XEVIOUS_SPRITE_COLOR_PLANES] = { 
-   0x6000, // (128+128), 
-   0x6004, // 0, 
-   0       //4 
-};
-*/
 static struct PlaneOffsets
 {
-   INT32 fgChars[XEVIOUS_FG_COLOR_PLANES];
-   INT32 bgChars[XEVIOUS_BG_COLOR_PLANES];
-   INT32 sprites1[XEVIOUS_SPRITE_COLOR_PLANES];
-   INT32 sprites2[XEVIOUS_SPRITE_COLOR_PLANES];
-   INT32 sprites3[XEVIOUS_SPRITE_COLOR_PLANES];
+   INT32 fgChars[XEVIOUS_NUM_OF_CHAR_PALETTE_BITS];
+   INT32 bgChars[XEVIOUS_NUM_OF_BGTILE_PALETTE_BITS];
+   INT32 sprites1[XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS];
+   INT32 sprites2[XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS];
+   INT32 sprites3[XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS];
 } xeviousOffsets = {
    { 0 },   /* foreground characters */ 
 
@@ -2376,18 +2300,26 @@ static struct PlaneOffsets
    
 };
 
-static UINT8 xevious_bs[2];
+struct Xevious_RAM
+{
+   UINT8 bs[2];
 
-static UINT8 *xevious_workram;
-static UINT8 *xevious_fg_videoram;
-static UINT8 *xevious_fg_colorram;
-static UINT8 *xevious_bg_videoram;
-static UINT8 *xevious_bg_colorram;
+   UINT8 *workram;
+   UINT8 *fg_videoram;
+   UINT8 *fg_colorram;
+   UINT8 *bg_videoram;
+   UINT8 *bg_colorram;
+};
 
+struct Xevious_ROM
+{
+   UINT8 *rom2a;
+   UINT8 *rom2b;
+   UINT8 *rom2c;
+};
 
-static UINT8 *rom2a;
-static UINT8 *rom2b;
-static UINT8 *rom2c;
+static struct Xevious_RAM xeviousRAM;
+static struct Xevious_ROM xeviousROM;
 
 static INT32 XeviousInit()
 {
@@ -2426,7 +2358,17 @@ static INT32 XeviousInit()
    /* 8 x 8 characters */
    /* every char takes 8 consecutive bytes */
 	if (0 != BurnLoadRom(DrvTempRom,                      7,  1)) return 1;
-	GfxDecode(0x200, 1, 8, 8, xeviousOffsets.fgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.fgChars);
+	GfxDecode(
+      XEVIOUS_NUM_OF_CHAR, 
+      XEVIOUS_NUM_OF_CHAR_PALETTE_BITS, 
+      8, 8, 
+      xeviousOffsets.fgChars, 
+      XeviousCharXOffsets, 
+      XeviousCharYOffsets, 
+      XEVIOUS_SIZE_OF_CHAR_IN_BYTES, 
+      DrvTempRom, 
+      graphics.fgChars
+   );
 
    /* background tiles */
    /* 512 characters */
@@ -2436,7 +2378,17 @@ static INT32 XeviousInit()
 	memset(DrvTempRom, 0, 0x02000);
 	if (0 != BurnLoadRom(DrvTempRom,                      8,  1)) return 1;
 	if (0 != BurnLoadRom(DrvTempRom + 0x01000,            9,  1)) return 1;
-	GfxDecode(0x200, 2, 8, 8, xeviousOffsets.bgChars, XeviousCharXOffsets, XeviousCharYOffsets, 8*8, DrvTempRom, graphics.bgTiles);
+	GfxDecode(
+      XEVIOUS_NUM_OF_BGTILE, 
+      XEVIOUS_NUM_OF_BGTILE_PALETTE_BITS, 
+      8, 8, 
+      xeviousOffsets.bgChars, 
+      XeviousCharXOffsets, 
+      XeviousCharYOffsets, 
+      XEVIOUS_SIZE_OF_BGTILE_IN_BYTES, 
+      DrvTempRom, 
+      graphics.bgTiles
+   );
 
 	// Load and decode the sprites
 	memset(DrvTempRom, 0, 0x08000);
@@ -2451,21 +2403,51 @@ static INT32 XeviousInit()
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites1, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + (0x0000), graphics.Sprites);
+	GfxDecode(
+      XEVIOUS_NUM_OF_SPRITE1, 
+      XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS, 
+      16, 16, 
+      xeviousOffsets.sprites1, 
+      SpriteXOffsets, 
+      SpriteYOffsets, 
+      XEVIOUS_SIZE_OF_SPRITE_IN_BYTES, 
+      DrvTempRom + (0x0000), 
+      graphics.Sprites
+   );
 
    /* sprite set #2 */
    /* 128 sprites */
    /* 3 bits per pixel */
    /* 16 x 16 sprites */
    /* every sprite takes 128 (64?) consecutive bytes */
-	GfxDecode(0x80, 3, 16, 16, xeviousOffsets.sprites2, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + (0x2000), graphics.Sprites + (128*16*16));
+	GfxDecode(
+      XEVIOUS_NUM_OF_SPRITE2, 
+      XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS, 
+      16, 16, 
+      xeviousOffsets.sprites2, 
+      SpriteXOffsets, 
+      SpriteYOffsets, 
+      XEVIOUS_SIZE_OF_SPRITE_IN_BYTES, 
+      DrvTempRom + (0x2000), 
+      graphics.Sprites + (XEVIOUS_NUM_OF_SPRITE1 * (16 * 16))
+   );
 
    /* sprite set #3 */
    /* 64 sprites */
    /* 3 bits per pixel (one is always 0) */
    /* 16 x 16 sprites */
    /* every sprite takes 64 consecutive bytes */
-	GfxDecode(0x40, 3, 16, 16, xeviousOffsets.sprites3, SpriteXOffsets, SpriteYOffsets, 64*8, DrvTempRom + (0x6000), graphics.Sprites + (128*16*16) + (128*16*16));
+	GfxDecode(
+      XEVIOUS_NUM_OF_SPRITE3, 
+      XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS, 
+      16, 16, 
+      xeviousOffsets.sprites3, 
+      SpriteXOffsets, 
+      SpriteYOffsets, 
+      XEVIOUS_SIZE_OF_SPRITE_IN_BYTES, 
+      DrvTempRom + (0x6000), 
+      graphics.Sprites + ((XEVIOUS_NUM_OF_SPRITE1 + XEVIOUS_NUM_OF_SPRITE2) * (16 * 16))
+   );
 
    // Load PlayFieldData
 
@@ -2473,9 +2455,9 @@ static INT32 XeviousInit()
 	if (0 != BurnLoadRom(PlayFieldData + 0x01000,  15,  1)) return 1;
 	if (0 != BurnLoadRom(PlayFieldData + 0x03000,  16,  1)) return 1;
 */   
-	if (0 != BurnLoadRom(rom2a,  14,  1)) return 1;
-	if (0 != BurnLoadRom(rom2b,  15,  1)) return 1;
-	if (0 != BurnLoadRom(rom2c,  16,  1)) return 1;
+	if (0 != BurnLoadRom(xeviousROM.rom2a,  14,  1)) return 1;
+	if (0 != BurnLoadRom(xeviousROM.rom2b,  15,  1)) return 1;
+	if (0 != BurnLoadRom(xeviousROM.rom2c,  16,  1)) return 1;
    
 	// Load the PROMs
 	if (0 != BurnLoadRom(memory.PROM.Palette,    17, 1)) return 1;
@@ -2513,7 +2495,7 @@ static INT32 XeviousMemIndex()
 	NamcoSoundProm = Next;              Next += 0x00200;
 	
 	memory.RAM.Start = Next;
-   xevious_workram = Next;             Next += 0x00800;
+   xeviousRAM.workram = Next;          Next += 0x00800;
 	memory.RAM.Shared1 = Next;          Next += 0x01000;
 	memory.RAM.Shared2 = Next;          Next += 0x01000;
 	memory.RAM.Shared3 = Next;          Next += 0x01000;
@@ -2521,14 +2503,14 @@ static INT32 XeviousMemIndex()
 
 	memory.RAM.Size = Next - memory.RAM.Start;
 
-	graphics.bgTiles = Next;            Next += 0x00200 * 8 * 8;
-	rom2a = Next;                       Next += 0x01000;
-	rom2b = Next;                       Next += 0x02000;
-	rom2c = Next;                       Next += 0x01000;
-	PlayFieldData = rom2a;
-	graphics.fgChars = Next;            Next += 0x00200 * 8 * 8;
-	graphics.Sprites = Next;            Next += 0x00140 * 16 * 16;
-	graphics.Palette = (UINT32*)Next;   Next += 0x480 * sizeof(UINT32);
+	graphics.bgTiles = Next;            Next += XEVIOUS_NUM_OF_BGTILE * XEVIOUS_SIZE_OF_BGTILE_IN_BYTES;
+	xeviousROM.rom2a = Next;            Next += 0x01000;
+	xeviousROM.rom2b = Next;            Next += 0x02000;
+	xeviousROM.rom2c = Next;            Next += 0x01000;
+	PlayFieldData = xeviousROM.rom2a;
+	graphics.fgChars = Next;            Next += XEVIOUS_NUM_OF_CHAR * XEVIOUS_SIZE_OF_CHAR_IN_BYTES;
+	graphics.Sprites = Next;            Next += XEVIOUS_NUM_OF_SPRITE * XEVIOUS_SIZE_OF_SPRITE_IN_BYTES;
+	graphics.Palette = (UINT32*)Next;   Next += XEVIOUS_PALETTE_SIZE * sizeof(UINT32);
 
 	memory.All.Size = Next - memory.All.Start;
 
@@ -2537,13 +2519,13 @@ static INT32 XeviousMemIndex()
 
 static tilemap_scan ( xevious_bg )
 {
-   return (row) * 64 + col;
+   return (row) * XEVIOUS_NO_OF_COLS + col;
 }
 
 static tilemap_callback ( xevious_bg )
 {
-   UINT8 code = xevious_bg_videoram[offs];
-   UINT8 attr = xevious_bg_colorram[offs];
+   UINT8 code = xeviousRAM.bg_videoram[offs];
+   UINT8 attr = xeviousRAM.bg_colorram[offs];
    
    TILE_SET_INFO(
       0, 
@@ -2555,13 +2537,13 @@ static tilemap_callback ( xevious_bg )
 
 static tilemap_scan ( xevious_fg )
 {
-   return (row) * 64 + (col);
+   return (row) * XEVIOUS_NO_OF_COLS + (col);
 }
 
 static tilemap_callback ( xevious_fg )
 {
-   UINT8 code = xevious_fg_videoram[offs];
-   UINT8 attr = xevious_fg_colorram[offs];
+   UINT8 code = xeviousRAM.fg_videoram[offs];
+   UINT8 attr = xeviousRAM.fg_colorram[offs];
    TILE_SET_INFO(
       1, 
       code, 
@@ -2573,36 +2555,36 @@ static tilemap_callback ( xevious_fg )
 
 static void XeviousMachineInit()
 {
-	ZetInit(0);
-	ZetOpen(0);
+	ZetInit(CPU1);
+	ZetOpen(CPU1);
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom1,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(xevious_workram,    0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(xeviousRAM.workram, 0x7800, 0x7fff, MAP_RAM);
    ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x8fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x9fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xafff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
 	ZetClose();
 	
-	ZetInit(1);
-	ZetOpen(1);
+	ZetInit(CPU2);
+	ZetOpen(CPU2);
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom2,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(xevious_workram,    0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(xeviousRAM.workram, 0x7800, 0x7fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x8fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x9fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xafff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Video,   0xb000, 0xcfff, MAP_RAM);
 	ZetClose();
 	
-	ZetInit(2);
-	ZetOpen(2);
+	ZetInit(CPU3);
+	ZetOpen(CPU3);
 	ZetSetReadHandler(NamcoZ80ProgRead);
 	ZetSetWriteHandler(NamcoZ80ProgWrite);
 	ZetMapMemory(memory.Z80.Rom3,    0x0000, 0x3fff, MAP_ROM);
-	ZetMapMemory(xevious_workram,    0x7800, 0x7fff, MAP_RAM);
+	ZetMapMemory(xeviousRAM.workram, 0x7800, 0x7fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared1, 0x8000, 0x8fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared2, 0x9000, 0x9fff, MAP_RAM);
 	ZetMapMemory(memory.RAM.Shared3, 0xa000, 0xafff, MAP_RAM);
@@ -2618,18 +2600,44 @@ static void XeviousMachineInit()
    machine.rdAddrList = XeviousZ80ReadList;
    machine.wrAddrList = XeviousZ80WriteList;
    
-   xevious_fg_colorram = memory.RAM.Video;            // 0xb000 - 0xb7ff
-   xevious_bg_colorram = memory.RAM.Video + 0x0800;   // 0xb800 - 0xbfff
-   xevious_fg_videoram = memory.RAM.Video + 0x1000;   // 0xc000 - 0xc7ff
-   xevious_bg_videoram = memory.RAM.Video + 0x1800;   // 0xc800 - 0xcfff
+   xeviousRAM.fg_colorram = memory.RAM.Video;            // 0xb000 - 0xb7ff
+   xeviousRAM.bg_colorram = memory.RAM.Video + 0x0800;   // 0xb800 - 0xbfff
+   xeviousRAM.fg_videoram = memory.RAM.Video + 0x1000;   // 0xc000 - 0xc7ff
+   xeviousRAM.bg_videoram = memory.RAM.Video + 0x1800;   // 0xc800 - 0xcfff
    
 	GenericTilesInit();
 
-   GenericTilemapInit(0, xevious_bg_map_scan, xevious_bg_map_callback, 8, 8, 64, 32);
-	GenericTilemapSetGfx(0, graphics.bgTiles, 2, 8, 8, 512 * 8 * 8, 0, 0x7f);
+   GenericTilemapInit(
+      0, 
+      xevious_bg_map_scan, xevious_bg_map_callback, 
+      8, 8, 
+      XEVIOUS_NO_OF_COLS, XEVIOUS_NO_OF_ROWS
+   );
+	GenericTilemapSetGfx(
+      0, 
+      graphics.bgTiles, 
+      XEVIOUS_NUM_OF_BGTILE_PALETTE_BITS, 
+      8, 8, 
+      XEVIOUS_NUM_OF_BGTILE * XEVIOUS_SIZE_OF_BGTILE_IN_BYTES, 
+      XEVIOUS_PALETTE_OFFSET_BGTILES, 
+      0x7f //XEVIOUS_PALETTE_SIZE_BGTILES - 1
+   );
 
-   GenericTilemapInit(1, xevious_fg_map_scan, xevious_fg_map_callback, 8, 8, 64, 32);
-	GenericTilemapSetGfx(1, graphics.fgChars, 1, 8, 8, 512 * 8 * 8, 0x400, 0x3f);
+   GenericTilemapInit(
+      1, 
+      xevious_fg_map_scan, xevious_fg_map_callback, 
+      8, 8, 
+      XEVIOUS_NO_OF_COLS, XEVIOUS_NO_OF_ROWS
+   );
+	GenericTilemapSetGfx(
+      1, 
+      graphics.fgChars, 
+      XEVIOUS_NUM_OF_CHAR_PALETTE_BITS, 
+      8, 8, 
+      XEVIOUS_NUM_OF_CHAR * XEVIOUS_SIZE_OF_CHAR_IN_BYTES, 
+      XEVIOUS_PALETTE_OFFSET_CHARS, 
+      0x3f // XEVIOUS_PALETTE_SIZE_CHARS - 1
+   );
 	GenericTilemapSetTransparent(1, 0);
 	
    GenericTilemapSetOffsets(TMAP_GLOBAL, 0, 0);
@@ -2644,14 +2652,14 @@ static void XeviousMachineInit()
 
 static UINT8 XeviousPlayFieldRead(UINT16 Offset)
 {
-   UINT16 addr_2b = ( ((xevious_bs[1] & 0x7e) << 6) | 
-                      ((xevious_bs[0] & 0xfe) >> 1) );
+   UINT16 addr_2b = ( ((xeviousRAM.bs[1] & 0x7e) << 6) | 
+                      ((xeviousRAM.bs[0] & 0xfe) >> 1) );
    
-   UINT8 dat_2b = rom2b[addr_2b];
+   UINT8 dat_2b = xeviousROM.rom2b[addr_2b];
 
    UINT16 addr_2a = addr_2b >> 1;
    
-   UINT8 dat_2a = rom2a[addr_2a]; 
+   UINT8 dat_2a = xeviousROM.rom2a[addr_2a]; 
    if (addr_2b & 1)
    {
       dat_2a >>= 4; 
@@ -2666,11 +2674,11 @@ static UINT8 XeviousPlayFieldRead(UINT16 Offset)
    {
       addr_2c += 0x0400;
    }
-   if ((xevious_bs[0] & 1) ^ ((dat_2a >> 2) & 1) )
+   if ((xeviousRAM.bs[0] & 1) ^ ((dat_2a >> 2) & 1) )
    {
       addr_2c |= 1;
    }
-   if ((xevious_bs[1] & 1) ^ ((dat_2a >> 1) & 1) )
+   if ((xeviousRAM.bs[1] & 1) ^ ((dat_2a >> 1) & 1) )
    {
       addr_2c |= 2;
    }
@@ -2678,11 +2686,11 @@ static UINT8 XeviousPlayFieldRead(UINT16 Offset)
    UINT8 dat_2c = 0;
    if (Offset & 1)
    {
-      dat_2c = rom2c[addr_2c + 0x0800];
+      dat_2c = xeviousROM.rom2c[addr_2c + 0x0800];
    }
    else
    {
-      dat_2c = rom2c[addr_2c];
+      dat_2c = xeviousROM.rom2c[addr_2c];
       dat_2c = (dat_2c & 0x3f) | ((dat_2c & 0x80) >> 1) | ((dat_2c & 0x40) << 1);
       dat_2c ^= ((dat_2a << 4) & 0x40);
       dat_2c ^= ((dat_2a << 6) & 0x80);
@@ -2786,7 +2794,7 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
 static UINT8 XeviousWorkRAMRead(UINT16 Offset)
 {
    if (0x0800 > Offset) // 0x7800 - 0x7fff
-      return xevious_workram[Offset];
+      return xeviousRAM.workram[Offset];
    
    return 0;
 }
@@ -2817,7 +2825,7 @@ static UINT8 XeviousSharedRAM3Read(UINT16 Offset)
 
 static void Xevious_bs_wr(UINT16 Offset, UINT8 dta)
 {
-   xevious_bs[Offset & 0x01] = dta;
+   xeviousRAM.bs[Offset & 0x01] = dta;
 }
 
 static void XeviousZ80WriteIoChip(UINT16 Offset, UINT8 dta)
@@ -2946,28 +2954,28 @@ static void Xevious_vh_latch_w(UINT16 Offset, UINT8 dta)
 
 static void XeviousBGColorRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   *(xevious_bg_colorram + (Offset & 0x7ff)) = Dta;
+   *(xeviousRAM.bg_colorram + (Offset & 0x7ff)) = Dta;
 }
 
 static void XeviousBGCharRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   *(xevious_bg_videoram + (Offset & 0x7ff)) = Dta;
+   *(xeviousRAM.bg_videoram + (Offset & 0x7ff)) = Dta;
 }
 
 static void XeviousFGColorRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   *(xevious_fg_colorram + (Offset & 0x7ff)) = Dta;
+   *(xeviousRAM.fg_colorram + (Offset & 0x7ff)) = Dta;
 }
 
 static void XeviousFGCharRAMWrite(UINT16 Offset, UINT8 Dta)
 {
-   *(xevious_fg_videoram + (Offset & 0x7ff)) = Dta;
+   *(xeviousRAM.fg_videoram + (Offset & 0x7ff)) = Dta;
 }
 
 static void XeviousWorkRAMWrite(UINT16 Offset, UINT8 Dta)
 {
    if ((0x0000 <= Offset) && (0x0800 > Offset)) // 0x7800 - 0x7fff
-      xevious_workram[Offset] = Dta;
+      xeviousRAM.workram[Offset] = Dta;
 }
 
 static void XeviousSharedRAM1Write(UINT16 Offset, UINT8 Dta)
@@ -3006,12 +3014,14 @@ static INT32 XeviousDraw()
 	return 0;
 }
 
+#define XEVIOUS_BASE_PALETTE_SIZE   128
+
 static void XeviousCalcPalette()
 {
-	UINT32 Palette[129];
+	UINT32 Palette[XEVIOUS_BASE_PALETTE_SIZE + 1];
    UINT32 code = 0;
 	
-	for (INT32 i = 0; i < 128; i ++) 
+	for (INT32 i = 0; i < XEVIOUS_BASE_PALETTE_SIZE; i ++) 
    {
       INT32 r = Colour4Bit[(memory.PROM.Palette[0x0000 + i]) & 0x0f];
       INT32 g = Colour4Bit[(memory.PROM.Palette[0x0100 + i]) & 0x0f];
@@ -3020,168 +3030,73 @@ static void XeviousCalcPalette()
 		Palette[i] = BurnHighCol(r, g, b, 0);
 	}
    
-   Palette[0x80] = BurnHighCol(0, 0, 0, 0); // Transparency Colour for Sprites
+   Palette[XEVIOUS_BASE_PALETTE_SIZE] = BurnHighCol(0, 0, 0, 0); // Transparency Colour for Sprites
 
 	/* bg_select */
-	for (INT32 i = 0; i < (128 * 4); i ++) 
+	for (INT32 i = 0; i < XEVIOUS_PALETTE_SIZE_BGTILES; i ++) 
    {
-      code = ( (memory.PROM.CharLookup[        i] & 0x0f)       | 
-              ((memory.PROM.CharLookup[0x200 + i] & 0x0f) << 4) );
-		graphics.Palette[i] = Palette[code];
+      code = ( (memory.PROM.CharLookup[                               i] & 0x0f)       | 
+              ((memory.PROM.CharLookup[XEVIOUS_PALETTE_SIZE_BGTILES + i] & 0x0f) << 4) );
+		graphics.Palette[XEVIOUS_PALETTE_OFFSET_BGTILES + i] = Palette[code];
 	}
 
 	/* sprites */
-	for (INT32 i = 0; i < (64 * 8); i ++) 
+	for (INT32 i = 0; i < XEVIOUS_PALETTE_SIZE_SPRITES; i ++) 
    {
-      code = ( (memory.PROM.SpriteLookup[i        ] & 0x0f)       |
-              ((memory.PROM.SpriteLookup[0x200 + i] & 0x0f) << 4) );
+      code = ( (memory.PROM.SpriteLookup[i                               ] & 0x0f)       |
+              ((memory.PROM.SpriteLookup[XEVIOUS_PALETTE_SIZE_SPRITES + i] & 0x0f) << 4) );
       if (code & 0x80)
-         graphics.Palette[0x200 + i] = Palette[code & 0x7f];
+         graphics.Palette[XEVIOUS_PALETTE_OFFSET_SPRITE + i] = Palette[code & 0x7f];
       else
-         graphics.Palette[0x200 + i] = Palette[0x80];
+         graphics.Palette[XEVIOUS_PALETTE_OFFSET_SPRITE + i] = Palette[XEVIOUS_BASE_PALETTE_SIZE];
 	}
 
 	/* characters - direct mapping */
-	for (INT32 i = 0; i < (64 * 2); i += 2)
+	for (INT32 i = 0; i < XEVIOUS_PALETTE_SIZE_CHARS; i += 2)
 	{
-		graphics.Palette[0x400 + i + 0] = Palette[0x80];
-		graphics.Palette[0x400 + i + 1] = Palette[i / 2];
+		graphics.Palette[XEVIOUS_PALETTE_OFFSET_CHARS + i + 0] = Palette[XEVIOUS_BASE_PALETTE_SIZE];
+		graphics.Palette[XEVIOUS_PALETTE_OFFSET_CHARS + i + 1] = Palette[i / 2];
 	}
 
 }
 
-static void XeviousRenderSprites()
+static UINT32 XeviousGetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3)
 {
-   static const INT32 codeMask[4] = { 0x1FF, 0x1FE, 0x1FD, 0x1FC };
-   
-   static const INT32 xOffset[4][4][2] = {
-      { // + 0
-         {  0,    0     },
-         {  0,    16    },
-         {  0,    16    },
-         {  0,    16    }
-      },
-      { // + 1
-         {  0,    0     },
-         {  0,    16    },
-         {  0,    0     },
-         {  16,   0     }
-      },
-      { // + 2
-         {  0,    0     },
-         {  0,    0     },
-         {  0,    16    },
-         {  0,    16    }
-      },
-      { // + 3
-         {  0,    0     },
-         {  0,    0     },
-         {  0,    0     },
-         {  16,   0     }
-      },
-   };
+   if (0 == (SpriteRam1[Offset + 1] & 0x40))
+   {
+      INT32 Sprite =      SpriteRam1[Offset + 0];
+      
+      if (SpriteRam3[Offset + 0] & 0x80)
+      {
+         Sprite &= 0x3f;
+         Sprite += 0x100;
+      }
+      spriteParams->Sprite = Sprite;
+      spriteParams->Colour = SpriteRam1[Offset + 1] & 0x7f;
 
-   static const INT32 yOffset[4][4][2] = {
-      { // + 0
-         {  0,    0     },
-         {  0,    -16   },
-         {  -16,  0     },
-         {  -16,  0     }
-      },
-      { // + 1
-         {  0,    0     },
-         {  0,    -16   },
-         {  0,    0     },
-         {  -16,  0     }
-      },
-      { // + 2
-         {  0,    0     },
-         {  0,    0     },
-         {  0,    -16   },
-         {  0,    -16   }
-      },
-      { // + 3
-         {  0,    0     },
-         {  0,    0     },
-         {  0,    0     },
-         {  0,    -16   }
-      },
-   };
+      spriteParams->yStart = ((SpriteRam2[Offset + 1] - 40) + (SpriteRam3[Offset + 1] & 1 ) * 0x100);
+      spriteParams->xStart = NAMCO_SCREEN_WIDTH - (SpriteRam2[Offset + 0] - 1);
+      spriteParams->xStep = 16;
+      spriteParams->yStep = 16;
+      
+      spriteParams->Flags = SpriteRam3[Offset + 0] & 0x0f;
+      
+      spriteParams->PaletteBits = XEVIOUS_NUM_OF_SPRITE_PALETTE_BITS;
+      spriteParams->PaletteOffset = XEVIOUS_PALETTE_OFFSET_SPRITE;
+
+      return 1;
+   }
    
+   return 0;
+}
+
+static void XeviousRenderSprites(void)
+{
 	UINT8 *SpriteRam2 = memory.RAM.Shared1 + 0x780;
 	UINT8 *SpriteRam3 = memory.RAM.Shared2 + 0x780;
 	UINT8 *SpriteRam1 = memory.RAM.Shared3 + 0x780;
-   
-	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
-   {
-      if (0 == (SpriteRam1[Offset + 1] & 0x40))
-      {
-         INT32 Sprite =      SpriteRam1[Offset + 0];
-         
-         if (SpriteRam3[Offset + 0] & 0x80)
-         {
-            Sprite &= 0x3f;
-            Sprite += 0x100;
-         }
-         
-         INT32 Colour =      SpriteRam1[Offset + 1] & 0x7f;
-         INT32 xFlip =      (SpriteRam3[Offset + 0] & 0x04) >> 2;
-         INT32 yFlip =      (SpriteRam3[Offset + 0] & 0x08) >> 3;
-         if (machine.FlipScreen) 
-         {
-            xFlip = 1 - xFlip;
-            yFlip = 1 - yFlip;
-         }
-         
-         INT32 sx =        ((SpriteRam2[Offset + 1] - 40) + 
-                            (SpriteRam3[Offset + 1] & 1 ) * 0x100);
-         INT32 sy = NAMCO_NO_OF_ROWS*8 -  (SpriteRam2[Offset + 0] - 1);
-         
-         UINT32 Orient =     SpriteRam3[Offset + 0] & 0x03;
-         
-         INT32 hSize = Orient & 0x01;
-         //INT32 vSize = (Orient & 0x02) >> 1;
-         Sprite &= codeMask[Orient & 0x03];
-         
-         for (INT32 codeOffset = 0; codeOffset <= Orient; codeOffset += hSize? 1 : 2)
-         {
-            INT32 Code = Sprite + codeOffset;
-            INT32 xPos = sx + xOffset[codeOffset][Orient][xFlip];
-            INT32 yPos = sy + yOffset[codeOffset][Orient][yFlip];
-            
-            if (Orient)
-            {
-               printf("\n%x: %x, %x; %x, %x, %x, %x", Offset, 
-                  SpriteRam1[Offset], SpriteRam1[Offset+1], 
-                  SpriteRam2[Offset], SpriteRam2[Offset+1], 
-                  SpriteRam3[Offset], SpriteRam3[Offset+1]
-               );
-               printf("\n%d/%d: %x, %x", codeOffset, Orient, xFlip, yFlip);
-               printf("\n%d/%d: %x, %x:%x, %x:%x", codeOffset, Orient, Code, sx, xPos, sy, yPos);
-            }
-
-            if ((xPos < -15) || (xPos >= nScreenWidth))  continue;
-            if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
-
-            switch (Orient)
-            {
-               case 3:
-                  Render16x16Tile_Mask_FlipXY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                  break;
-               case 2:
-                  Render16x16Tile_Mask_FlipY_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                  break;
-               case 1:
-                  Render16x16Tile_Mask_FlipX_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                  break;
-               case 0:
-               default:
-                  Render16x16Tile_Mask_Clip(pTransDraw, Code, xPos, yPos, Colour, 3, 0, 0x200, graphics.Sprites);
-                  break;
-            }
-         }
-      }
-	}
+  
+   NamcoRenderSprites(SpriteRam1, SpriteRam2, SpriteRam3, XeviousGetSpriteParams);
 }
 
 
@@ -3595,79 +3510,87 @@ static const INT32 GfxOffset[2][2] = {
    { 0, 1 },
    { 2, 3 }
 };
-static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3, void GetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3))
+
+static void NamcoRenderSprites(UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3, UINT32 GetSpriteParams(struct Namco_Sprite_Params *spriteParams, UINT32 Offset, UINT8 *SpriteRam1, UINT8 *SpriteRam2, UINT8 *SpriteRam3))
 {
    struct Namco_Sprite_Params spriteParams;
    
 	for (INT32 Offset = 0; Offset < 0x80; Offset += 2) 
    {
-      GetSpriteParams(&spriteParams, Offset, SpriteRam1, SpriteRam2, SpriteRam3);
-      
-		for (INT32 y = 0; y <= spriteParams.ySize; y ++) 
+      if (GetSpriteParams(&spriteParams, Offset, SpriteRam1, SpriteRam2, SpriteRam3))
       {
-			for (INT32 x = 0; x <= spriteParams.xSize; x ++) 
+         INT32 spriteRows = ((spriteParams.Flags & ySize) != 0);
+         INT32 spriteCols = ((spriteParams.Flags & xSize) != 0);
+         
+         for (INT32 y = 0; y <= spriteRows; y ++) 
          {
-				INT32 Code = spriteParams.Sprite + GfxOffset[y ^ (spriteParams.ySize * spriteParams.yFlip)][x ^ (spriteParams.xSize * spriteParams.xFlip)];
-				INT32 xPos = spriteParams.sx + 16 * x;
-				INT32 yPos = spriteParams.sy + 16 * y;
-
-            if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
-				if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
-
-            switch (spriteParams.Orient)
+            for (INT32 x = 0; x <= spriteCols; x ++) 
             {
-               case 3:
-                  Render16x16Tile_Mask_FlipXY_Clip(
-                     pTransDraw, 
-                     Code, 
-                     xPos, yPos, 
-                     spriteParams.Colour, 
-                     spriteParams.PaletteBits, 
-                     0, 
-                     spriteParams.PaletteOffset, 
-                     graphics.Sprites
-                  );
-                  break;
-               case 2:
-                  Render16x16Tile_Mask_FlipY_Clip(
-                     pTransDraw, 
-                     Code, 
-                     xPos, yPos, 
-                     spriteParams.Colour, 
-                     spriteParams.PaletteBits, 
-                     0, 
-                     spriteParams.PaletteOffset, 
-                     graphics.Sprites
-                  );
-                  break;
-               case 1:
-                  Render16x16Tile_Mask_FlipX_Clip(
-                     pTransDraw, 
-                     Code, 
-                     xPos, yPos, 
-                     spriteParams.Colour, 
-                     spriteParams.PaletteBits, 
-                     0, 
-                     spriteParams.PaletteOffset, 
-                     graphics.Sprites
-                  );
-                  break;
-               case 0:
-               default:
-                  Render16x16Tile_Mask_Clip(
-                     pTransDraw, 
-                     Code, 
-                     xPos, yPos, 
-                     spriteParams.Colour, 
-                     spriteParams.PaletteBits, 
-                     0, 
-                     spriteParams.PaletteOffset, 
-                     graphics.Sprites
-                  );
-                  break;
+               INT32 Code = spriteParams.Sprite;
+               if (spriteRows | spriteCols)
+                  //Code += GfxOffset[y ^ (spriteRows * ((spriteParams.Flags & yFlip) != 0))][x ^ (spriteCols * ((spriteParams.Flags & xFlip) != 0))];
+                  Code += ((y * 2 + x) ^ (spriteParams.Flags & Orient));
+               INT32 xPos = spriteParams.xStart + spriteParams.xStep * x;
+               INT32 yPos = spriteParams.yStart + spriteParams.yStep * y;
+
+               if ((xPos < -15) || (xPos >= nScreenWidth) ) continue;
+               if ((yPos < -15) || (yPos >= nScreenHeight)) continue;
+
+               switch (spriteParams.Flags & Orient)
+               {
+                  case 3:
+                     Render16x16Tile_Mask_FlipXY_Clip(
+                        pTransDraw, 
+                        Code, 
+                        xPos, yPos, 
+                        spriteParams.Colour, 
+                        spriteParams.PaletteBits, 
+                        0, 
+                        spriteParams.PaletteOffset, 
+                        graphics.Sprites
+                     );
+                     break;
+                  case 2:
+                     Render16x16Tile_Mask_FlipY_Clip(
+                        pTransDraw, 
+                        Code, 
+                        xPos, yPos, 
+                        spriteParams.Colour, 
+                        spriteParams.PaletteBits, 
+                        0, 
+                        spriteParams.PaletteOffset, 
+                        graphics.Sprites
+                     );
+                     break;
+                  case 1:
+                     Render16x16Tile_Mask_FlipX_Clip(
+                        pTransDraw, 
+                        Code, 
+                        xPos, yPos, 
+                        spriteParams.Colour, 
+                        spriteParams.PaletteBits, 
+                        0, 
+                        spriteParams.PaletteOffset, 
+                        graphics.Sprites
+                     );
+                     break;
+                  case 0:
+                  default:
+                     Render16x16Tile_Mask_Clip(
+                        pTransDraw, 
+                        Code, 
+                        xPos, yPos, 
+                        spriteParams.Colour, 
+                        spriteParams.PaletteBits, 
+                        0, 
+                        spriteParams.PaletteOffset, 
+                        graphics.Sprites
+                     );
+                     break;
+               }
             }
-			}
-		}
+         }
+      }
 	}
 }
 
@@ -3949,8 +3872,11 @@ struct BurnDriver BurnDrvGalaga =
    /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                576,
-   /* Width, Height, xAspect, yAspect = */   	224, 288, 3, 4
+   /* Palette Entries count = */                //576,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                GALAGA_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvGalagao = 
@@ -3992,8 +3918,11 @@ struct BurnDriver BurnDrvGalagao =
    /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                576,
-   /* Width, Height, xAspect, yAspect = */     	224, 288, 3, 4
+   /* Palette Entries count = */                //576,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                GALAGA_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvGalagamw = 
@@ -4035,8 +3964,11 @@ struct BurnDriver BurnDrvGalagamw =
    /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                576,
-   /* Width, Height, xAspect, yAspect = */	   224, 288, 3, 4
+   /* Palette Entries count = */                //576,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                GALAGA_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvGalagamk = 
@@ -4078,8 +4010,11 @@ struct BurnDriver BurnDrvGalagamk =
    /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                576,
-	/* Width, Height, xAspect, yAspect = */   	224, 288, 3, 4
+   /* Palette Entries count = */                //576,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                GALAGA_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvGalagamf = 
@@ -4121,8 +4056,11 @@ struct BurnDriver BurnDrvGalagamf =
    /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan,
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                576,
-   /* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
+   /* Palette Entries count = */                //576,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                GALAGA_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvGallag = 
@@ -4165,8 +4103,11 @@ struct BurnDriver BurnDrvGallag =
    /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                576,
-	/* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
+   /* Palette Entries count = */                //576,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                GALAGA_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvNebulbee = 
@@ -4209,8 +4150,11 @@ struct BurnDriver BurnDrvNebulbee =
    /* Redraw func = */                          GalagaDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                576,
-   /* Width, Height, xAspect, yAspect = */	   224, 288, 3, 4
+   /* Palette Entries count = */                //576,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                GALAGA_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvDigdug = 
@@ -4250,8 +4194,11 @@ struct BurnDriver BurnDrvDigdug =
    /* Redraw func = */                          DigDugDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                0x300,
-   /* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
+   /* Palette Entries count = */                //0x300,
+   /* Width, Height, xAspect, yAspect = */      //224, 288, 3, 4
+   /* Palette Entries count = */                DIGDUG_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
 struct BurnDriver BurnDrvXevious = 
@@ -4291,7 +4238,10 @@ struct BurnDriver BurnDrvXevious =
    /* Redraw func = */                          XeviousDraw, 
    /* Areascan func = */                        DrvScan, 
    /* Recalc Palette = */                       NULL, 
-   /* Palette Entries count = */                0x300,
-   /* Width, Height, xAspect, yAspect = */      224, 288, 3, 4
+   /* Palette Entries count = */                //0x300,
+   /* Width, Height, xAspect, yAspect = */   	//224, 288, 3, 4
+   /* Palette Entries count = */                XEVIOUS_PALETTE_SIZE,
+   /* Width, Height = */   	                  NAMCO_SCREEN_WIDTH, NAMCO_SCREEN_HEIGHT,
+   /* xAspect, yAspect = */   	               3, 4
 };
 
