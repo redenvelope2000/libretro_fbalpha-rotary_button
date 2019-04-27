@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12063 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12073 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -1830,7 +1830,9 @@ This list contains all games supported by FB Alpha.
 | gg_cocakid	|  	| Coca Cola Kid (Jpn)					| 		| 1994	| Sega		| Sega Game Gear| 					|
 | ladybugb2	|  	| Coccinelle (bootleg of Lady Bug, set 2)		| ladybug	| 1981	| bootleg (Model| Miscellaneous	| 					|
 | cnbe		|  	| Codename - Blut Engel (2006-01-19)			| 		| 2006	| blastar@gmx.ne| Neo Geo MVS	| 					|
+| cv_coldblood	|  	| Cold Blood						| 		| 1981	| Activision	| ColecoVision	| 					|
 | cv_cvjoytest	|  	| ColecoVision Joystick Test				| 		| 1983	| Coleco	| ColecoVision	| 					|
+| cv_sgmtest	|  	| ColecoVision SuperGame Module (SGM) Test		| 		| 200x	| Coleco	| ColecoVision	| 					|
 | cv_coleco	|   NW	| ColecoVision System BIOS				| 		| 1982	| Coleco	| ColecoVision	| BIOS only				|
 | md_colleg96	|  	| College Football USA 96 (USA)				| 		| 1995	| Electronic Art| Sega Megadrive| 					|
 | md_colleg97	|  	| College Football USA 97 (USA)				| 		| 1996	| Electronic Art| Sega Megadrive| 					|
@@ -2721,8 +2723,9 @@ This list contains all games supported by FB Alpha.
 | md_shangh3	|  	| Dragon's Eye Plus - Shanghai III (Jpn)		| 		| 1991	| Home Data	| Sega Megadrive| 					|
 | md_dfury	|  	| Dragon's Fury (Euro, USA)				| 		| 1992	| Tengen	| Sega Megadrive| 					|
 | dragonsh	|  	| Dragon's Heaven (development board)			| 		| 1996	| Face		| Neo Geo MVS	| 					|
-| cv_dlair	|  	| Dragon's Lair (Prototype, 0416)			| 		| 1984	| Coleco	| ColecoVision	| 					|
+| cv_dlair	|  	| Dragon's Lair (Prototype, 0416)			| cv_dlairsgm	| 1984	| Coleco	| ColecoVision	| 					|
 | md_dlair	|  	| Dragon's Lair (USA, Prototype)			| 		| 199?	| Taito		| Sega Megadrive| 					|
+| cv_dlairsgm	|  	| Dragon's Lair SGM					| 		| 1982	| Coleco	| ColecoVision	| 					|
 | md_dragnrev	|  	| Dragon's Revenge (Euro, USA)				| 		| 1993	| Tengen	| Sega Megadrive| 					|
 | md_dragnrevj	|  	| Dragon's Revenge (Jpn)				| md_dragnrev	| 1993	| Tengen	| Sega Megadrive| 					|
 | dbza		|  	| Dragonball Z (rev A)					| dbz		| 1993	| Banpresto	| Miscellaneous	| 					|
@@ -3514,6 +3517,7 @@ This list contains all games supported by FB Alpha.
 | msx_frontlina	|  	| Front Line (Jpn, Alt)					| msx_frontlin	| 1984	| Taito		| MSX		| 					|
 | cv_frontlin	|  	| Front Line						| 		| 1983	| Coleco	| ColecoVision	| 					|
 | frontlin	|  	| Front Line						| 		| 1982	| Taito Corporat| Taito SJ Syste| 					|
+| cv_frostbite	|  	| Frost Bite						| 		| 1983	| Activision	| ColecoVision	| 					|
 | msx_fruitpanic|  	| Fruit Panic						| 		| 1984	| Pony Canyon	| MSX		| 					|
 | msx_fruitsrc	|  	| Fruit Search (Jpn)					| 		| 1983	| HAL Kenkyuujo	| MSX		| 					|
 | msx_fruitsrca	|  	| Fruit Search (Jpn, Alt)				| msx_fruitsrc	| 1983	| HAL Kenkyuujo	| MSX		| 					|
@@ -4785,6 +4789,7 @@ This list contains all games supported by FB Alpha.
 | md_kof98	|   NW	| K.O.F 98'						| 		| 199?	| <unlicensed>	| Sega Megadrive| 					|
 | md_kagekij	|  	| Ka-Ge-Ki (Jpn)					| md_kageki	| 1991	| Hot-B		| Sega Megadrive| 					|
 | md_kageki	|  	| Ka-Ge-Ki - Fists of Steel (USA)			| 		| 1991	| Sage's Creatio| Sega Megadrive| 					|
+| cv_kaboom	|  	| Kaboom!						| 		| 1981	| Activision	| ColecoVision	| 					|
 | kabukizj	|  	| Kabuki-Z (Japan)					| kabukiz	| 1988	| Taito Corporat| Miscellaneous	| 					|
 | kabukiz	|  	| Kabuki-Z (World)					| 		| 1988	| Taito Corporat| Miscellaneous	| 					|
 | msx_legkage	|  	| Kage no Densetsu - The Legend of Kage (Jpn)		| 		| 1986	| Taito		| MSX		| 					|
@@ -5292,6 +5297,7 @@ This list contains all games supported by FB Alpha.
 | lgtnfghtu	|  	| Lightning Fighters (US)				| lgtnfght	| 1990	| Konami	| GX939		| 					|
 | lgtnfght	|  	| Lightning Fighters (World)				| 		| 1990	| Konami	| GX939		| 					|
 | ltswords	|  	| Lightning Swords					| 		| 1991	| Irem		| Irem M84?	| 					|
+| shangonleeh	|  	| Limited Edition Hang-On (Enhanced Edition v2.0.2)	| shangon	| 2014	| hack (Chris Wh| Out Run	| 					|
 | shangonle	|  	| Limited Edition Hang-On				| shangon	| 1991	| Sega		| Out Run	| 					|
 | spec_linefire	|  	| Line of Fire (48K)					| 		| 1990	| U.S. Gold	| ZX Spectrum	| 					|
 | sms_loffire	|  	| Line of Fire (Euro, Bra, Kor)				| 		| 1991	| Sega		| Sega Master Sy| 					|
@@ -5685,6 +5691,7 @@ This list contains all games supported by FB Alpha.
 | md_mcdonaldj	|  	| McDonald's Treasure Land Adventure (Jpn)		| md_mcdonald	| 1993	| Sega		| Sega Megadrive| 					|
 | md_mcdonaldjp	|  	| McDonald's Treasure Land Adventure (Jpn, Prototype)	| md_mcdonald	| 1993	| Sega		| Sega Megadrive| 					|
 | md_mcdonaldu	|  	| McDonald's Treasure Land Adventure (USA)		| md_mcdonald	| 1993	| Sega		| Sega Megadrive| 					|
+| cv_mecha8	|  	| Mecha-8						| 		| 2013	| Oscar Toledo G| ColecoVision	| 					|
 | msx_mecha8	|  	| Mecha-8						| 		| 2011	| Oscar Toledo G| MSX		| 					|
 | mechattj	|  	| Mechanized Attack (Japan)				| mechatt	| 1989	| SNK		| Miscellaneous	| 					|
 | mechattu	|  	| Mechanized Attack (US)				| mechatt	| 1989	| SNK		| Miscellaneous	| 					|
@@ -6791,7 +6798,7 @@ This list contains all games supported by FB Alpha.
 | outrundxj	|  	| Out Run (Japan, deluxe sitdown, FD1089A 317-0019)	| outrun	| 1986	| Sega		| Out Run	| 					|
 | gg_outrunj	|  	| Out Run (Jpn)						| gg_outrun	| 1991	| Sega		| Sega Game Gear| 					|
 | outrunra	|  	| Out Run (sitdown/upright, Rev A)			| outrun	| 1986	| Sega		| Out Run	| 					|
-| outruneh	|  	| Out Run (sitdown/upright, Rev B) (Enhanced Edition v1.| outrun	| 2014	| hack (Chris Wh| Out Run	| 					|
+| outruneh	|  	| Out Run (sitdown/upright, Rev B) (Enhanced Edition v2.| outrun	| 2017	| hack (Chris Wh| Out Run	| 					|
 | outrun	|  	| Out Run (sitdown/upright, Rev B)			| 		| 1986	| Sega		| Out Run	| 					|
 | sms_outrun	|  	| Out Run (World)					| 		| 1987	| Sega		| Sega Master Sy| 					|
 | sms_outrun3d	|  	| Out Run 3-D (Euro, Bra)				| 		| 1991	| Sega		| Sega Master Sy| 					|
@@ -9670,6 +9677,7 @@ This list contains all games supported by FB Alpha.
 | shangon2	|  	| Super Hang-On (mini ride-on, Rev A, FD1089B 317-0034)	| shangon	| 1987	| Sega		| Out Run	| 					|
 | shangon3d	|  	| Super Hang-On (sitdown/upright, FD1089B 317-0034 decry| shangon	| 1987	| Sega		| Out Run	| 					|
 | shangon3	|  	| Super Hang-On (sitdown/upright, FD1089B 317-0034)	| shangon	| 1987	| Sega		| Out Run	| 					|
+| shangoneh	|  	| Super Hang-On (sitdown/upright, unprotected) (Enhanced| shangon	| 2014	| hack (Chris Wh| Out Run	| 					|
 | shangon	|  	| Super Hang-On (sitdown/upright, unprotected)		| 		| 1987	| Sega		| Out Run	| 					|
 | md_shangon1	|  	| Super Hang-On (World)					| md_shangon	| 1989	| Sega		| Sega Megadrive| 					|
 | md_shangon	|  	| Super Hang-On (World, Rev. A)				| 		| 1989	| Sega		| Sega Megadrive| 					|
@@ -11486,6 +11494,7 @@ This list contains all games supported by FB Alpha.
 | wschampa	|  	| Wing Shooting Championship V1.01			| wschamp	| 2001	| Sammy USA Corp| Newer Seta	| 					|
 | wschamp	|  	| Wing Shooting Championship V2.00			| 		| 2001	| Sammy USA Corp| Newer Seta	| 					|
 | cv_wingwar	|  	| Wing War						| 		| 1983	| Imagic	| ColecoVision	| 					|
+| sms_wingwarriors|  	| Wing Warriors (April 18, 2019 Test)			| 		| 2019	| Kitmaker	| Sega Master Sy| 					|
 | msx_wingwarr	|  	| Wing Warriors						| 		| 2015	| Kitmaker	| MSX		| 					|
 | md_wingswor	|  	| Wings of Wor (USA)					| md_gynoug	| 1991	| Dreamworks Gam| Sega Megadrive| 					|
 | pce_winshot	|  	| Winning Shot						| 		| 1989	| Data East	| PC Engine	| 					|
@@ -11977,6 +11986,7 @@ This list contains all games supported by FB Alpha.
 | sg1k_zaxxont	|  	| Zaxxon (Tw)						| sg1k_zaxxon	| 1985?	| Aaronix	| Sega SG-1000	| 					|
 | sms_zaxxon3d	|  	| Zaxxon 3-D (World)					| 		| 1987	| Sega		| Sega Master Sy| 					|
 | sms_zaxxon3dp	|  	| Zaxxon 3-D (World, Prototype)				| sms_zaxxon3d	| 1987	| Sega		| Sega Master Sy| 					|
+| cv_zaxxonsgm	|  	| Zaxxon Super Game					| 		| 1982	| Coleco	| ColecoVision	| 					|
 | cv_zaxxon	|  	| Zaxxon						| 		| 1982	| Coleco	| ColecoVision	| 					|
 | zedblade	|  	| Zed Blade / Operation Ragnarok			| 		| 1994	| NMK		| Neo Geo MVS	| 					|
 | zektor	|  	| Zektor (revision B)					| 		| 1982	| Sega		| G80 Vector	| 					|

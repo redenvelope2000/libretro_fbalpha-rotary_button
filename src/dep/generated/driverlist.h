@@ -1864,7 +1864,9 @@ DRV		BurnDrvCobracom;
 DRV		BurnDrvgg_cocakid;
 DRV		BurnDrvLadybugb2;
 DRV		BurnDrvcnbe;
+DRV		BurnDrvcv_coldblood;
 DRV		BurnDrvcv_cvjoytest;
+DRV		BurnDrvcv_sgmtest;
 DRV		BurnDrvcv_Coleco;
 DRV		BurnDrvmd_colleg96;
 DRV		BurnDrvmd_colleg97;
@@ -2787,6 +2789,7 @@ DRV		BurnDrvmd_dfury;
 DRV		BurnDrvdragonsh;
 DRV		BurnDrvcv_dlair;
 DRV		BurnDrvmd_dlair;
+DRV		BurnDrvcv_dlairsgm;
 DRV		BurnDrvmd_dragnrev;
 DRV		BurnDrvmd_dragnrevj;
 DRV		BurnDrvDbza;
@@ -3594,6 +3597,7 @@ DRV		BurnDrvMSX_frontlinb;
 DRV		BurnDrvMSX_frontlina;
 DRV		BurnDrvcv_frontlin;
 DRV		BurnDrvFrontlin;
+DRV		BurnDrvcv_frostbite;
 DRV		BurnDrvMSX_fruitpanic;
 DRV		BurnDrvMSX_fruitsrc;
 DRV		BurnDrvMSX_fruitsrca;
@@ -4895,6 +4899,7 @@ DRV		BurnDrvmd_kof98a;
 DRV		BurnDrvmd_kof98;
 DRV		BurnDrvmd_kagekij;
 DRV		BurnDrvmd_kageki;
+DRV		BurnDrvcv_kaboom;
 DRV		BurnDrvKabukizj;
 DRV		BurnDrvKabukiz;
 DRV		BurnDrvMSX_legkage;
@@ -5414,6 +5419,7 @@ DRV		BurnDrvLgtnfghta;
 DRV		BurnDrvLgtnfghtu;
 DRV		BurnDrvLgtnfght;
 DRV		BurnDrvLtswords;
+DRV		BurnDrvShangonleeh;
 DRV		BurnDrvShangonle;
 DRV		BurnSpeclinefire;
 DRV		BurnDrvsms_loffire;
@@ -5813,6 +5819,7 @@ DRV		BurnDrvmd_mcdonald;
 DRV		BurnDrvmd_mcdonaldj;
 DRV		BurnDrvmd_mcdonaldjp;
 DRV		BurnDrvmd_mcdonaldu;
+DRV		BurnDrvcv_mecha8;
 DRV		BurnDrvMSX_mecha8;
 DRV		BurnDrvMechattj;
 DRV		BurnDrvMechattu;
@@ -9884,6 +9891,7 @@ DRV		BurnDrvShangon1;
 DRV		BurnDrvShangon2;
 DRV		BurnDrvShangon3d;
 DRV		BurnDrvShangon3;
+DRV		BurnDrvShangoneh;
 DRV		BurnDrvShangon;
 DRV		BurnDrvmd_shangon1;
 DRV		BurnDrvmd_shangon;
@@ -11736,6 +11744,7 @@ DRV		BurnDrvWschampb;
 DRV		BurnDrvWschampa;
 DRV		BurnDrvWschamp;
 DRV		BurnDrvcv_wingwar;
+DRV		BurnDrvsms_wingwarriors;
 DRV		BurnDrvMSX_wingwarr;
 DRV		BurnDrvmd_wingswor;
 DRV		BurnDrvpce_winshot;
@@ -12243,6 +12252,7 @@ DRV		BurnDrvZaxxon3;
 DRV		BurnDrvsg1k_zaxxont;
 DRV		BurnDrvsms_zaxxon3d;
 DRV		BurnDrvsms_zaxxon3dp;
+DRV		BurnDrvcv_zaxxonsgm;
 DRV		BurnDrvcv_zaxxon;
 DRV		BurnDrvzedblade;
 DRV		BurnDrvZektor;
@@ -14202,7 +14212,9 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvgg_cocakid,			// Coca Cola Kid (Jpn)
 	&BurnDrvLadybugb2,			// Coccinelle (bootleg of Lady Bug, set 2)
 	&BurnDrvcnbe,				// Codename - Blut Engel (2006-01-19)
+	&BurnDrvcv_coldblood,		// Cold Blood
 	&BurnDrvcv_cvjoytest,		// ColecoVision Joystick Test
+	&BurnDrvcv_sgmtest,			// ColecoVision SuperGame Module (SGM) Test
 	&BurnDrvcv_Coleco,			// ColecoVision System BIOS [BIOS only, NOT WORKING]
 	&BurnDrvmd_colleg96,		// College Football USA 96 (USA)
 	&BurnDrvmd_colleg97,		// College Football USA 97 (USA)
@@ -15125,6 +15137,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvdragonsh,			// Dragon's Heaven (development board)
 	&BurnDrvcv_dlair,			// Dragon's Lair (Prototype, 0416)
 	&BurnDrvmd_dlair,			// Dragon's Lair (USA, Prototype)
+	&BurnDrvcv_dlairsgm,		// Dragon's Lair SGM
 	&BurnDrvmd_dragnrev,		// Dragon's Revenge (Euro, USA)
 	&BurnDrvmd_dragnrevj,		// Dragon's Revenge (Jpn)
 	&BurnDrvDbza,				// Dragonball Z (rev A)
@@ -15932,6 +15945,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvMSX_frontlina,		// Front Line (Jpn, Alt)
 	&BurnDrvcv_frontlin,		// Front Line
 	&BurnDrvFrontlin,			// Front Line
+	&BurnDrvcv_frostbite,		// Frost Bite
 	&BurnDrvMSX_fruitpanic,		// Fruit Panic
 	&BurnDrvMSX_fruitsrc,		// Fruit Search (Jpn)
 	&BurnDrvMSX_fruitsrca,		// Fruit Search (Jpn, Alt)
@@ -17233,6 +17247,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_kof98,			// K.O.F 98' [no comment, NOT WORKING]
 	&BurnDrvmd_kagekij,			// Ka-Ge-Ki (Jpn)
 	&BurnDrvmd_kageki,			// Ka-Ge-Ki - Fists of Steel (USA)
+	&BurnDrvcv_kaboom,			// Kaboom!
 	&BurnDrvKabukizj,			// Kabuki-Z (Japan)
 	&BurnDrvKabukiz,			// Kabuki-Z (World)
 	&BurnDrvMSX_legkage,		// Kage no Densetsu - The Legend of Kage (Jpn)
@@ -17752,6 +17767,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvLgtnfghtu,			// Lightning Fighters (US)
 	&BurnDrvLgtnfght,			// Lightning Fighters (World)
 	&BurnDrvLtswords,			// Lightning Swords
+	&BurnDrvShangonleeh,		// Limited Edition Hang-On (Enhanced Edition v2.0.2)
 	&BurnDrvShangonle,			// Limited Edition Hang-On
 	&BurnSpeclinefire,			// Line of Fire (48K)
 	&BurnDrvsms_loffire,		// Line of Fire (Euro, Bra, Kor)
@@ -18151,6 +18167,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvmd_mcdonaldj,		// McDonald's Treasure Land Adventure (Jpn)
 	&BurnDrvmd_mcdonaldjp,		// McDonald's Treasure Land Adventure (Jpn, Prototype)
 	&BurnDrvmd_mcdonaldu,		// McDonald's Treasure Land Adventure (USA)
+	&BurnDrvcv_mecha8,			// Mecha-8
 	&BurnDrvMSX_mecha8,			// Mecha-8
 	&BurnDrvMechattj,			// Mechanized Attack (Japan)
 	&BurnDrvMechattu,			// Mechanized Attack (US)
@@ -19283,7 +19300,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvOutrundxj,			// Out Run (Japan, deluxe sitdown, FD1089A 317-0019)
 	&BurnDrvgg_outrunj,			// Out Run (Jpn)
 	&BurnDrvOutrunra,			// Out Run (sitdown/upright, Rev A)
-	&BurnDrvOutruneh,			// Out Run (sitdown/upright, Rev B) (Enhanced Edition v1.1.0)
+	&BurnDrvOutruneh,			// Out Run (sitdown/upright, Rev B) (Enhanced Edition v2.0.2)
 	&BurnDrvOutrun,				// Out Run (sitdown/upright, Rev B)
 	&BurnDrvsms_outrun,			// Out Run (World)
 	&BurnDrvsms_outrun3d,		// Out Run 3-D (Euro, Bra)
@@ -22222,6 +22239,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvShangon2,			// Super Hang-On (mini ride-on, Rev A, FD1089B 317-0034)
 	&BurnDrvShangon3d,			// Super Hang-On (sitdown/upright, FD1089B 317-0034 decrypted)
 	&BurnDrvShangon3,			// Super Hang-On (sitdown/upright, FD1089B 317-0034)
+	&BurnDrvShangoneh,			// Super Hang-On (sitdown/upright, unprotected) (Enhanced Edition v2.0.2)
 	&BurnDrvShangon,			// Super Hang-On (sitdown/upright, unprotected)
 	&BurnDrvmd_shangon1,		// Super Hang-On (World)
 	&BurnDrvmd_shangon,			// Super Hang-On (World, Rev. A)
@@ -24074,6 +24092,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvWschampa,			// Wing Shooting Championship V1.01
 	&BurnDrvWschamp,			// Wing Shooting Championship V2.00
 	&BurnDrvcv_wingwar,			// Wing War
+	&BurnDrvsms_wingwarriors,	// Wing Warriors (April 18, 2019 Test)
 	&BurnDrvMSX_wingwarr,		// Wing Warriors
 	&BurnDrvmd_wingswor,		// Wings of Wor (USA)
 	&BurnDrvpce_winshot,		// Winning Shot
@@ -24581,6 +24600,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvsg1k_zaxxont,		// Zaxxon (Tw)
 	&BurnDrvsms_zaxxon3d,		// Zaxxon 3-D (World)
 	&BurnDrvsms_zaxxon3dp,		// Zaxxon 3-D (World, Prototype)
+	&BurnDrvcv_zaxxonsgm,		// Zaxxon Super Game
 	&BurnDrvcv_zaxxon,			// Zaxxon
 	&BurnDrvzedblade,			// Zed Blade / Operation Ragnarok
 	&BurnDrvZektor,				// Zektor (revision B)

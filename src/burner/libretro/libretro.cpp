@@ -60,6 +60,7 @@ INT32 (__cdecl *bprintf) (INT32 nStatus, TCHAR* szFormat, ...) = libretro_bprint
 
 int kNetGame = 0;
 INT32 nReplayStatus = 0;
+INT32 nIpsMaxFileLen = 0;
 unsigned nGameType = 0;
 static INT32 nGameWidth, nGameHeight;
 

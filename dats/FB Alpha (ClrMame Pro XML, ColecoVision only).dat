@@ -377,11 +377,31 @@
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
 		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
 	</game>
+	<game name="coldblood" romof="coleco">
+		<description>Cold Blood</description>
+		<year>1981</year>
+		<manufacturer>Activision</manufacturer>
+		<rom name="cold_blood_colecovision_sgm.rom" size="32768" crc="960f7086"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
 	<game name="cvjoytest" romof="coleco">
 		<description>ColecoVision Joystick Test</description>
 		<year>1983</year>
 		<manufacturer>Coleco</manufacturer>
 		<rom name="Super Action Controller Test Cartridge (1983) (Nuvatec).rom" size="16384" crc="eb6cb4d8"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
+	<game name="sgmtest" romof="coleco">
+		<description>ColecoVision SuperGame Module (SGM) Test</description>
+		<year>200x</year>
+		<manufacturer>Coleco</manufacturer>
+		<rom name="super_game_module_test.rom" size="8192" crc="abc4763d"/>
 		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
 		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
@@ -546,13 +566,23 @@
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
 		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
 	</game>
-	<game name="dlair" romof="coleco">
+	<game name="dlair" cloneof="dlairsgm" romof="dlairsgm">
 		<description>Dragon's Lair (Prototype, 0416)</description>
 		<year>1984</year>
 		<manufacturer>Coleco</manufacturer>
 		<rom name="dragon80-chip1-4-16-ec4a.bin" size="8192" crc="950950d0"/>
 		<rom name="dragon80-chip2-4-16-ec4a.bin" size="8192" crc="8a778f5a"/>
 		<rom name="dragon80-chip3-4-16-ec4a.bin" size="8192" crc="8eec1020"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
+	<game name="dlairsgm" romof="coleco">
+		<description>Dragon's Lair SGM</description>
+		<year>1982</year>
+		<manufacturer>Coleco</manufacturer>
+		<rom name="dragons_lair_colecovision_sgm.rom" size="262144" crc="12ceee08"/>
 		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
 		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
@@ -762,6 +792,16 @@
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
 		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
 	</game>
+	<game name="frostbite" romof="coleco">
+		<description>Frost Bite</description>
+		<year>1983</year>
+		<manufacturer>Activision</manufacturer>
+		<rom name="frostbite_colecovision.rom" size="32768" crc="b3212318"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
 	<game name="galaxiana" cloneof="galaxian" romof="galaxian">
 		<description>Galaxian (Alt)</description>
 		<year>1983</year>
@@ -933,6 +973,16 @@
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
 		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
 	</game>
+	<game name="kaboom" romof="coleco">
+		<description>Kaboom!</description>
+		<year>1981</year>
+		<manufacturer>Activision</manufacturer>
+		<rom name="kaboom_colecovision.rom" size="16384" crc="24a2b61b"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
 	<game name="kubjpok" romof="coleco">
 		<description>Ken Uston Blackjack-Poker</description>
 		<year>1983</year>
@@ -1016,6 +1066,16 @@
 		<manufacturer>Fox Video Games</manufacturer>
 		<rom name="mash.1" size="8192" crc="1bdfdaa5"/>
 		<rom name="mash.2" size="8192" crc="55af024c"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
+	<game name="mecha8" romof="coleco">
+		<description>Mecha-8</description>
+		<year>2013</year>
+		<manufacturer>Oscar Toledo G.</manufacturer>
+		<rom name="mecha_8.rom" size="131072" crc="53da40bc"/>
 		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
 		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
@@ -2320,6 +2380,16 @@
 		<manufacturer>K-Tel</manufacturer>
 		<rom name="wordfeud.1" size="8192" crc="f7a29c01"/>
 		<rom name="wordfeud.2" size="8192" crc="f7a29c01"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
+	<game name="zaxxonsgm" romof="coleco">
+		<description>Zaxxon Super Game</description>
+		<year>1982</year>
+		<manufacturer>Coleco</manufacturer>
+		<rom name="zaxxon_super_game_colecovision_sgm.rom" size="131072" crc="a5a90f63"/>
 		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
 		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
