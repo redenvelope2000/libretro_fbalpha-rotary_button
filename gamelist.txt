@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12073 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12074 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -1308,6 +1308,7 @@ This list contains all games supported by FB Alpha.
 | buccanrsb	|  	| Buccaneers (set 3, harder)				| buccanrs	| 1989	| Duintronic	| Miscellaneous	| 					|
 | md_buckrog	|  	| Buck Rogers - Countdown to Doomsday (Euro, USA)	| 		| 1991	| Electronic Art| Sega Megadrive| 					|
 | msx_buckrog	|  	| Buck Rogers - Planet of Zoom				| 		| 1983	| Sega		| MSX		| 					|
+| cv_buckrogsgm	|  	| Buck Rogers SGM					| 		| 2013	| Coleco	| ColecoVision	| 					|
 | buckrogn	|  	| Buck Rogers: Planet of Zoom (not encrypted, set 1)	| buckrog	| 1982	| Sega		| Z80-3D	| 					|
 | buckrogn2	|  	| Buck Rogers: Planet of Zoom (not encrypted, set 2)	| buckrog	| 1982	| Sega		| Z80-3D	| 					|
 | buckrog	|  	| Buck Rogers: Planet of Zoom				| 		| 1982	| Sega		| Z80-3D	| 					|
@@ -2311,8 +2312,8 @@ This list contains all games supported by FB Alpha.
 | sms_deepduck	|  	| Deep Duck Trouble Starring Donald Duck (Euro, Bra)	| 		| 1993	| Sega		| Sega Master Sy| 					|
 | gg_deepduck	|  	| Deep Duck Trouble Starring Donald Duck (Euro, USA)	| 		| 1994	| Sega		| Sega Game Gear| 					|
 | msx_deepdng	|  	| Deep Dungeon (Jpn)					| 		| 1988	| ScapTrust	| MSX		| 					|
+| msx_deepdun	|  	| Deep Dungeon Adventure				| 		| 2013	| Trilobyte	| MSX		| 					|
 | msx_deepdng2	|  	| Deep Dungeon II - Yuushi no Monshou (Jpn)		| 		| 1988	| ScapTrust	| MSX		| 					|
-| msx_deepdun	|  	| Deep Dungeon						| 		| 2008	| Trilobyte	| MSX		| 					|
 | md_deerhunt	|  	| Deer Hunter (Rus)					| 		| 199?	| Tomsoft	| Sega Megadrive| 					|
 | deerhunte	|  	| Deer Hunting USA V1					| deerhunt	| 2000	| Sammy USA Corp| Newer Seta	| 					|
 | deerhuntd	|  	| Deer Hunting USA V2					| deerhunt	| 2000	| Sammy USA Corp| Newer Seta	| 					|

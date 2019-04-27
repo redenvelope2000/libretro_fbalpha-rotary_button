@@ -209,6 +209,16 @@
 		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
 		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
 	</game>
+	<game name="buckrogsgm" romof="coleco">
+		<description>Buck Rogers SGM</description>
+		<year>2013</year>
+		<manufacturer>Coleco</manufacturer>
+		<rom name="buck_rogers_super_game_colecovision_sgm" size="262144" crc="c4f1a85a"/>
+		<rom name="coleco.rom" merge="coleco.rom" size="8192" crc="3aa93ef3"/>
+		<rom name="colecoa.rom" merge="colecoa.rom" size="8192" crc="39bb16fc"/>
+		<rom name="svi603.rom" merge="svi603.rom" size="8192" crc="19e91b82"/>
+		<rom name="czz50.rom" merge="czz50.rom" size="16384" crc="4999abc6"/>
+	</game>
 	<game name="buckrog" romof="coleco">
 		<description>Buck Rogers: Planet of Zoom</description>
 		<year>1983</year>

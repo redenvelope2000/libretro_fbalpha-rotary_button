@@ -2534,20 +2534,20 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
+	<game name="deepdun" romof="msx">
+		<description>Deep Dungeon Adventure</description>
+		<year>2013</year>
+		<manufacturer>Trilobyte</manufacturer>
+		<rom name="deepdung.rom" size="49152" crc="96bd10ee"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
 	<game name="deepdng2" romof="msx">
 		<description>Deep Dungeon II - Yuushi no Monshou (Jpn)</description>
 		<year>1988</year>
 		<manufacturer>ScapTrust</manufacturer>
 		<rom name="deep dungeon ii (japan).rom" size="131072" crc="101db19c"/>
-		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
-		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
-		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
-	</game>
-	<game name="deepdun" romof="msx">
-		<description>Deep Dungeon</description>
-		<year>2008</year>
-		<manufacturer>Trilobyte</manufacturer>
-		<rom name="DDUNGEON.ROM" size="32768" crc="012e13d3"/>
 		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>

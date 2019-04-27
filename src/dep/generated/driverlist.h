@@ -1330,6 +1330,7 @@ DRV		BurnDrvBuccanrsa;
 DRV		BurnDrvBuccanrsb;
 DRV		BurnDrvmd_buckrog;
 DRV		BurnDrvMSX_buckrog;
+DRV		BurnDrvcv_buckrogsgm;
 DRV		BurnDrvBuckrogn;
 DRV		BurnDrvBuckrogn2;
 DRV		BurnDrvBuckrog;
@@ -2353,8 +2354,8 @@ DRV		BurnDrvtg_deepblue;
 DRV		BurnDrvsms_deepduck;
 DRV		BurnDrvgg_deepduck;
 DRV		BurnDrvMSX_deepdng;
-DRV		BurnDrvMSX_deepdng2;
 DRV		BurnDrvMSX_deepdun;
+DRV		BurnDrvMSX_deepdng2;
 DRV		BurnDrvmd_deerhunt;
 DRV		BurnDrvDeerhune;
 DRV		BurnDrvDeerhund;
@@ -13678,6 +13679,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvBuccanrsb,			// Buccaneers (set 3, harder)
 	&BurnDrvmd_buckrog,			// Buck Rogers - Countdown to Doomsday (Euro, USA)
 	&BurnDrvMSX_buckrog,		// Buck Rogers - Planet of Zoom
+	&BurnDrvcv_buckrogsgm,		// Buck Rogers SGM
 	&BurnDrvBuckrogn,			// Buck Rogers: Planet of Zoom (not encrypted, set 1)
 	&BurnDrvBuckrogn2,			// Buck Rogers: Planet of Zoom (not encrypted, set 2)
 	&BurnDrvBuckrog,			// Buck Rogers: Planet of Zoom
@@ -14701,8 +14703,8 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvsms_deepduck,		// Deep Duck Trouble Starring Donald Duck (Euro, Bra)
 	&BurnDrvgg_deepduck,		// Deep Duck Trouble Starring Donald Duck (Euro, USA)
 	&BurnDrvMSX_deepdng,		// Deep Dungeon (Jpn)
+	&BurnDrvMSX_deepdun,		// Deep Dungeon Adventure
 	&BurnDrvMSX_deepdng2,		// Deep Dungeon II - Yuushi no Monshou (Jpn)
-	&BurnDrvMSX_deepdun,		// Deep Dungeon
 	&BurnDrvmd_deerhunt,		// Deer Hunter (Rus)
 	&BurnDrvDeerhune,			// Deer Hunting USA V1
 	&BurnDrvDeerhund,			// Deer Hunting USA V2
