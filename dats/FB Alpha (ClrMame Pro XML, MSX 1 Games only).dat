@@ -2471,6 +2471,15 @@
 		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
 		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
 	</game>
+	<game name="dangertower" romof="msx">
+		<description>Danger Tower</description>
+		<year>2009</year>
+		<manufacturer>Danger Team</manufacturer>
+		<rom name="dangertower.rom" size="32768" crc="02c3af4a"/>
+		<rom name="msx.rom" merge="msx.rom" size="32768" crc="a317e6b4"/>
+		<rom name="msxj.rom" merge="msxj.rom" size="32768" crc="071135e0"/>
+		<rom name="kanji.rom" merge="kanji.rom" size="262144" crc="1f6406fb"/>
+	</game>
 	<game name="dangerx4" romof="msx">
 		<description>Danger X4 (Jpn)</description>
 		<year>1984</year>

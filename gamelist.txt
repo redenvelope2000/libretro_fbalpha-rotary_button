@@ -1,6 +1,6 @@
 This list contains all games supported by FB Alpha.
 
-12074 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
+12078 games supported in total; X = excluded from build; D = included in debug build only; NW = not working
 
   name		  status  full name						  parent	  year	  company	  hardware	  remarks
 +---------------+-------+-------------------------------------------------------+---------------+-------+---------------+---------------+---------------------------------------+
@@ -1218,6 +1218,7 @@ This list contains all games supported by FB Alpha.
 | msx_bounder	|  	| Bounder (Euro)					| 		| 1987	| Gremlin Graphi| MSX		| 					|
 | bowlrama	|  	| Bowl-O-Rama						| 		| 1991	| P&P Marketing	| Miscellaneous	| 					|
 | md_boxinglg	|  	| Boxing Legends of the Ring (USA)			| 		| 1993	| Electro Brain	| Sega Megadrive| 					|
+| cv_boxxle	|  	| Boxxle						| 		| 2015	| Coleco	| ColecoVision	| 					|
 | boxyboy	|  	| Boxy Boy (SB?)					| 		| 1990	| Namco		| System 1	| 					|
 | tg_boxyboy	|  	| Boxyboy						| 		| 1990	| NEC		| TurboGrafx 16	| 					|
 | md_bsteam3	|  	| Boy Soccer Team III (Jpn, Pirate)			| md_tecmocup	| 199?	| <pirate>	| Sega Megadrive| 					|
@@ -2230,6 +2231,7 @@ This list contains all games supported by FB Alpha.
 | dankuga	|  	| Dan-Ku-Ga (Ver 0.0J 1994/12/13) (Prototype)		| 		| 1994	| Taito Corporat| Taito F3 Syste| Missing graphics are normal in this pr|
 | sms_danan	|  	| Danan: The Jungle Fighter (Euro, Bra)			| 		| 1990	| Sega		| Sega Master Sy| 					|
 | cv_dncfntsy	|  	| Dance Fantasy						| 		| 1984	| Fisher-Price	| ColecoVision	| 					|
+| msx_dangertower|  	| Danger Tower						| 		| 2009	| Danger Team	| MSX		| 					|
 | dngrtrck	|  	| Danger Track (Rally X bootleg)			| rallyx	| 1980	| bootleg	| Miscellaneous	| 					|
 | msx_dangerx4	|  	| Danger X4 (Jpn)					| 		| 1984	| ASCII		| MSX		| 					|
 | msx_dangerx4b	|  	| Danger X4 (Jpn, Alt 2)				| msx_dangerx4	| 1984	| ASCII		| MSX		| 					|
@@ -5974,6 +5976,7 @@ This list contains all games supported by FB Alpha.
 | msx_gundama	|  	| Mobile-Suit Gundam - Last Shooting (Jpn, Alt)		| msx_gundam	| 1984	| Bandai	| MSX		| 					|
 | msx_gundamk	|  	| Mobile-Suit Gundam - Last Shooting (Kor)		| msx_gundam	| 198?	| Zemina	| MSX		| 					|
 | md_mevo	|  	| Mobius Evolution (Hack V3.6)				| md_sonic	| 2015	| 2015 Abyssal L| Sega Megadrive| 					|
+| cv_moduleman	|  	| Module Man						| 		| 2013	| Coleco	| ColecoVision	| 					|
 | moegonta	|  	| Moeyo Gonta!! (Japan)					| ladykill	| 1993	| Yanyaka	| Miscellaneous	| 					|
 | sms_moggym100	|  	| Moggy Master (Version 1.00)				| 		| 2015	| Mojon Twins	| Sega Master Sy| 					|
 | moguchan	|  	| Mogu Chan (bootleg?)					| 		| 1982	| Orca (Eastern | Miscellaneous	| 					|
@@ -9138,6 +9141,7 @@ This list contains all games supported by FB Alpha.
 | sg1k_starfrcet|  	| Star Force (Tw)					| sg1k_starfrce	| 1985?	| Aaronix	| Sega SG-1000	| 					|
 | sg1k_starfrceta|  	| Star Force (Tw, Alt)					| sg1k_starfrce	| 1985?	| Aaronix	| Sega SG-1000	| 					|
 | starforc	|  	| Star Force						| 		| 1984	| Tehkan	| Miscellaneous	| 					|
+| cv_starfortress|  	| Star Fortress						| 		| 1997	| Coleco	| ColecoVision	| 					|
 | stargrds	|  	| Star Guards						| 		| 1987	| Bally Midway	| MCR3		| 					|
 | sg1k_starjack1|  	| Star Jacker (Euro, Jpn, v1.1)				| sg1k_starjack	| 1983	| Sega		| Sega SG-1000	| 					|
 | sg1k_starjack	|  	| Star Jacker (Euro, Jpn, v1.2)				| 		| 1983	| Sega		| Sega SG-1000	| 					|

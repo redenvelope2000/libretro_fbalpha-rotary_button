@@ -1238,6 +1238,7 @@ DRV		BurnDrvBballs;
 DRV		BurnDrvMSX_bounder;
 DRV		BurnDrvBowlrama;
 DRV		BurnDrvmd_boxinglg;
+DRV		BurnDrvcv_boxxle;
 DRV		BurnDrvBoxyboy;
 DRV		BurnDrvtg_boxyboy;
 DRV		BurnDrvmd_bsteam3;
@@ -2270,6 +2271,7 @@ DRV		BurnSpecdandare3;
 DRV		BurnDrvDankuga;
 DRV		BurnDrvsms_danan;
 DRV		BurnDrvcv_dncfntsy;
+DRV		BurnDrvMSX_dangertower;
 DRV		BurnDrvDngrtrck;
 DRV		BurnDrvMSX_dangerx4;
 DRV		BurnDrvMSX_dangerx4b;
@@ -6106,6 +6108,7 @@ DRV		BurnDrvMSX_gundam;
 DRV		BurnDrvMSX_gundama;
 DRV		BurnDrvMSX_gundamk;
 DRV		BurnDrvmd_mevo;
+DRV		BurnDrvcv_moduleman;
 DRV		BurnDrvMoegonta;
 DRV		BurnDrvsms_moggym100;
 DRV		BurnDrvMoguchan;
@@ -9336,6 +9339,7 @@ DRV		BurnDrvMSX_starfrcea;
 DRV		BurnDrvsg1k_starfrcet;
 DRV		BurnDrvsg1k_starfrceta;
 DRV		BurnDrvStarforc;
+DRV		BurnDrvcv_starfortress;
 DRV		BurnDrvStargrds;
 DRV		BurnDrvsg1k_starjack1;
 DRV		BurnDrvsg1k_starjack;
@@ -13587,6 +13591,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvMSX_bounder,		// Bounder (Euro)
 	&BurnDrvBowlrama,			// Bowl-O-Rama
 	&BurnDrvmd_boxinglg,		// Boxing Legends of the Ring (USA)
+	&BurnDrvcv_boxxle,			// Boxxle
 	&BurnDrvBoxyboy,			// Boxy Boy (SB?)
 	&BurnDrvtg_boxyboy,			// Boxyboy
 	&BurnDrvmd_bsteam3,			// Boy Soccer Team III (Jpn, Pirate)
@@ -14619,6 +14624,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvDankuga,			// Dan-Ku-Ga (Ver 0.0J 1994/12/13) (Prototype)
 	&BurnDrvsms_danan,			// Danan: The Jungle Fighter (Euro, Bra)
 	&BurnDrvcv_dncfntsy,		// Dance Fantasy
+	&BurnDrvMSX_dangertower,	// Danger Tower
 	&BurnDrvDngrtrck,			// Danger Track (Rally X bootleg)
 	&BurnDrvMSX_dangerx4,		// Danger X4 (Jpn)
 	&BurnDrvMSX_dangerx4b,		// Danger X4 (Jpn, Alt 2)
@@ -18455,6 +18461,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvMSX_gundama,		// Mobile-Suit Gundam - Last Shooting (Jpn, Alt)
 	&BurnDrvMSX_gundamk,		// Mobile-Suit Gundam - Last Shooting (Kor)
 	&BurnDrvmd_mevo,			// Mobius Evolution (Hack V3.6)
+	&BurnDrvcv_moduleman,		// Module Man
 	&BurnDrvMoegonta,			// Moeyo Gonta!! (Japan)
 	&BurnDrvsms_moggym100,		// Moggy Master (Version 1.00)
 	&BurnDrvMoguchan,			// Mogu Chan (bootleg?)
@@ -21685,6 +21692,7 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvsg1k_starfrcet,		// Star Force (Tw)
 	&BurnDrvsg1k_starfrceta,	// Star Force (Tw, Alt)
 	&BurnDrvStarforc,			// Star Force
+	&BurnDrvcv_starfortress,	// Star Fortress
 	&BurnDrvStargrds,			// Star Guards
 	&BurnDrvsg1k_starjack1,		// Star Jacker (Euro, Jpn, v1.1)
 	&BurnDrvsg1k_starjack,		// Star Jacker (Euro, Jpn, v1.2)
