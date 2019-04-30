@@ -54,7 +54,7 @@ struct Input_Def
    struct PortBits_Def PortBits[NAMCO_BRD_INP_COUNT];
    UINT8 Dip[3];
    UINT8 Ports[NAMCO_BRD_INP_COUNT];
-   UINT8 PrevInValue;
+   UINT8 prevPorts[NAMCO_BRD_INP_COUNT];
    UINT8 Reset;
 };
 
@@ -250,59 +250,20 @@ struct Button_Def
 
 static struct Button_Def button = { 0 };
 
-#define INP_GALAGA_COIN_TRIGGER     0x70
-#define INP_GALAGA_COIN_MASK        0x70
-#define INP_GALAGA_START_1          0x04
-#define INP_GALAGA_START_2          0x08
-
-#define INP_DIGDUG_COIN_TRIGGER     0x01
-#define INP_DIGDUG_COIN_MASK        0x01
-#define INP_DIGDUG_START_1          0x10
-#define INP_DIGDUG_START_2          0x20
-
-#define INP_XEVIOUS_COIN_TRIGGER    0x70
-#define INP_XEVIOUS_COIN_MASK       0x70
-#define INP_XEVIOUS_START_1         0x04
-#define INP_XEVIOUS_START_2         0x08
-
-static const struct CoinAndCredit_Def
+struct InputMisc_Def
 {
    UINT8 portNumber;
-   UINT8 coinTrigger;
-   UINT8 coinMask;
-   UINT8 start1Trigger;
-   UINT8 start1Mask;
-   UINT8 start2Trigger;
-   UINT8 start2Mask;
-} coinAndCreditParams[NAMCO_TOTAL_GAMES] = 
+   UINT8 triggerValue;
+   UINT8 triggerMask;
+};
+
+struct CoinAndCredit_Def
 {
-   {
-      .portNumber =     0,
-      .coinTrigger =    INP_GALAGA_COIN_TRIGGER,
-      .coinMask =       INP_GALAGA_COIN_MASK,
-      .start1Trigger =  INP_GALAGA_START_1,
-      .start1Mask =     INP_GALAGA_START_1,
-      .start2Trigger =  INP_GALAGA_START_2,
-      .start2Mask =     INP_GALAGA_START_2,
-   },
-   {
-      .portNumber =     0,
-      .coinTrigger =    INP_DIGDUG_COIN_TRIGGER,
-      .coinMask =       INP_DIGDUG_COIN_MASK,
-      .start1Trigger =  INP_DIGDUG_START_1,
-      .start1Mask =     INP_DIGDUG_START_1,
-      .start2Trigger =  INP_DIGDUG_START_2,
-      .start2Mask =     INP_DIGDUG_START_2,
-   },
-   {
-      .portNumber =     2,
-      .coinTrigger =    INP_XEVIOUS_COIN_TRIGGER,
-      .coinMask =       INP_XEVIOUS_COIN_MASK,
-      .start1Trigger =  INP_XEVIOUS_START_1,
-      .start1Mask =     INP_XEVIOUS_START_1,
-      .start2Trigger =  INP_XEVIOUS_START_2,
-      .start2Mask =     INP_XEVIOUS_START_2,
-   }
+   struct InputMisc_Def leftCoin;
+   struct InputMisc_Def rightCoin;
+   struct InputMisc_Def auxCoin;
+   struct InputMisc_Def start1;
+   struct InputMisc_Def start2;
 };
 
 static struct Game_Params
@@ -350,7 +311,7 @@ static void Namco54XXWrite(INT32 Data);
 static UINT8 NamcoZ80ReadDip(UINT16 Offset, UINT32 DipCount);
 static UINT8 NamcoZ80ReadIoCmd(UINT16 Offset);
 static UINT8 __fastcall NamcoZ80ProgRead(UINT16 addr);
-static UINT8 updateCoinAndCredit(UINT8 gameID);
+static UINT8 updateCoinAndCredit(struct CoinAndCredit_Def *signals);
 static UINT8 updateJoyAndButtons(UINT16 Offset, UINT8 jp);
 static void NamcoZ80WriteSound(UINT16 Offset, UINT8 dta);
 static void NamcoZ80WriteCPU1Irq(UINT16 Offset, UINT8 dta);
@@ -377,6 +338,53 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin);
 
 /* === Galaga === */
 
+#define INP_GALAGA_COIN_TRIGGER_1   0x00
+#define INP_GALAGA_COIN_MASK_1      0x10
+#define INP_GALAGA_COIN_TRIGGER_2   0x00
+#define INP_GALAGA_COIN_MASK_2      0x20
+#define INP_GALAGA_START_TRIGGER_1  0x00
+#define INP_GALAGA_START_MASK_1     0x04
+#define INP_GALAGA_START_TRIGGER_2  0x00
+#define INP_GALAGA_START_MASK_2     0x08
+
+static struct CoinAndCredit_Def galagaCoinAndCreditParams = 
+{
+/*   .leftCoin = 
+   {  
+      .portNumber    = 0,
+      .triggerValue  = INP_GALAGA_COIN_TRIGGER_1,
+      .triggerMask   = INP_GALAGA_COIN_MASK_1
+   },*/
+   {  0, INP_GALAGA_COIN_TRIGGER_1,    INP_GALAGA_COIN_MASK_1     },
+/*   .rightCoin = 
+   {
+      .portNumber    = 0,
+      .triggerValue  = INP_GALAGA_COIN_TRIGGER_2,
+      .triggerMask   = INP_GALAGA_COIN_MASK_2
+   },*/
+   {  0, INP_GALAGA_COIN_TRIGGER_2,    INP_GALAGA_COIN_MASK_2     },
+/*   .auxCoin =
+   {
+      0, 0, 0
+   }*/
+   {
+      0, 0,                            0                          },
+/*   .start1 =
+   {
+      .portNumber    = 0,
+      .triggerValue  = INP_GALAGA_START_TRIGGER_1,
+      .triggerMask   = INP_GALAGA_START_MASK_1,
+   },*/
+   {  0, INP_GALAGA_START_TRIGGER_1,   INP_GALAGA_START_MASK_1,   },
+/*   .start2 = 
+   {
+      .portNumber    = 0,
+      .triggerValue  = INP_GALAGA_START_TRIGGER_2,
+      .triggerMask   = INP_GALAGA_START_MASK_2,
+   },*/
+   {  0, INP_GALAGA_START_TRIGGER_2,   INP_GALAGA_START_MASK_2,   },
+};
+
 static struct BurnInputInfo GalagaInputList[] =
 {
 	{"Coin 1"            , BIT_DIGITAL  , &input.PortBits[0].Current[4], "p1 coin"   },
@@ -396,185 +404,189 @@ static struct BurnInputInfo GalagaInputList[] =
 	{"Service"           , BIT_DIGITAL  , &input.PortBits[0].Current[6], "service"   },
 	{"Dip 1"             , BIT_DIPSWITCH, &input.Dip[0],                 "dip"       },
 	{"Dip 2"             , BIT_DIPSWITCH, &input.Dip[1],                 "dip"       },
-	{"Dip 3"             , BIT_DIPSWITCH, &input.Dip[2],                 "dip"       },
+//	{"Dip 3"             , BIT_DIPSWITCH, &input.Dip[2],                 "dip"       },
 };
 
 STDINPUTINFO(Galaga)
 
-#define GALAGA_NUM_OF_DIPSWITCHES      2 //3
+#define GALAGA_NUM_OF_DIPSWITCHES      2
 
 static struct BurnDIPInfo GalagaDIPList[]=
 {
+   // offset
+	{  0x0b,    0xf0,    0x01,    0x01,       NULL                     },
+
 	// Default Values
    // nOffset, nID,     nMask,   nDefault,   NULL
-	{  0x0c,    0xff,    0xff,    0x97,       NULL                     },
-	{  0x0d,    0xff,    0xff,    0xb7,       NULL                     },
-	{  0x0e,    0xff,    0xff,    0x00,       NULL                     },
+	{  0x00,    0xff,    0x01,    0x01,       NULL                     },
+	{  0x01,    0xff,    0xff,    0x97,       NULL                     },
+	{  0x02,    0xff,    0xbf,    0xb7,       NULL                     },
 	
+	// Service Switch
+   // x,       DIP_GRP, x,       OptionCnt,  szTitle
+	{  0,       0xfe,    0,       2,          "Service Mode"           },
+   // nInput,  nFlags,  nMask,   nSetting,   szText
+	{  0x00,    0x01,    0x01,    0x01,       "Off"                    },
+	{  0x00,    0x01,    0x01,    0x00,       "On"                     },
+
 	// Dip 1	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       8,          "Coinage"                },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0c,    0x01,    0x07,    0x04,       "4 Coins 1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x02,       "3 Coins 1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x06,       "2 Coins 1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x07,       "1 Coin  1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x01,       "2 Coins 3 Plays"        },
-	{  0x0c,    0x01,    0x07,    0x03,       "1 Coin  2 Plays"        },
-	{  0x0c,    0x01,    0x07,    0x05,       "1 Coin  3 Plays"        },
-	{  0x0c,    0x01,    0x07,    0x00,       "Freeplay"               },
+	{  0x01,    0x01,    0x07,    0x04,       "4 Coins 1 Play"         },
+	{  0x01,    0x01,    0x07,    0x02,       "3 Coins 1 Play"         },
+	{  0x01,    0x01,    0x07,    0x06,       "2 Coins 1 Play"         },
+	{  0x01,    0x01,    0x07,    0x07,       "1 Coin  1 Play"         },
+	{  0x01,    0x01,    0x07,    0x01,       "2 Coins 3 Plays"        },
+	{  0x01,    0x01,    0x07,    0x03,       "1 Coin  2 Plays"        },
+	{  0x01,    0x01,    0x07,    0x05,       "1 Coin  3 Plays"        },
+	{  0x01,    0x01,    0x07,    0x00,       "Freeplay"               },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       8,          "Bonus Life"             },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0c,    0x01,    0x38,    0x20,       "20k  60k  60k"          },
-   {  0x0c,    0x01,    0x38,    0x18,       "20k  60k"               },
-	{  0x0c,    0x01,    0x38,    0x10,       "20k  70k  70k"          },
-	{  0x0c,    0x01,    0x38,    0x30,       "20k  80k  80k"          },
-	{  0x0c,    0x01,    0x38,    0x38,       "30k  80k"               },
-	{  0x0c,    0x01,    0x38,    0x08,       "30k 100k 100k"          },
-	{  0x0c,    0x01,    0x38,    0x28,       "30k 120k 120k"          },
-	{  0x0c,    0x01,    0x38,    0x00,       "None"                   },
+	{  0x01,    0x01,    0x38,    0x20,       "20k  60k  60k"          },
+   {  0x01,    0x01,    0x38,    0x18,       "20k  60k"               },
+	{  0x01,    0x01,    0x38,    0x10,       "20k  70k  70k"          },
+	{  0x01,    0x01,    0x38,    0x30,       "20k  80k  80k"          },
+	{  0x01,    0x01,    0x38,    0x38,       "30k  80k"               },
+	{  0x01,    0x01,    0x38,    0x08,       "30k 100k 100k"          },
+	{  0x01,    0x01,    0x38,    0x28,       "30k 120k 120k"          },
+	{  0x01,    0x01,    0x38,    0x00,       "None"                   },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       4,          "Lives"                  },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0c,    0x01,    0xc0,    0x00,       "2"                      },
-	{  0x0c,    0x01,    0xc0,    0x80,       "3"                      },
-	{  0x0c,    0x01,    0xc0,    0x40,       "4"                      },
-	{  0x0c,    0x01,    0xc0,    0xc0,       "5"                      },
+	{  0x01,    0x01,    0xc0,    0x00,       "2"                      },
+	{  0x01,    0x01,    0xc0,    0x80,       "3"                      },
+	{  0x01,    0x01,    0xc0,    0x40,       "4"                      },
+	{  0x01,    0x01,    0xc0,    0xc0,       "5"                      },
 
 	// Dip 2
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       4,          "Difficulty"             },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x03,    0x03,       "Easy"                   },
-	{  0x0d,    0x01,    0x03,    0x00,       "Medium"                 },
-	{  0x0d,    0x01,    0x03,    0x01,       "Hard"                   },
-	{  0x0d,    0x01,    0x03,    0x02,       "Hardest"                },
+	{  0x02,    0x01,    0x03,    0x03,       "Easy"                   },
+	{  0x02,    0x01,    0x03,    0x00,       "Medium"                 },
+	{  0x02,    0x01,    0x03,    0x01,       "Hard"                   },
+	{  0x02,    0x01,    0x03,    0x02,       "Hardest"                },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Demo Sounds"            },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x08,    0x08,       "Off"                    },
-   {  0x0d,    0x01,    0x08,    0x00,       "On"                     },
+	{  0x02,    0x01,    0x08,    0x08,       "Off"                    },
+   {  0x02,    0x01,    0x08,    0x00,       "On"                     },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Freeze"                 },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x10,    0x10,       "Off"                    },
-	{  0x0d,    0x01,    0x10,    0x00,       "On"                     },
+	{  0x02,    0x01,    0x10,    0x10,       "Off"                    },
+	{  0x02,    0x01,    0x10,    0x00,       "On"                     },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Rack Test"              },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x20,    0x20,       "Off"                    },
-	{  0x0d,    0x01,    0x20,    0x00,       "On"                     },
+	{  0x02,    0x01,    0x20,    0x20,       "Off"                    },
+	{  0x02,    0x01,    0x20,    0x00,       "On"                     },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
    {  0,       0xfe,    0,       2,          "Cabinet"                },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x80,    0x80,       "Upright"                },
-	{  0x0d,    0x01,    0x80,    0x00,       "Cocktail"               },
-	
-	// Dip 3 (Dummy for Service Switch)
-   // x,       DIP_GRP, x,       OptionCnt,  szTitle
-	{  0,       0xfe,    0,       2,          "Service Mode"           },
-   // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0e,    0x01,    0x80,    0x80,       "Off"                    },
-	{  0x0e,    0x01,    0x80,    0x00,       "On"                     },
-
-};
+	{  0x02,    0x01,    0x80,    0x80,       "Upright"                },
+	{  0x02,    0x01,    0x80,    0x00,       "Cocktail"               },
+	};
 
 STDDIPINFO(Galaga)
 
 static struct BurnDIPInfo GalagamwDIPList[]=
 {
+   // Offset
+	{  0x0b,    0xf0,    0x01,    0x01,       NULL                     },
+
 	// Default Values
    // nOffset, nID,     nMask,   nDefault,   NULL
-	{  0x0c,    0xff,    0xff,    0x97,       NULL                     },
-	{  0x0d,    0xff,    0xff,    0xf7,       NULL                     },
-	{  0x0e,    0xff,    0xff,    0x00,       NULL                     },
+	{  0x00,    0xff,    0x01,    0x01,       NULL                     },
+	{  0x01,    0xff,    0xff,    0x97,       NULL                     },
+	{  0x02,    0xff,    0xff,    0xf7,       NULL                     },
 	
+	// Service Switch
+   // x,       DIP_GRP, x,       OptionCnt,  szTitle
+	{  0,       0xfe,    0,       2,          "Service Mode"           },
+   // nInput,  nFlags,  nMask,   nSetting,   szText
+	{  0x00,    0x01,    0x01,    0x01,       "Off"                    },
+	{  0x00,    0x01,    0x01,    0x00,       "On"                     },
+
 	// Dip 1	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       8,          "Coinage"                },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0c,    0x01,    0x07,    0x04,       "4 Coins 1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x02,       "3 Coins 1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x06,       "2 Coins 1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x07,       "1 Coin  1 Play"         },
-	{  0x0c,    0x01,    0x07,    0x01,       "2 Coins 3 Plays"        },
-	{  0x0c,    0x01,    0x07,    0x03,       "1 Coin  2 Plays"        },
-	{  0x0c,    0x01,    0x07,    0x05,       "1 Coin  3 Plays"        },
-   {  0x0c,    0x01,    0x07,    0x00,       "Freeplay"               },	
+	{  0x01,    0x01,    0x07,    0x04,       "4 Coins 1 Play"         },
+	{  0x01,    0x01,    0x07,    0x02,       "3 Coins 1 Play"         },
+	{  0x01,    0x01,    0x07,    0x06,       "2 Coins 1 Play"         },
+	{  0x01,    0x01,    0x07,    0x07,       "1 Coin  1 Play"         },
+	{  0x01,    0x01,    0x07,    0x01,       "2 Coins 3 Plays"        },
+	{  0x01,    0x01,    0x07,    0x03,       "1 Coin  2 Plays"        },
+	{  0x01,    0x01,    0x07,    0x05,       "1 Coin  3 Plays"        },
+   {  0x01,    0x01,    0x07,    0x00,       "Freeplay"               },	
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       8,          "Bonus Life"             },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0c,    0x01,    0x38,    0x20,       "20k  60k  60k"          },
-	{  0x0c,    0x01,    0x38,    0x18,       "20k  60k"               },
-	{  0x0c,    0x01,    0x38,    0x10,       "20k  70k  70k"          },
-	{  0x0c,    0x01,    0x38,    0x30,       "20k  80k  80k"          },
-   {  0x0c,    0x01,    0x38,    0x38,       "30k  80k"               },
-	{  0x0c,    0x01,    0x38,    0x08,       "30k 100k 100k"          },
-	{  0x0c,    0x01,    0x38,    0x28,       "30k 120k 120k"          },
-	{  0x0c,    0x01,    0x38,    0x00,       "None"                   },	
+	{  0x01,    0x01,    0x38,    0x20,       "20k  60k  60k"          },
+	{  0x01,    0x01,    0x38,    0x18,       "20k  60k"               },
+	{  0x01,    0x01,    0x38,    0x10,       "20k  70k  70k"          },
+	{  0x01,    0x01,    0x38,    0x30,       "20k  80k  80k"          },
+   {  0x01,    0x01,    0x38,    0x38,       "30k  80k"               },
+	{  0x01,    0x01,    0x38,    0x08,       "30k 100k 100k"          },
+	{  0x01,    0x01,    0x38,    0x28,       "30k 120k 120k"          },
+	{  0x01,    0x01,    0x38,    0x00,       "None"                   },	
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       4,          "Lives"                  },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0c,    0x01,    0xc0,    0x00,       "2"                      },
-	{  0x0c,    0x01,    0xc0,    0x80,       "3"                      },
-	{  0x0c,    0x01,    0xc0,    0x40,       "4"                      },
-	{  0x0c,    0x01,    0xc0,    0xc0,       "5"                      },
+	{  0x01,    0x01,    0xc0,    0x00,       "2"                      },
+	{  0x01,    0x01,    0xc0,    0x80,       "3"                      },
+	{  0x01,    0x01,    0xc0,    0x40,       "4"                      },
+	{  0x01,    0x01,    0xc0,    0xc0,       "5"                      },
 
 	// Dip 2
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "2 Credits Game"         },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x01,    0x00,       "1 Player"               },
-	{  0x0d,    0x01,    0x01,    0x01,       "2 Players"              },
+	{  0x02,    0x01,    0x01,    0x00,       "1 Player"               },
+	{  0x02,    0x01,    0x01,    0x01,       "2 Players"              },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       4,          "Difficulty"             },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x06,    0x06,       "Easy"                   },
-	{  0x0d,    0x01,    0x06,    0x00,       "Medium"                 },
-	{  0x0d,    0x01,    0x06,    0x02,       "Hard"                   },
-	{  0x0d,    0x01,    0x06,    0x04,       "Hardest"                },
+	{  0x02,    0x01,    0x06,    0x06,       "Easy"                   },
+	{  0x02,    0x01,    0x06,    0x00,       "Medium"                 },
+	{  0x02,    0x01,    0x06,    0x02,       "Hard"                   },
+	{  0x02,    0x01,    0x06,    0x04,       "Hardest"                },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Demo Sounds"            },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x08,    0x08,       "Off"                    },
-	{  0x0d,    0x01,    0x08,    0x00,       "On"                     },
+	{  0x02,    0x01,    0x08,    0x08,       "Off"                    },
+	{  0x02,    0x01,    0x08,    0x00,       "On"                     },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Freeze"                 },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x10,    0x10,       "Off"                    },
-	{  0x0d,    0x01,    0x10,    0x00,       "On"                     },
+	{  0x02,    0x01,    0x10,    0x10,       "Off"                    },
+	{  0x02,    0x01,    0x10,    0x00,       "On"                     },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Rack Test"              },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x20,    0x20,       "Off"                    },
-	{  0x0d,    0x01,    0x20,    0x00,       "On"                     },
+	{  0x02,    0x01,    0x20,    0x20,       "Off"                    },
+	{  0x02,    0x01,    0x20,    0x00,       "On"                     },
 	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Cabinet"                },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0d,    0x01,    0x80,    0x80,       "Upright"                },
-	{  0x0d,    0x01,    0x80,    0x00,       "Cocktail"               },
-	
-	// Dip 3 (Dummy for Service Switch)
-   // x,       DIP_GRP, x,       OptionCnt,  szTitle
-	{  0,       0xfe,    0,       2,          "Service Mode"           },
-   // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x0e,    0x01,    0x80,    0x80,       "Off"                    },
-	{  0x0e,    0x01,    0x80,    0x00,       "On"                     },
-
+	{  0x02,    0x01,    0x80,    0x80,       "Upright"                },
+	{  0x02,    0x01,    0x80,    0x00,       "Cocktail"               },
 };
 
 STDDIPINFO(Galagamw)
@@ -1118,20 +1130,12 @@ static UINT8 GalagaZ80ReadDip(UINT16 offset)
 {
    UINT8 retVal = NamcoZ80ReadDip(offset, GALAGA_NUM_OF_DIPSWITCHES);
    
-   printf("\nRd dip %x: %x", offset, retVal);
-   printf("\ninputs %x, %x, %x", input.Ports[0], input.Ports[1], input.Ports[2]);
-   
-//   if ((2 == offset) || (4 == offset)) 
-//      retVal |= 2;
-   
    return retVal;
 }
 
 static UINT8 GalagaZ80ReadInputs(UINT16 Offset)
 {
    UINT8 retVal = 0xff;
-   
-   printf("\nrd inp %x: ", Offset);
    
    if ( (0x71 == ioChip.CustomCommand) ||
         (0xb1 == ioChip.CustomCommand) )
@@ -1143,13 +1147,12 @@ static UINT8 GalagaZ80ReadInputs(UINT16 Offset)
             if (ioChip.Mode) 
             {
                retVal = input.Ports[0];
-               
-               printf("port0: ");
             } 
             else 
             {
-               retVal = updateCoinAndCredit(NAMCO_GALAGA);
+               retVal = updateCoinAndCredit(&galagaCoinAndCreditParams);
             }
+            input.prevPorts[0] = input.Ports[0];
          }
          break;
             
@@ -1164,8 +1167,6 @@ static UINT8 GalagaZ80ReadInputs(UINT16 Offset)
             break;
       }
    }
-   
-   printf("%x", retVal);
    
    return retVal;
 }
@@ -1197,7 +1198,7 @@ static INT32 GalagaDraw()
    GenericTilemapSetEnable(0, 1);
    GenericTilemapDraw(0, pTransDraw, 0 | TMAP_TRANSPARENT);
 
-	GalagaRenderStars();
+	//GalagaRenderStars();
 	GalagaRenderSprites();	
 
 	BurnTransferCopy(graphics.Palette);
@@ -1400,6 +1401,40 @@ static void GalagaRenderSprites()
 
 /* === Dig Dug === */
 
+#define INP_DIGDUG_COIN_TRIGGER     0x00
+#define INP_DIGDUG_COIN_MASK        0x01
+#define INP_DIGDUG_START_TRIGGER_1  0x00
+#define INP_DIGDUG_START_MASK_1     0x10
+#define INP_DIGDUG_START_TRIGGER_2  0x00
+#define INP_DIGDUG_START_MASK_2     0x20
+
+static struct CoinAndCredit_Def digdugCoinAndCreditParams = 
+{
+   /*.leftCoin = 
+   {
+      .portNumber    = 0,
+      .triggerValue  = INP_DIGDUG_COIN_TRIGGER,
+      .triggerMask   = INP_DIGDUG_COIN_MASK
+   },*/
+   {  0, INP_DIGDUG_COIN_TRIGGER,      INP_DIGDUG_COIN_MASK       },
+   {  0, INP_DIGDUG_COIN_TRIGGER,      INP_DIGDUG_COIN_MASK       },
+   {  0, 0,                            0                          },
+   /*.start1 =
+   {
+      .portNumber    = 0,
+      .triggerValue  = INP_DIGDUG_START_TRIGGER_1,
+      .triggerMask   = INP_DIGDUG_START_MASK_1,
+   },*/
+   {  0, INP_DIGDUG_START_TRIGGER_1,   INP_DIGDUG_START_MASK_1,   },
+   /*.start2 = 
+   {
+      .portNumber    = 0,
+      .triggerValue  = INP_DIGDUG_START_TRIGGER_2,
+      .triggerMask   = INP_DIGDUG_START_MASK_2,
+   }*/
+   {  0, INP_DIGDUG_START_TRIGGER_2,   INP_DIGDUG_START_MASK_2,   },
+};
+
 static struct BurnInputInfo DigdugInputList[] =
 {
 	{"P1 Coin"              , BIT_DIGITAL  , &input.PortBits[0].Current[0], "p1 coin"   },
@@ -1431,91 +1466,93 @@ STDINPUTINFO(Digdug)
 
 static struct BurnDIPInfo DigdugDIPList[]=
 {
-   // nOffset, nID,     nMask,   nDefault,   NULL
-	{  0x10,    0xff,    0xff,    0xa1,       NULL		               },
-	{  0x11,    0xff,    0xff,    0x24,       NULL		               },
+ 	{  0x10,    0xf0,    0xff,    0xa1,       NULL		               },
+   
+  // nOffset, nID,     nMask,   nDefault,   NULL
+	{  0x00,    0xff,    0xff,    0xa1,       NULL		               },
+	{  0x01,    0xff,    0xff,    0x24,       NULL		               },
 
 	// Dip 1	
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
    {  0,       0xfe,    0,       8,          "Coin B"		            },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x10,    0x01,    0x07,    0x07,       "3 Coins 1 Credits"		},
-	{  0x10,    0x01,    0x07,    0x03,       "2 Coins 1 Credits"		},
-	{  0x10,    0x01,    0x07,    0x01,       "1 Coin  1 Credits"		},
-	{  0x10,    0x01,    0x07,    0x05,       "2 Coins 3 Credits"		},
-	{  0x10,    0x01,    0x07,    0x06,       "1 Coin  2 Credits"		},
-	{  0x10,    0x01,    0x07,    0x02,       "1 Coin  3 Credits"		},
-	{  0x10,    0x01,    0x07,    0x04,       "1 Coin  6 Credits"		},
-	{  0x10,    0x01,    0x07,    0x00,       "1 Coin  7 Credits"		},
+	{  0x00,    0x01,    0x07,    0x07,       "3 Coins 1 Credits"		},
+	{  0x00,    0x01,    0x07,    0x03,       "2 Coins 1 Credits"		},
+	{  0x00,    0x01,    0x07,    0x01,       "1 Coin  1 Credits"		},
+	{  0x00,    0x01,    0x07,    0x05,       "2 Coins 3 Credits"		},
+	{  0x00,    0x01,    0x07,    0x06,       "1 Coin  2 Credits"		},
+	{  0x00,    0x01,    0x07,    0x02,       "1 Coin  3 Credits"		},
+	{  0x00,    0x01,    0x07,    0x04,       "1 Coin  6 Credits"		},
+	{  0x00,    0x01,    0x07,    0x00,       "1 Coin  7 Credits"		},
 
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       16,         "Bonus Life"		      },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x10,    0x01,    0x38,    0x20,       "10K, 40K, Every 40K"	},
-	{  0x10,    0x01,    0x38,    0x10,       "10K, 50K, Every 50K"	},
-	{  0x10,    0x01,    0x38,    0x30,       "20K, 60K, Every 60K"	},
-	{  0x10,    0x01,    0x38,    0x08,       "20K, 70K, Every 70K"	},
-	{  0x10,    0x01,    0x38,    0x28,       "10K and 40K Only"		},
-	{  0x10,    0x01,    0x38,    0x18,       "20K and 60K Only"		},
-	{  0x10,    0x01,    0x38,    0x38,       "10K Only"		         },
-	{  0x10,    0x01,    0x38,    0x00,       "None"		            },
-	{  0x10,    0x01,    0x38,    0x20,       "20K, 60K, Every 60K"	},
-	{  0x10,    0x01,    0x38,    0x10,       "30K, 80K, Every 80K"	},
-	{  0x10,    0x01,    0x38,    0x30,       "20K and 50K Only"		},
-	{  0x10,    0x01,    0x38,    0x08,       "20K and 60K Only"		},
-	{  0x10,    0x01,    0x38,    0x28,       "30K and 70K Only"		},
-	{  0x10,    0x01,    0x38,    0x18,       "20K Only"		         },
-	{  0x10,    0x01,    0x38,    0x38,       "30K Only"		         },
-	{  0x10,    0x01,    0x38,    0x00,       "None"		            },
+	{  0x00,    0x01,    0x38,    0x20,       "10K, 40K, Every 40K"	},
+	{  0x00,    0x01,    0x38,    0x10,       "10K, 50K, Every 50K"	},
+	{  0x00,    0x01,    0x38,    0x30,       "20K, 60K, Every 60K"	},
+	{  0x00,    0x01,    0x38,    0x08,       "20K, 70K, Every 70K"	},
+	{  0x00,    0x01,    0x38,    0x28,       "10K and 40K Only"		},
+	{  0x00,    0x01,    0x38,    0x18,       "20K and 60K Only"		},
+	{  0x00,    0x01,    0x38,    0x38,       "10K Only"		         },
+	{  0x00,    0x01,    0x38,    0x00,       "None"		            },
+	{  0x00,    0x01,    0x38,    0x20,       "20K, 60K, Every 60K"	},
+	{  0x00,    0x01,    0x38,    0x10,       "30K, 80K, Every 80K"	},
+	{  0x00,    0x01,    0x38,    0x30,       "20K and 50K Only"		},
+	{  0x00,    0x01,    0x38,    0x08,       "20K and 60K Only"		},
+	{  0x00,    0x01,    0x38,    0x28,       "30K and 70K Only"		},
+	{  0x00,    0x01,    0x38,    0x18,       "20K Only"		         },
+	{  0x00,    0x01,    0x38,    0x38,       "30K Only"		         },
+	{  0x00,    0x01,    0x38,    0x00,       "None"		            },
 
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       4,          "Lives"		            },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x10,    0x01,    0xc0,    0x00,       "1"		               },
-	{  0x10,    0x01,    0xc0,    0x40,       "2"		               },
-	{  0x10,    0x01,    0xc0,    0x80,       "3"		               },
-	{  0x10,    0x01,    0xc0,    0xc0,       "5"		               },
+	{  0x00,    0x01,    0xc0,    0x00,       "1"		               },
+	{  0x00,    0x01,    0xc0,    0x40,       "2"		               },
+	{  0x00,    0x01,    0xc0,    0x80,       "3"		               },
+	{  0x00,    0x01,    0xc0,    0xc0,       "5"		               },
 
    // DIP 2
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       4,          "Coin A"		            },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x11,    0x01,    0xc0,    0x40,       "2 Coins 1 Credits"		},
-	{  0x11,    0x01,    0xc0,    0x00,       "1 Coin  1 Credits"		},
-	{  0x11,    0x01,    0xc0,    0xc0,       "2 Coins 3 Credits"		},
-	{  0x11,    0x01,    0xc0,    0x80,       "1 Coin  2 Credits"		},
+	{  0x01,    0x01,    0xc0,    0x40,       "2 Coins 1 Credits"		},
+	{  0x01,    0x01,    0xc0,    0x00,       "1 Coin  1 Credits"		},
+	{  0x01,    0x01,    0xc0,    0xc0,       "2 Coins 3 Credits"		},
+	{  0x01,    0x01,    0xc0,    0x80,       "1 Coin  2 Credits"		},
 
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Freeze"		            },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x11,    0x01,    0x20,    0x20,       "Off"		               },
-	{  0x11,    0x01,    0x20,    0x00,       "On"		               },
+	{  0x01,    0x01,    0x20,    0x20,       "Off"		               },
+	{  0x01,    0x01,    0x20,    0x00,       "On"		               },
 
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Demo Sounds"		      },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x11,    0x01,    0x10,    0x10,       "Off"		               },
-	{  0x11,    0x01,    0x10,    0x00,       "On"		               },
+	{  0x01,    0x01,    0x10,    0x10,       "Off"		               },
+	{  0x01,    0x01,    0x10,    0x00,       "On"		               },
 
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Allow Continue"		   },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x11,    0x01,    0x08,    0x08,       "No"		               },
-	{  0x11,    0x01,    0x08,    0x00,       "Yes"		               },
+	{  0x01,    0x01,    0x08,    0x08,       "No"		               },
+	{  0x01,    0x01,    0x08,    0x00,       "Yes"		               },
 
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       2,          "Cabinet"		         },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x11,    0x01,    0x04,    0x04,       "Upright"		         },
-	{  0x11,    0x01,    0x04,    0x00,       "Cocktail"		         },
+	{  0x01,    0x01,    0x04,    0x04,       "Upright"		         },
+	{  0x01,    0x01,    0x04,    0x00,       "Cocktail"		         },
 
    // x,       DIP_GRP, x,       OptionCnt,  szTitle
 	{  0,       0xfe,    0,       4,          "Difficulty"		      },
    // nInput,  nFlags,  nMask,   nSetting,   szText
-	{  0x11,    0x01,    0x03,    0x00,       "Easy"		            },
-	{  0x11,    0x01,    0x03,    0x02,       "Medium"		            },
-	{  0x11,    0x01,    0x03,    0x01,       "Hard"		            },
-	{  0x11,    0x01,    0x03,    0x03,       "Hardest"		         },
+	{  0x01,    0x01,    0x03,    0x00,       "Easy"		            },
+	{  0x01,    0x01,    0x03,    0x02,       "Medium"		            },
+	{  0x01,    0x01,    0x03,    0x01,       "Hard"		            },
+	{  0x01,    0x01,    0x03,    0x03,       "Hardest"		         },
 };
 
 STDDIPINFO(Digdug)
@@ -1877,12 +1914,14 @@ static UINT8 DigDugZ80ReadDip(UINT16 offset)
 
 static UINT8 DigDugZ80ReadInputs(UINT16 Offset)
 {
+   UINT8 retVal = 0xff;
+   
    switch (ioChip.CustomCommand) 
    {
       case 0xd2: 
       {
          if ( (0 == Offset) || (1 == Offset) )
-            return input.Dip[Offset];
+            retVal = input.Dip[Offset];
          break;
       }
       
@@ -1892,21 +1931,22 @@ static UINT8 DigDugZ80ReadInputs(UINT16 Offset)
          if (0xb1 == ioChip.CustomCommand)
          {
             if (Offset <= 2) // status
-               return 0;
+               retVal = 0;
             else
-               return 0xff;
+               retVal = 0xff;
          }
          
          if (0 == Offset) 
          {
             if (ioChip.Mode) 
             {
-               return input.Ports[0];
+               retVal = input.Ports[0];
             } 
             else 
             {
-               return updateCoinAndCredit(NAMCO_DIGDUG);
+               retVal = updateCoinAndCredit(&digdugCoinAndCreditParams);
             }
+            input.prevPorts[0] = input.Ports[0];
          }
          
          if ( (1 == Offset) || (2 == Offset) ) 
@@ -1934,12 +1974,12 @@ static UINT8 DigDugZ80ReadInputs(UINT16 Offset)
                jp = namcoControls[jp & 0x0f] | (jp & 0xf0);
             }
 
-            return updateJoyAndButtons(Offset, jp);
+            retVal = updateJoyAndButtons(Offset, jp);
          }
       }
    }
    
-   return 0xff;
+   return retVal;
 }
 
 static void DigDug_pf_latch_w(UINT16 offset, UINT8 data)
@@ -2090,6 +2130,25 @@ static void DigDugRenderSprites()
 }
 
 /* === XEVIOUS === */
+
+#define INP_XEVIOUS_COIN_TRIGGER_1  0x00
+#define INP_XEVIOUS_COIN_MASK_1     0x10
+#define INP_XEVIOUS_COIN_TRIGGER_2  0x00
+#define INP_XEVIOUS_COIN_MASK_2     0x20
+#define INP_XEVIOUS_START_TRIGGER_1 0x00
+#define INP_XEVIOUS_START_MASK_1    0x04
+#define INP_XEVIOUS_START_TRIGGER_2 0x00
+#define INP_XEVIOUS_START_MASK_2    0x08
+
+static struct CoinAndCredit_Def xeviousCoinAndCreditParams = 
+{
+   /*                   .portNumber,   .triggerValue,                .triggerMask*/
+   /*.leftCoin = */  {  2,             INP_XEVIOUS_COIN_TRIGGER_1,   INP_XEVIOUS_COIN_MASK_1    },
+   /*.rightCoin =*/  {  2,             INP_XEVIOUS_COIN_TRIGGER_2,   INP_XEVIOUS_COIN_MASK_2    },
+   /*.auxCoin = */   {  0,             0,                            0                          },
+   /*.start1 = */    {  2,             INP_XEVIOUS_START_TRIGGER_1,  INP_XEVIOUS_START_MASK_1,  },
+   /*.start2 = */    {  2,             INP_XEVIOUS_START_TRIGGER_2,  INP_XEVIOUS_START_MASK_2,  },
+};
 
 static struct BurnInputInfo XeviousInputList[] =
 {
@@ -2803,6 +2862,8 @@ static UINT8 XeviousZ80ReadDip(UINT16 Offset)
 
 static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
 {
+   UINT8 retVal = 0xff;
+   
    switch (ioChip.CustomCommand & 0x0f) 
    {
       case 0x01: 
@@ -2811,12 +2872,13 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
          {
             if (ioChip.Mode) 
             {
-               return input.Ports[2];        // service switch
+               retVal = input.Ports[2];        // service switch
             } 
             else 
             {
-               return updateCoinAndCredit(NAMCO_XEVIOUS);
+               retVal = updateCoinAndCredit(&xeviousCoinAndCreditParams);
             }
+            input.prevPorts[2] = input.Ports[2];
          }
          
          if ( (1 == Offset) || (2 == Offset) ) 
@@ -2828,7 +2890,7 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
                jp = namcoControls[jp & 0x0f] | (jp & 0xf0);
             }
 
-            return jp; //updateJoyAndButtons(Offset, jp);
+            retVal = jp; //updateJoyAndButtons(Offset, jp);
          }
          break;
       }
@@ -2838,12 +2900,12 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
          if (3 == Offset)
          {
             if ((0x80 == ioChip.Buffer[0]) || (0x10 == ioChip.Buffer[0]))
-               return 0x05;
+               retVal = 0x05;
             else
-               return 0x95;
+               retVal = 0x95;
          }
          else
-            return 0;
+            retVal = 0;
          break;
       }
       
@@ -2853,7 +2915,7 @@ static UINT8 XeviousZ80ReadInputs(UINT16 Offset)
       }
    }
    
-   return 0xff;
+   return retVal;
 }
 		
 static UINT8 XeviousWorkRAMRead(UINT16 Offset)
@@ -3220,7 +3282,9 @@ static INT32 DrvDoReset()
    
    machineReset();
    
-	input.PrevInValue = 0xff;
+	input.prevPorts[0] = 0;
+	input.prevPorts[1] = 0;
+	input.prevPorts[2] = 0;
 
    memset(&namco54xx, 0, sizeof(namco54xx));
    
@@ -3386,48 +3450,62 @@ static UINT8 __fastcall NamcoZ80ProgRead(UINT16 addr)
 	return dta;
 }
 
-static UINT8 updateCoinAndCredit(UINT8 gameID)
+static UINT8 updateCoinAndCredit(struct CoinAndCredit_Def *signals)
 {
-   const struct CoinAndCredit_Def *signals = &coinAndCreditParams[gameID];
-   
-   UINT8 In = input.Ports[signals->portNumber];
-   if (In != input.PrevInValue) 
+   UINT8 portNo = 0;
+   UINT8 In = 0;
+   if (signals)
    {
-      if (0 < ioChip.LeftCoinPerCredit) 
+      portNo = signals->leftCoin.portNumber;
+      In = input.Ports[portNo];
+      if (In != input.prevPorts[portNo])
       {
-         if ( (signals->coinTrigger != (In & signals->coinMask) ) && 
-              (99 > ioChip.Credits) ) 
+         if (0 < ioChip.LeftCoinPerCredit) 
          {
-            gameVars.coinInserted ++;
-            if (gameVars.coinInserted >= ioChip.LeftCoinPerCredit) 
+            if ( (signals->leftCoin.triggerValue == (In & signals->leftCoin.triggerMask) ) && 
+                 (99 > ioChip.Credits) ) 
             {
-               ioChip.Credits += ioChip.LeftCreditPerCoin;
-               gameVars.coinInserted = 0;
+               gameVars.coinInserted ++;
+               if (gameVars.coinInserted >= ioChip.LeftCoinPerCredit) 
+               {
+                  ioChip.Credits += ioChip.LeftCreditPerCoin;
+                  gameVars.coinInserted = 0;
+               }
             }
+         } 
+         else 
+         {
+            ioChip.Credits = 2;
          }
-      } 
-      else 
-      {
-         ioChip.Credits = 2;
       }
       
       if (gameVars.startEnable)
       {
-         if ( signals->start1Trigger != (In & signals->start1Mask) ) 
+         portNo = signals->start1.portNumber;
+         In = input.Ports[portNo];
+         if (In != input.prevPorts[portNo])
          {
-            if (ioChip.Credits >= 1) ioChip.Credits --;
+            if ( signals->start1.triggerValue == (In & signals->start1.triggerMask) ) 
+            {
+               if (ioChip.Credits >= 1) ioChip.Credits --;
+            }
          }
          
-         if ( signals->start2Trigger != (In & signals->start2Mask) ) 
+         portNo = signals->start2.portNumber;
+         In = input.Ports[portNo];
+         if (In != input.prevPorts[portNo])
          {
-            if (ioChip.Credits >= 2) ioChip.Credits -= 2;
+            if ( signals->start2.triggerValue == (In & signals->start2.triggerMask) ) 
+            {
+               if (ioChip.Credits >= 2) ioChip.Credits -= 2;
+            }
          }
       }
    }
    
-   input.PrevInValue = In;
+   UINT8 retVal = (ioChip.Credits / 10) * 16 + ioChip.Credits % 10;
    
-   return (ioChip.Credits / 10) * 16 + ioChip.Credits % 10;
+   return retVal;
 }
 
 static UINT8 updateJoyAndButtons(UINT16 Offset, UINT8 jp)
@@ -3733,17 +3811,10 @@ static void DrvMakeInputs()
 		input.Ports[0] -= (input.PortBits[0].Current[i] & 1) << i;
 		input.Ports[1] -= (input.PortBits[1].Current[i] & 1) << i;
 		input.Ports[2] -= (input.PortBits[2].Current[i] & 1) << i;
-	}
+ 	}
 
-   // galaga only - service mode
 	switch (machine.Game) 
    {
-      case NAMCO_GALAGA:
-//         input.Ports[0] = (input.Ports[0] & ~0x80) | (input.Dip[2] & 0x80);
-         input.Ports[0] = (input.Ports[0] & ~0x40); // | ((input.Dip[2] & 0x80) >> 1);
-         printf("\n== %x, %x", input.Ports[0], input.Dip[1]);
-         break;
-         
       case NAMCO_XEVIOUS:
          // map blaster inputs from ports to dip switches
          input.Dip[0] &= 0xEE;
@@ -3754,14 +3825,16 @@ static void DrvMakeInputs()
       default:
          break;
    }
-   
-   printf("\ninp prt: %x %x %x", input.Ports[0], input.Ports[1], input.Ports[2]);
 }
 
 static INT32 DrvFrame()
 {
 	
-	if (input.Reset) DrvDoReset();
+	if (input.Reset)
+   {
+      printf("\nRst: %x", input.Reset); 
+      DrvDoReset();
+   }
 
 	DrvMakeInputs();
 
@@ -3777,7 +3850,7 @@ static INT32 DrvFrame()
 
 	for (INT32 i = 0; i < nInterleave; i++) 
    {
-		INT32 nCurrentCPU;
+      INT32 nCurrentCPU;
 		
 		nCurrentCPU = CPU1;
 		ZetOpen(nCurrentCPU);
@@ -3903,7 +3976,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(ioChip.RightCreditPerCoin);
 		SCAN_VAR(ioChip.AuxCoinPerCredit);
 		SCAN_VAR(ioChip.AuxCreditPerCoin);
-		SCAN_VAR(input.PrevInValue);
+		SCAN_VAR(input.prevPorts);
 		SCAN_VAR(stars.Control);
 		SCAN_VAR(ioChip.Buffer);
 
