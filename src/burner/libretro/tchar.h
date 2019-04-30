@@ -1,60 +1,40 @@
 #ifndef __PORT_TYPEDEFS_H
 #define __PORT_TYPEDEFS_H
 
-#include <stdint.h>
-#include <wchar.h>
-
 #include "libretro.h"
-#include "inp_keys.h"
-
-#ifdef _MSC_VER
-#include <winapifamily.h>
-#include <string.h>
-	#define strncasecmp _strnicmp
-	#define strcasecmp _stricmp
-	#define snprintf _snprintf
-	#undef UNICODE
-	#undef _UNICODE
-#endif
-
-#define _T(x) x
-#define _tfopen rfopen
-#define _tcstol strtol
-#define _tcsstr strstr
-#define _istspace(x) isspace(x)
-#define _sntprintf snprintf
-#define _stprintf sprintf
-#define _tcslen strlen
-#define _tcsicmp(a, b) strcasecmp(a, b)
-#define _tcscpy(to, from) strcpy(to, from)
-#define _fgetts fgets
-#define _strnicmp(s1, s2, n) strncasecmp(s1, s2, n)
-#define _tcscmp strcmp
-#define _tcsncmp strncmp
-#define _tcsncpy strncpy
-#define _stscanf sscanf
-#define _ftprintf fprintf
-#define fseeko rfseek
-#define ftello rftell
-
-#ifdef UNICODE //Is there any point in this? Can we not just typedef TCHAR to CHAR?
-	typedef wchar_t TCHAR;
-#else
-	typedef char	TCHAR;
-#endif
-
-#define _stricmp(x, y) strcasecmp(x,y)
-
-#ifndef _MSC_VER
-	typedef struct { int x, y, width, height; } RECT;
-#else
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
-	typedef struct { int x, y, width, height; } RECT;
+#if 0
+#ifndef IOS
+	// This is a nightmarish hack brought forth by file_stream_transform...
+	// Code using string types, char types and file functions will fail
+	// on msvc2017 if we don't include the following libraries before
+	// file_stream_transforms due to conflicting declarations.
+	// It also seems one of those includes provide math on msvc2017, so
+	// we'll lack M_PI if we don't define _USE_MATH_DEFINES right now.
+	// Furthermore, <string> breaks FBA_DEBUG while <string.h> breaks
+	// msvc2017 x86 builds...
+	#define _USE_MATH_DEFINES
+	#include <wchar.h>
+	#ifndef _MSC_VER
+		#include <string.h>
+	#else
+		#include <string>
+	#endif
 #endif
 #endif
+#if defined(_MSC_VER) || defined(__MINGW32__)
+	#define _USE_MATH_DEFINES
+	#include <wchar.h>
+	#include <string>
+#endif
+#include "streams/file_stream_transforms.h"
 
-#undef __cdecl
-#define __cdecl
+extern int kNetGame;
+extern int bRunPause;
+
+#ifdef USE_CYCLONE
+	#define SEK_CORE_C68K (0)
+	#define SEK_CORE_M68K (1)
+	extern int nSekCpuCore;  // 0 - c68k, 1 - m68k
 #endif
 
 /* fastcall only works on x86_32 */
@@ -62,38 +42,34 @@
 	#undef __fastcall
 	#define __fastcall
 #else
+	#ifndef _MSC_VER
+		#undef __fastcall
+		#define __fastcall __attribute__((fastcall))
+	#endif
+#endif
+
 #ifndef _MSC_VER
-	#undef __fastcall
-	#define __fastcall __attribute__((fastcall))
+	#include <stdint.h>
+#else
+	#undef _UNICODE
+	#include "compat/msvc.h"
+	#include "compat/posix_string.h"
 #endif
-#endif
 
-#define ANSIToTCHAR(str, foo, bar) (str)
+#define _T(x) x
+#define _tfopen fopen
+#define _stprintf sprintf
+#define _tcslen strlen
+#define _tcscpy strcpy
+#define _tcstol strtol
+#define _istspace isspace
+#define _tcsncmp strncmp
+#define _tcsncpy strncpy
+#define _tcsicmp strcasecmp
+#define _stricmp strcasecmp
+#define stricmp strcasecmp
+#define _ftprintf fprintf
 
-/* for Windows / Xbox 360 (below VS2010) - typedefs for missing stdint.h types such as uintptr_t?*/
+typedef char TCHAR;
 
-/*FBA defines*/
-#define PUF_TEXT_NO_TRANSLATE	(0)
-#define PUF_TYPE_ERROR		(1)
-
-extern TCHAR szAppBurnVer[16];
-
-typedef int HWND;
-
-extern int bDrvOkay;
-extern int bRunPause;
-extern bool bAlwaysProcessKeyboardInput;
-extern HWND hScrnWnd;		// Handle to the screen window
-
-extern void InpDIPSWResetDIPs (void);
-
-/* undefine some system macro */
-#ifdef PAGE_SHIFT
- #undef PAGE_SHIFT
-#endif
-#ifdef PAGE_SIZE
- #undef PAGE_SIZE
-#endif
-#ifdef PAGE_MASK
- #undef PAGE_MASK
 #endif

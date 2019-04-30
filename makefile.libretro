@@ -9,7 +9,7 @@ FASTMATH = 1
 USE_SPEEDHACKS = 1
 EXTERNAL_ZLIB = 0
 INCLUDE_7Z_SUPPORT = 1
-# enable x86_64 dynarec, however it's not working properly atm
+# enable x86_64 dynarec used in killer instinct
 USE_X64_DRC = 0
 AUTOGEN_DATS = 0
 HAVE_NEON = 0
@@ -436,13 +436,12 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 
 # Windows
 else
-   TARGET := $(TARGET_NAME)_libretro.dll
-   CC = gcc
-   CXX = g++
-   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(VERSION_SCRIPT)
-   LDFLAGS += -static-libgcc -static-libstdc++
-   ENDIANNESS_DEFINES := -DLSB_FIRST
-
+	TARGET := $(TARGET_NAME)_libretro.dll
+	CC = gcc
+	CXX = g++
+	SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(VERSION_SCRIPT)
+	LDFLAGS += -static-libgcc -static-libstdc++
+	ENDIANNESS_DEFINES := -DLSB_FIRST
 endif
 
 CC_SYSTEM = gcc
@@ -636,6 +635,15 @@ endif
 
 %.o: %.c
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
+
+# Disabling file_stream_transform for those files
+# In the following file, it's messing with the cdda playback
+src/burner/libretro/retro_cdemu.o: src/burner/libretro/retro_cdemu.cpp
+	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS) -DSKIP_STDIO_REDEFINES
+
+# In the following file, it's lacking a stdout implementation
+src/cpu/mips3/x64/mips3_x64.o: src/cpu/mips3/x64/mips3_x64.cpp
+	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS) -DSKIP_STDIO_REDEFINES
 
 %.o: %.cpp
 	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS)

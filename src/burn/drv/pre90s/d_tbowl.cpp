@@ -205,11 +205,7 @@ static void __fastcall tbowl_main_write(UINT16 address, UINT8 data)
 
 		case 0xfc0d:
 			*soundlatch = data;
-			ZetClose();
-			ZetOpen(2);
-			ZetNmi();
-			ZetClose();
-			ZetOpen(0);
+			ZetNmi(2);
 		return;
 	}
 
@@ -260,11 +256,7 @@ static void __fastcall tbowl_sub_write(UINT16 address, UINT8 data)
 		return;
 
 		case 0xfc02:
-			ZetClose();
-			ZetOpen(0);
-			ZetNmi();
-			ZetClose();
-			ZetOpen(1);
+			ZetNmi(0);
 		return;
 	}
 }
@@ -679,6 +671,16 @@ static INT32 DrvDraw()
 	return 0;
 }
 
+static void DrvClearOpposites(UINT8* nJoystickInputs)
+{
+	if ((*nJoystickInputs & 0x03) == 0x00) {
+		*nJoystickInputs |= 0x03;
+	}
+	if ((*nJoystickInputs & 0x0c) == 0x00) {
+		*nJoystickInputs |= 0x0c;
+	}
+}
+
 static INT32 DrvFrame()
 {
 	if (DrvReset) {
@@ -694,6 +696,10 @@ static INT32 DrvFrame()
 			DrvInputs[3] ^= (DrvJoy4[i] & 1) << i;
 			DrvInputs[4] ^= (DrvJoy5[i] & 1) << i;
 		}
+		DrvClearOpposites(&DrvInputs[0]);
+		DrvClearOpposites(&DrvInputs[1]);
+		DrvClearOpposites(&DrvInputs[2]);
+		DrvClearOpposites(&DrvInputs[3]);
 	}
 
 	ZetNewFrame();

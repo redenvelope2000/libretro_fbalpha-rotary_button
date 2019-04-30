@@ -2331,7 +2331,7 @@ struct BurnDriver BurnDrvPanicstr = {
 };
 
 
-// Gals Panic 4 (Japan)
+// Gals Panic 4 (Europe)
 
 static struct BurnRomInfo galpani4RomDesc[] = {
 	{ "gp4-000-e0.u10",	0x080000, 0x7464cc28, 1 | BRF_PRG | BRF_ESS }, //  0 SH2 Code
@@ -2345,9 +2345,11 @@ static struct BurnRomInfo galpani4RomDesc[] = {
 
 	{ "gp4-300-00.u4",	0x200000, 0x8374663a, 5 | BRF_SND },           //  6 YMZ280b Samples
 	
+	
 	{ "gp4-301-00.u7",	0x200000, 0x00000000, 0 | BRF_OPT | BRF_NODUMP },
 	{ "skns-r11.u11",	0x000117, 0xa9f05af4, 0 | BRF_OPT },
 	{ "skns-r09.u9",	0x000117, 0xb02058d9, 0 | BRF_OPT },
+	
 };
 
 STDROMPICKEXT(galpani4, galpani4, skns)
@@ -2358,16 +2360,52 @@ static INT32 Galpani4Init()
 	sprite_kludge_x = -5;
 	sprite_kludge_y = -1;
 
-	return DrvInit(0 /*Japan*/);
+	return DrvInit(1 /*Europe*/);
 }
 
 struct BurnDriver BurnDrvGalpani4 = {
 	"galpani4", NULL, "skns", NULL, "1996",
-	"Gals Panic 4 (Japan)\0", NULL, "Kaneko", "Super Kaneko Nova System",
+	"Gals Panic 4 (Europe)\0", "No sound.  Use a clone, instead!", "Kaneko", "Super Kaneko Nova System",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_HISCORE_SUPPORTED, 2, HARDWARE_KANEKO_SKNS, GBF_PUZZLE, 0,
 	NULL, galpani4RomInfo, galpani4RomName, NULL, NULL, NULL, NULL, CyvernInputInfo, CyvernNoSpeedhackDIPInfo,
 	Galpani4Init, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 0x8000,
+	320, 240, 4, 3
+};
+
+// Gals Panic 4 (Japan)
+
+static struct BurnRomInfo galpani4jRomDesc[] = {
+	{ "gp4j1.u10",		0x080000, 0x919a3893, 1 | BRF_PRG | BRF_ESS }, //  0 SH2 Code
+	{ "gp4j1.u8",		0x080000, 0x94cb1fb7, 1 | BRF_PRG | BRF_ESS }, //  1
+
+	{ "gp4-100-00.u24",	0x200000, 0x1df61f01, 2 | BRF_GRA },           //  2 Sprites
+	{ "gp4-101-00.u20",	0x100000, 0x8e2c9349, 2 | BRF_GRA },           //  3
+
+	{ "gp4-200-00.u16",	0x200000, 0xf0781376, 3 | BRF_GRA },           //  4 Background Tiles
+	{ "gp4-201-00.u18",	0x200000, 0x10c4b183, 3 | BRF_GRA },           //  5
+
+	{ "gp4-300-00.u4",	0x200000, 0x8374663a, 5 | BRF_SND },           //  6 YMZ280b Samples
+};
+
+STDROMPICKEXT(galpani4j, galpani4j, skns)
+STD_ROM_FN(galpani4j)
+
+static INT32 Galpani4jInit()
+{
+	sprite_kludge_x = -5;
+	sprite_kludge_y = -1;
+
+	return DrvInit(0 /*Japan*/);
+}
+
+struct BurnDriver BurnDrvGalpani4j = {
+	"galpani4j", "galpani4", "skns", NULL, "1996",
+	"Gals Panic 4 (Japan)\0", NULL, "Kaneko", "Super Kaneko Nova System",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING | BDF_CLONE | BDF_HISCORE_SUPPORTED, 2, HARDWARE_KANEKO_SKNS, GBF_PUZZLE, 0,
+	NULL, galpani4jRomInfo, galpani4jRomName, NULL, NULL, NULL, NULL, CyvernInputInfo, CyvernNoSpeedhackDIPInfo,
+	Galpani4jInit, DrvExit, DrvFrame, DrvDraw, DrvScan, NULL, 0x8000,
 	320, 240, 4, 3
 };
 
@@ -2453,14 +2491,14 @@ static struct BurnRomInfo galpanisRomDesc[] = {
 	{ "gps-000-e1.u10",	0x100000, 0xb9ea3c44, 1 | BRF_PRG | BRF_ESS }, //  0 SH2 Code
 	{ "gps-001-e1.u8",	0x100000, 0xded57bd0, 1 | BRF_PRG | BRF_ESS }, //  1
 
-	{ "gps10000.u24",	0x400000, 0xa1a7acf2, 2 | BRF_GRA },           //  2 Sprites
-	{ "gps10100.u20",	0x400000, 0x49f764b6, 2 | BRF_GRA },           //  3
-	{ "gps10200.u17",	0x400000, 0x51980272, 2 | BRF_GRA },           //  4
+	{ "gps-100-00.u24",	0x400000, 0xa1a7acf2, 2 | BRF_GRA },           //  2 Sprites
+	{ "gps-101-00.u20",	0x400000, 0x49f764b6, 2 | BRF_GRA },           //  3
+	{ "gps-102-00.u17",	0x400000, 0x51980272, 2 | BRF_GRA },           //  4
 
-	{ "gps20000.u16",	0x400000, 0xc146a09e, 3 | BRF_GRA },           //  5 Background Tiles
-	{ "gps20100.u13",	0x400000, 0x9dfa2dc6, 3 | BRF_GRA },           //  6
+	{ "gps-200-00.u16",	0x400000, 0xc146a09e, 3 | BRF_GRA },           //  5 Background Tiles
+	{ "gps-201-00.u13",	0x400000, 0x9dfa2dc6, 3 | BRF_GRA },           //  6
 
-	{ "gps30000.u4",	0x400000, 0x9e4da8e3, 5 | BRF_SND },           //  7 YMZ280b Samples
+	{ "gps-300-00.u4",	0x400000, 0x9e4da8e3, 5 | BRF_SND },           //  7 YMZ280b Samples
 };
 
 STDROMPICKEXT(galpanis, galpanis, skns)
@@ -2491,14 +2529,14 @@ static struct BurnRomInfo galpanisjRomDesc[] = {
 	{ "gps-000-j1.u10",	0x100000, 0xc6938c3f, 1 | BRF_PRG | BRF_ESS }, //  0 SH2 Code
 	{ "gps-001-j1.u8",	0x100000, 0xe764177a, 1 | BRF_PRG | BRF_ESS }, //  1
 
-	{ "gps10000.u24",	0x400000, 0xa1a7acf2, 2 | BRF_GRA },           //  2 Sprites
-	{ "gps10100.u20",	0x400000, 0x49f764b6, 2 | BRF_GRA },           //  3
-	{ "gps10200.u17",	0x400000, 0x51980272, 2 | BRF_GRA },           //  4
+	{ "gps-100-00.u24",	0x400000, 0xa1a7acf2, 2 | BRF_GRA },           //  2 Sprites
+	{ "gps-101-00.u20",	0x400000, 0x49f764b6, 2 | BRF_GRA },           //  3
+	{ "gps-102-00.u17",	0x400000, 0x51980272, 2 | BRF_GRA },           //  4
 
-	{ "gps20000.u16",	0x400000, 0xc146a09e, 3 | BRF_GRA },           //  5 Background Tiles
-	{ "gps20100.u13",	0x400000, 0x9dfa2dc6, 3 | BRF_GRA },           //  6
+	{ "gps-200-00.u16",	0x400000, 0xc146a09e, 3 | BRF_GRA },           //  5 Background Tiles
+	{ "gps-201-00.u13",	0x400000, 0x9dfa2dc6, 3 | BRF_GRA },           //  6
 
-	{ "gps30000.u4",	0x400000, 0x9e4da8e3, 5 | BRF_SND },           //  7 YMZ280b Samples
+	{ "gps-300-00.u4",	0x400000, 0x9e4da8e3, 5 | BRF_SND },           //  7 YMZ280b Samples
 };
 
 STDROMPICKEXT(galpanisj, galpanisj, skns)
@@ -2529,14 +2567,14 @@ static struct BurnRomInfo galpaniskRomDesc[] = {
 	{ "gps-000-k1.u10",	0x100000, 0xc9ff3d8a, 1 | BRF_PRG | BRF_ESS }, //  0 SH2 Code
 	{ "gps-001-k1.u8",	0x100000, 0x354e601d, 1 | BRF_PRG | BRF_ESS }, //  1
 
-	{ "gps10000.u24",	0x400000, 0xa1a7acf2, 2 | BRF_GRA },           //  2 Sprites
-	{ "gps10100.u20",	0x400000, 0x49f764b6, 2 | BRF_GRA },           //  3
-	{ "gps10200.u17",	0x400000, 0x51980272, 2 | BRF_GRA },           //  4
+	{ "gps-100-00.u24",	0x400000, 0xa1a7acf2, 2 | BRF_GRA },           //  2 Sprites
+	{ "gps-101-00.u20",	0x400000, 0x49f764b6, 2 | BRF_GRA },           //  3
+	{ "gps-102-00.u17",	0x400000, 0x51980272, 2 | BRF_GRA },           //  4
 
-	{ "gps20000.u16",	0x400000, 0xc146a09e, 3 | BRF_GRA },           //  5 Background Tiles
-	{ "gps20100.u13",	0x400000, 0x9dfa2dc6, 3 | BRF_GRA },           //  6
+	{ "gps-200-00.u16",	0x400000, 0xc146a09e, 3 | BRF_GRA },           //  5 Background Tiles
+	{ "gps-201-00.u13",	0x400000, 0x9dfa2dc6, 3 | BRF_GRA },           //  6
 
-	{ "gps30000.u4",	0x400000, 0x9e4da8e3, 5 | BRF_SND },           //  7 YMZ280b Samples
+	{ "gps-300-00.u4",	0x400000, 0x9e4da8e3, 5 | BRF_SND },           //  7 YMZ280b Samples
 };
 
 STDROMPICKEXT(galpanisk, galpanisk, skns)

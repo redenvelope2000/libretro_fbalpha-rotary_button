@@ -95,7 +95,6 @@
 
 #include "burnint.h"
 #include "z80.h"
-#include "z80daisy.h"
 #include <stddef.h>
 
 #define	FALSE			0
@@ -838,7 +837,7 @@ Z80_INLINE UINT32 ARG16(void)
 	change_pc(PCD);												\
 /* according to http://www.msxnet.org/tech/z80-documented.pdf */\
 	IFF1 = IFF2;												\
-	if (Z80.daisy)												\
+    if (Z80.daisy)												\
 		z80daisy_call_reti_device(Z80.daisy);					\
 }
 
@@ -3523,12 +3522,14 @@ void Z80Init()
 	F = ZF;			/* Zero flag is set */
 }
 
+void Z80SetDaisy(void *dptr)
+{
+	Z80.daisy = (z80_irq_daisy_chain *)dptr;
+}
+
 void Z80Reset()
 {
-	//struct z80_irq_daisy_chain *daisy;
-	//int (*irq_callback)(int irqline);
-
-	memset(&Z80, 0, STRUCT_SIZE_HELPER(Z80_Regs, hold_irq)); // don't clear the callback's
+	memset(&Z80, 0, STRUCT_SIZE_HELPER(Z80_Regs, hold_irq)); // don't clear the callback pointers
 	Z80.hold_irq = 0;
 
 	PC = 0x0000;
@@ -3540,6 +3541,7 @@ void Z80Reset()
 	Z80.nmi_pending = FALSE;
 	Z80.irq_state = Z80_CLEAR_LINE;
 	Z80.after_ei = FALSE;
+	IX = IY = 0xffff; /* IX and IY are FFFF after a reset! */
 	IFF1 = 0;
 	IFF2 = 0;
 	WZ = PCD;
@@ -3553,6 +3555,9 @@ void Z80Reset()
 
 void Z80Exit()
 {
+    if (Z80.daisy) {
+        z80daisy_exit();
+    }
 
 	if (SZHVC_add) free(SZHVC_add);
 	SZHVC_add = NULL;
@@ -3601,6 +3606,10 @@ int Z80Execute(int cycles)
 	cycles = cycles - z80_ICount;
 
 	Z80.cycles_left = z80_ICount = 0;
+
+    if (Z80.daisy && z80daisy_has_ctc) {
+        z80ctc_timer_update(cycles);
+    }
 
 	return cycles;
 }
@@ -3661,17 +3670,9 @@ void Z80SetContext (void *src)
 
 int Z80Scan(int nAction)
 {
-	if ((nAction & ACB_DRIVER_DATA) == 0) {
-		return 0;
-	}
-
-	struct BurnArea ba;
-
-	memset(&ba, 0, sizeof(ba));
-	ba.Data	  = &Z80;
-	ba.nLen	  = STRUCT_SIZE_HELPER(Z80_Regs, hold_irq);
-	ba.szName = "Z80 Registers";
-	BurnAcb(&ba);
+    if (Z80.daisy) {
+        z80daisy_scan(nAction);
+    }
 
 	return 0;
 }

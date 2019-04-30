@@ -5,7 +5,7 @@
 #ifndef TMS34010_H
 #define TMS34010_H
 
-#include "stdint.h"
+#include "burnint.h"
 #include <string>
 //#include <list>
 //#include <fstream>
@@ -519,7 +519,6 @@ dword read_ioreg(cpu_state *cpu, dword addr);
 
 std::string dasm(dword addr, size_t *size);
 std::string new_dasm(dword pc, size_t *size);
-
 }
 
 #endif // TMS34010_H

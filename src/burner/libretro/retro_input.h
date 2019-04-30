@@ -2,6 +2,7 @@
 #define __RETRO_INPUT__
 
 #include "burner.h"
+#include "burn_gun.h"
 
 struct KeyBind
 {
@@ -25,14 +26,16 @@ struct AxiBind
 #define RETROMOUSE_BALL		RETRO_DEVICE_MOUSE
 #define RETROMOUSE_FULL		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 1)
 
+#define GIT_DIRECT_COORD	(0x11)
+
 #define JOY_NEG 0
 #define JOY_POS 1
 #define RETRO_DEVICE_ID_JOYPAD_EMPTY 255
 
 void SetDiagInpHoldFrameDelay(unsigned val);
 void InputMake(void);
-void UpdateMacros();
 void InputInit();
 void InputDeInit();
+void SetControllerInfo();
 
 #endif

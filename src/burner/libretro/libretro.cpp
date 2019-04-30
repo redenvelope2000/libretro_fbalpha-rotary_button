@@ -20,7 +20,6 @@
 
 static void log_dummy(enum retro_log_level level, const char *fmt, ...) { }
 
-static void set_controller_infos();
 static bool apply_dipswitch_from_variables();
 
 static void init_audio_buffer(INT32 sample_rate, INT32 fps);
@@ -61,7 +60,9 @@ INT32 (__cdecl *bprintf) (INT32 nStatus, TCHAR* szFormat, ...) = libretro_bprint
 
 int kNetGame = 0;
 INT32 nReplayStatus = 0;
-static unsigned nGameType = 0;
+INT32 nIpsMaxFileLen = 0;
+unsigned nGameType = 0;
+static INT32 nGameWidth, nGameHeight;
 
 static unsigned int BurnDrvGetIndexByName(const char* name);
 char* DecorateGameName(UINT32 nBurnDrv);
@@ -90,14 +91,10 @@ INT32 nAudSegLen = 0;
 
 static UINT8* pVidImage = NULL;
 static int16_t *g_audio_buf;
-static int16_t *neocd_ibuf;
-static float *neocd_fbuf;
 
 // Mapping of PC inputs to game inputs
 struct GameInp* GameInp = NULL;
 UINT32 nGameInpCount = 0;
-UINT32 nMacroCount = 0;
-UINT32 nMaxMacro = 0;
 INT32 nAnalogSpeed = 0x0100;
 INT32 nFireButtons = 0;
 
@@ -105,18 +102,6 @@ INT32 nFireButtons = 0;
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 void retro_set_audio_sample(retro_audio_sample_t) {}
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
-
-#define RETRO_GAME_TYPE_CV		1
-#define RETRO_GAME_TYPE_GG		2
-#define RETRO_GAME_TYPE_MD		3
-#define RETRO_GAME_TYPE_MSX		4
-#define RETRO_GAME_TYPE_PCE		5
-#define RETRO_GAME_TYPE_SG1K	6
-#define RETRO_GAME_TYPE_SGX		7
-#define RETRO_GAME_TYPE_SMS		8
-#define RETRO_GAME_TYPE_TG		9
-#define RETRO_GAME_TYPE_SPEC	10
-#define RETRO_GAME_TYPE_NEOCD	11
 
 void retro_set_environment(retro_environment_t cb)
 {
@@ -127,7 +112,7 @@ void retro_set_environment(retro_environment_t cb)
 		{ "Rom", "zip|7z", true, true, true, NULL, 0 },
 	};
 	static const struct retro_subsystem_rom_info subsystem_iso[] = {
-		{ "Iso", "iso|cue", true, true, true, NULL, 0 },
+		{ "Iso", "ccd|cue", true, true, true, NULL, 0 },
 	};
 	static const struct retro_subsystem_info subsystems[] = {
 		{ "CBS ColecoVision", "cv", subsystem_rom, 1, RETRO_GAME_TYPE_CV },
@@ -165,7 +150,7 @@ void retro_get_system_info(struct retro_system_info *info)
 	info->library_version = FBA_VERSION GIT_VERSION;
 	info->need_fullpath = true;
 	info->block_extract = true;
-	info->valid_extensions = "iso|zip|7z";
+	info->valid_extensions = "zip|7z";
 }
 
 // FBA stubs
@@ -380,29 +365,6 @@ static int InpDIPSWInit()
    return 0;
 }
 
-static void set_controller_infos()
-{
-	static const struct retro_controller_description controller_description[] = {
-		{ "Classic", RETROPAD_CLASSIC },
-		{ "Modern", RETROPAD_MODERN },
-		{ "Mouse (ball only)", RETROMOUSE_BALL },
-		{ "Mouse (full)", RETROMOUSE_FULL }
-	};
-
-	std::vector<retro_controller_info> controller_infos(nMaxPlayers+1);
-
-	for (int i = 0; i < nMaxPlayers; i++)
-	{
-		controller_infos[i].types = controller_description;
-		controller_infos[i].num_types = sizeof(controller_description)/sizeof(*controller_description);
-	}
-
-	controller_infos[nMaxPlayers].types = NULL;
-	controller_infos[nMaxPlayers].num_types = 0;
-
-	environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, controller_infos.data());
-}
-
 // Update DIP switches value  depending of the choice the user made in core options
 static bool apply_dipswitch_from_variables()
 {
@@ -468,9 +430,11 @@ int InputSetCooperativeLevel(const bool bExclusive, const bool bForeGround) { re
 void Reinitialise(void)
 {
 	// Update the geometry, some games (sfiii2) and systems (megadrive) need it.
+	BurnDrvGetFullSize(&nGameWidth, &nGameHeight);
+	nBurnPitch = nGameWidth * nBurnBpp;
 	struct retro_system_av_info av_info;
 	retro_get_system_av_info(&av_info);
-	environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+	environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
 }
 
 static void ForceFrameStep(int bDraw)
@@ -787,6 +751,27 @@ static bool open_archive()
    return true;
 }
 
+static void SetRotation()
+{
+	unsigned rotation;
+	switch (BurnDrvGetFlags() & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
+	{
+		case BDF_ORIENTATION_VERTICAL:
+			rotation = (bVerticalMode ? 0 : 1);
+			break;
+		case BDF_ORIENTATION_FLIPPED:
+			rotation = (bVerticalMode ? 1 : 2);
+			break;
+		case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
+			rotation = (bVerticalMode ? 2 : 3);
+			break;
+		default:
+			rotation = (bVerticalMode ? 3 : 0);;
+			break;
+	}
+	environ_cb(RETRO_ENVIRONMENT_SET_ROTATION, &rotation);
+}
+
 #ifdef AUTOGEN_DATS
 int CreateAllDatfiles()
 {
@@ -851,16 +836,7 @@ void retro_init()
 
 void retro_deinit()
 {
-	if(nGameType == RETRO_GAME_TYPE_NEOCD) {
-		audio_mixer_done();
-		if (neocd_fbuf)
-			free(neocd_fbuf);
-		if (neocd_ibuf)
-			free(neocd_ibuf);
-	}
 	BurnLibExit();
-	if (g_audio_buf)
-		free(g_audio_buf);
 }
 
 void retro_reset()
@@ -884,61 +860,30 @@ void retro_reset()
 
 void retro_run()
 {
-	int width, height;
-	BurnDrvGetVisibleSize(&width, &height);
 	pBurnDraw = pVidImage;
 
 	InputMake();
 
 	ForceFrameStep(nCurrentFrame % nFrameskip == 0);
 
-	unsigned drv_flags = BurnDrvGetFlags();
-	uint32_t height_tmp = height;
+	video_cb(pVidImage, nGameWidth, nGameHeight, nBurnPitch);
 
-	switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
-	{
-		case BDF_ORIENTATION_VERTICAL:
-		case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-			nBurnPitch = height * nBurnBpp;
-			height = width;
-			width = height_tmp;
-			break;
-		case BDF_ORIENTATION_FLIPPED:
-		default:
-			nBurnPitch = width * nBurnBpp;
-	}
-
-	video_cb(pVidImage, width, height, nBurnPitch);
-
-	// If game is neocd, mix sound tracks into the audio buffer
-	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
-		memset(neocd_fbuf, 0, nAudSegLen<<2 * sizeof(float));
-		audio_mixer_mix(neocd_fbuf, nBurnSoundLen, 1, false);
-		convert_float_to_s16(neocd_ibuf, neocd_fbuf, nAudSegLen<<2);
-		for (unsigned i = 0; i < nBurnSoundLen; i++)
-		{
-			g_audio_buf[i * 2]       = CLAMP_I16(g_audio_buf[i * 2] + neocd_ibuf[i * 2]);
-			g_audio_buf[(i * 2) + 1] = CLAMP_I16(g_audio_buf[(i * 2) + 1] + neocd_ibuf[(i * 2) + 1]);
-		}
-	}
 	audio_batch_cb(g_audio_buf, nBurnSoundLen);
 	bool updated = false;
 
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
 	{
-		bool old_core_aspect_par = core_aspect_par;
 		neo_geo_modes old_g_opt_neo_geo_mode = g_opt_neo_geo_mode;
+		bool old_bVerticalMode = bVerticalMode;
 
 		check_variables();
 
 		apply_dipswitch_from_variables();
 
-		// Maybe macros changed, update them
-		UpdateMacros();
-
-		// adjust aspect ratio if the needed
-		if (old_core_aspect_par != core_aspect_par)
+		// change orientation/geometry if vertical mode was toggled on/off
+		if (old_bVerticalMode != bVerticalMode)
 		{
+			SetRotation();
 			struct retro_system_av_info av_info;
 			retro_get_system_av_info(&av_info);
 			environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
@@ -1045,31 +990,16 @@ void retro_cheat_set(unsigned, bool, const char*) {}
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-	int width, height, game_aspect_x, game_aspect_y;
-	BurnDrvGetVisibleSize(&width, &height);
-	pVidImage = BurnMalloc(width * height * nBurnBpp);
+	int game_aspect_x, game_aspect_y;
+	if (pVidImage)
+		free(pVidImage);
+	pVidImage = (UINT8*)malloc(nGameWidth * nGameHeight * nBurnBpp);
 	BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
-	if (bVerticalMode)
-	{
-		int tmp_height = width;
-		width = height;
-		height = tmp_height;
-	}
-	int maximum = width > height ? width : height;
-	struct retro_game_geometry geom = { (unsigned)width, (unsigned)height, (unsigned)maximum, (unsigned)maximum };
 
+	int maximum = nGameWidth > nGameHeight ? nGameWidth : nGameHeight;
+	struct retro_game_geometry geom = { (unsigned)nGameWidth, (unsigned)nGameHeight, (unsigned)maximum, (unsigned)maximum };
 
-	if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par)
-	{
-		geom.aspect_ratio = (float)game_aspect_x / (float)game_aspect_y;
-		if (bVerticalMode)
-			geom.aspect_ratio = (float)game_aspect_y / (float)game_aspect_x;
-		log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: (%d/%d) = %f (core_aspect_par: %d)\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, game_aspect_x, game_aspect_y, geom.aspect_ratio, core_aspect_par);
-	}
-	else
-	{
-		log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: %f\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, geom.aspect_ratio);
-	}
+	geom.aspect_ratio = (bVerticalMode ? ((float)game_aspect_y / (float)game_aspect_x) : ((float)game_aspect_x / (float)game_aspect_y));
 
 	struct retro_system_timing timing = { (nBurnFPS / 100.0), (nBurnFPS / 100.0) * nAudSegLen };
 
@@ -1142,6 +1072,16 @@ INT32 SetBurnHighCol(INT32 nDepth)
 	return 0;
 }
 
+static void SetColorDepth()
+{
+	if ((BurnDrvGetFlags() & BDF_16BIT_ONLY) || !bAllowDepth32) {
+		SetBurnHighCol(16);
+	} else {
+		SetBurnHighCol(32);
+	}
+	nBurnPitch = nGameWidth * nBurnBpp;
+}
+
 static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 {
 	// [issue #206]
@@ -1154,17 +1094,6 @@ static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 		free(g_audio_buf);
 	g_audio_buf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
 	memset(g_audio_buf, 0, nAudSegLen<<2 * sizeof(int16_t));
-	// If game is neocd, allocate buffers for sound tracks
-	if (nGameType == RETRO_GAME_TYPE_NEOCD) {
-		if (neocd_fbuf)
-			free(neocd_fbuf);
-		if (neocd_ibuf)
-			free(neocd_ibuf);
-		neocd_fbuf = (float*)malloc(nAudSegLen<<2 * sizeof(float));
-		memset(neocd_fbuf, 0, nAudSegLen<<2 * sizeof(float));
-		neocd_ibuf = (int16_t*)malloc(nAudSegLen<<2 * sizeof(int16_t));
-		memset(neocd_ibuf, 0, nAudSegLen<<2 * sizeof(int16_t));
-	}
 	nBurnSoundLen = nAudSegLen;
 	pBurnSoundOut = g_audio_buf;
 }
@@ -1245,7 +1174,7 @@ static bool retro_load_game_common()
 
 		// Define nMaxPlayers early;
 		nMaxPlayers = BurnDrvGetMaxPlayers();
-		set_controller_infos();
+		SetControllerInfo();
 
 		set_environment();
 		check_variables();
@@ -1269,8 +1198,6 @@ static bool retro_load_game_common()
 
 		// Start CD reader emulation if needed
 		if (nGameType == RETRO_GAME_TYPE_NEOCD) {
-			// If game is neocd, we need to start the audio mixer for sound tracks
-			audio_mixer_init(nBurnSoundRate);
 			if (CDEmuInit()) {
 				log_cb(RETRO_LOG_INFO, "[FBA] Starting neogeo CD\n");
 			}
@@ -1304,31 +1231,13 @@ static bool retro_load_game_common()
 		BurnStateLoad(g_autofs_path, 0, NULL);
 
 		// Initializing display, autorotate if needed
-		INT32 width, height;
-		BurnDrvGetVisibleSize(&width, &height);
-		unsigned drv_flags = BurnDrvGetFlags();
-		unsigned rotation;
-		switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
-		{
-			case BDF_ORIENTATION_VERTICAL:
-				rotation = (bVerticalMode ? 0 : 1);
-				break;
-			case BDF_ORIENTATION_FLIPPED:
-				rotation = (bVerticalMode ? 1 : 2);
-				break;
-			case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-				rotation = (bVerticalMode ? 2 : 3);
-				break;
-			default:
-				rotation = (bVerticalMode ? 3 : 0);;
-				break;
-		}
-		environ_cb(RETRO_ENVIRONMENT_SET_ROTATION, &rotation);
-		if ((BurnDrvGetFlags() & BDF_16BIT_ONLY) || !bAllowDepth32) {
-			SetBurnHighCol(16);
-		} else {
-			SetBurnHighCol(32);
-		}
+		BurnDrvGetFullSize(&nGameWidth, &nGameHeight);
+		SetRotation();
+		SetColorDepth();
+
+		if (pVidImage)
+			free(pVidImage);
+		pVidImage = (UINT8*)malloc(nGameWidth * nGameHeight * nBurnBpp);
 
 		// Apply dipswitches
 		apply_dipswitch_from_variables();
@@ -1415,8 +1324,13 @@ void retro_unload_game(void)
 	if (driver_inited)
 	{
 		BurnStateSave(g_autofs_path, 0);
+		if (pVidImage)
+			free(pVidImage);
+		if (g_audio_buf)
+			free(g_audio_buf);
 		BurnDrvExit();
-		CDEmuExit();
+		if (nGameType == RETRO_GAME_TYPE_NEOCD)
+			CDEmuExit();
 	}
 	InputDeInit();
 	driver_inited = false;
@@ -1428,15 +1342,15 @@ unsigned retro_api_version() { return RETRO_API_VERSION; }
 
 static unsigned int BurnDrvGetIndexByName(const char* name)
 {
-   unsigned int ret = ~0U;
-   for (unsigned int i = 0; i < nBurnDrvCount; i++) {
-      nBurnDrvActive = i;
-      if (strcmp(BurnDrvGetText(DRV_NAME), name) == 0) {
-         ret = i;
-         break;
-      }
-   }
-   return ret;
+	unsigned int ret = ~0U;
+	for (unsigned int i = 0; i < nBurnDrvCount; i++) {
+		nBurnDrvActive = i;
+		if (strcmp(BurnDrvGetText(DRV_NAME), name) == 0) {
+			ret = i;
+			break;
+		}
+	}
+	return ret;
 }
 
 #ifdef ANDROID

@@ -2455,18 +2455,18 @@
 		<rom name="Zaxxon (1985)(U.S. Gold).z80" size="37606" crc="e89d7896"/>
 		<rom name="spectrum.rom" merge="spectrum.rom" size="16384" crc="ddee531f"/>
 	</game>
-	<game name="spec48k">
-		<description>ZX Spectrum</description>
-		<year>1984</year>
-		<manufacturer>Sinclair Research Limited</manufacturer>
-		<rom name="spectrum.rom" size="16384" crc="ddee531f"/>
-	</game>
 	<game name="spec128k">
 		<description>ZX Spectrum 128</description>
 		<year>1984</year>
 		<manufacturer>Sinclair Research Limited</manufacturer>
 		<rom name="zx128_0.rom" size="16384" crc="e76799d2"/>
 		<rom name="zx128_1.rom" size="16384" crc="b96a36be"/>
+	</game>
+	<game name="spec48k">
+		<description>ZX Spectrum</description>
+		<year>1984</year>
+		<manufacturer>Sinclair Research Limited</manufacturer>
+		<rom name="spectrum.rom" size="16384" crc="ddee531f"/>
 	</game>
 	<game isbios="yes" name="spec128">
 		<description>ZX Spectrum 128 [BIOS Only]</description>

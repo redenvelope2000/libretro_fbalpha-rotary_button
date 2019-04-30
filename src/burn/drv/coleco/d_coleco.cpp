@@ -1,10 +1,12 @@
 // FB Alpha ColecoVision console driver module
 // Code by iq_132, fixups & bring up-to-date by dink Aug 19, 2014
+// SGM added April 2019 -dink
 
 #include "tiles_generic.h"
 #include "z80_intf.h"
 #include "driver.h"
 #include "sn76496.h"
+#include "ay8910.h" // sgm
 #include "tms9928a.h"
 
 static UINT8 *AllMem;
@@ -14,6 +16,8 @@ static UINT8 *RamEnd;
 static UINT8 *DrvZ80BIOS;
 static UINT8 *DrvCartROM;
 static UINT8 *DrvZ80RAM;
+static UINT8 *DrvSGM24kRAM;
+static UINT8 *DrvSGM8kRAM;
 
 static INT32 joy_mode;
 static INT32 joy_status[2];
@@ -26,8 +30,14 @@ static UINT8 DrvJoy4[16];
 static UINT8 DrvDips[2] = { 0, 0 };
 static UINT16 DrvInputs[4];
 static UINT8 DrvReset;
-static UINT32 MegaCart;
-static UINT32 MegaCartBank;
+static UINT32 MegaCart; // MegaCart size
+static UINT32 MegaCartBank; // current Bank
+static UINT32 MegaCartBanks; // total banks
+
+static INT32 use_EEPROM = 0;
+static INT32 use_SGM = 0;
+static INT32 SGM_map_24k;
+static INT32 SGM_map_8k;
 
 static struct BurnRomInfo emptyRomDesc[] = {
 	{ "",                    0,          0, 0 },
@@ -217,9 +227,55 @@ static void paddle_callback()
 	}
 }
 
-void __fastcall coleco_write_port(UINT16 port, UINT8 data)
+void update_map()
 {
-	switch (port & ~0xff1e)
+    if (!use_SGM) return;
+
+    if (SGM_map_24k) {
+        ZetMapMemory(DrvSGM24kRAM, 0x2000, 0x7fff, MAP_RAM);
+    } else {
+        ZetUnmapMemory(0x2000, 0x7fff, MAP_RAM);
+        // normal CV 1k ram +mirrored
+        for (INT32 i = 0x6000; i < 0x8000; i+=0x0400) {
+            ZetMapMemory(DrvZ80RAM, i + 0x0000, i + 0x03ff, MAP_RAM);
+        }
+    }
+
+    if (SGM_map_8k) {
+        ZetMapMemory(DrvSGM8kRAM, 0x0000, 0x1fff, MAP_RAM);
+    } else {
+        ZetUnmapMemory(0x0000, 0x1fff, MAP_RAM);
+        ZetMapMemory(DrvZ80BIOS, 0x0000, 0x1fff, MAP_ROM);
+    }
+
+}
+
+static void __fastcall coleco_write_port(UINT16 port, UINT8 data)
+{
+    if (use_SGM) {
+        switch (port & 0xff) // SGM
+        {
+            case 0x50:
+                AY8910Write(0, 0, data);
+            return;
+
+            case 0x51:
+                AY8910Write(0, 1, data);
+            return;
+
+            case 0x53:
+                SGM_map_24k = data & 1;
+                update_map();
+            return;
+
+            case 0x7f:
+                SGM_map_8k = ~data & 2;
+                update_map();
+            return;
+        }
+    }
+
+    switch (port & ~0xff1e)
 	{
 		case 0x80:
 		case 0x81:
@@ -246,16 +302,28 @@ void __fastcall coleco_write_port(UINT16 port, UINT8 data)
 	}
 }
 
-UINT8 __fastcall coleco_read_port(UINT16 port)
+static UINT8 __fastcall coleco_read_port(UINT16 port)
 {
-	switch (port & ~0xff1e)
+	port &= 0xff;
+
+    if (use_SGM) {
+        switch (port)
+        {
+            case 0x52: return AY8910Read(0);
+        }
+    }
+
+	switch (port & ~0x1e)
 	{
 		case 0xa0:
 			return TMS9928AReadVRAM();
 
 		case 0xa1:
 			return TMS9928AReadRegs();
+	}
 
+	switch (port & ~0x1d)
+	{
 		case 0xe0:
 		case 0xe1:
 			return paddle_r(0);
@@ -291,6 +359,8 @@ static INT32 DrvDoReset()
 	BurnLoadRom(DrvZ80BIOS, 0x80 + (DrvDips[1] & 3), 1);
 	CVFastLoadHack();
 
+    AY8910Reset(0);
+
 	ZetOpen(0);
 	ZetReset();
 	ZetSetVector(0xff);
@@ -302,23 +372,31 @@ static INT32 DrvDoReset()
 
 	last_state = 0; // irq state...
 	MegaCartBank = 0;
+    SGM_map_24k = 0;
+    SGM_map_8k = 0;
 
 	return 0;
 }
 
-#if 0
 static void __fastcall main_write(UINT16 address, UINT8 data)
 {
 	// maybe we should support bankswitching on writes too?
-	//bprintf(0, _T("mw %X,"), address);
+
+    if (use_EEPROM) { // for boxxle
+        switch (address)
+        {
+            case 0xff90:
+            case 0xffa0:
+            case 0xffb0:
+                MegaCartBank = (address >> 4) & 3;
+                return;
+        }
+    }
 }
-#endif
 
 static UINT8 __fastcall main_read(UINT16 address)
 {
 	if (address >= 0xffc0/* && address <= 0xffff*/) {
-		UINT32 MegaCartBanks = MegaCart / 0x4000;
-
 		MegaCartBank = (0xffff - address) & (MegaCartBanks - 1);
 
 		MegaCartBank = (MegaCartBanks - MegaCartBank) - 1;
@@ -345,7 +423,10 @@ static INT32 MemIndex()
 
 	DrvZ80RAM		= Next; Next += 0x000400;
 
-	RamEnd			= Next;
+    DrvSGM24kRAM    = Next; Next += 0x006000; // SGM
+    DrvSGM8kRAM		= Next; Next += 0x002000;
+
+    RamEnd			= Next;
 	MemEnd			= Next;
 
 	return 0;
@@ -379,37 +460,39 @@ static INT32 DrvInit()
 			} else if ((ri.nType & BRF_PRG) && (i<10)) { // Load rom thats not in 0x2000 (8k) chunks
 				bprintf(0, _T("ColecoVision romload (unsegmented) #%d size: %X\n"), i, ri.nLen);
 				BurnLoadRom(DrvCartROM, i, 1);
-				if (ri.nLen >= 0x20000) MegaCart = ri.nLen;
+				if (ri.nLen >= 0x10000) MegaCart = ri.nLen;
 			}
 		}
 	}
 
 	ZetInit(0);
 	ZetOpen(0);
-	ZetMapArea(0x0000, 0x1fff, 0, DrvZ80BIOS);
-	ZetMapArea(0x0000, 0x1fff, 2, DrvZ80BIOS);
+	ZetMapMemory(DrvZ80BIOS, 0x0000, 0x1fff, MAP_ROM);
 
 	for (INT32 i = 0x6000; i < 0x8000; i+=0x0400) {
-		ZetMapArea(i + 0x0000, i + 0x03ff, 0, DrvZ80RAM);
-		ZetMapArea(i + 0x0000, i + 0x03ff, 1, DrvZ80RAM);
-		ZetMapArea(i + 0x0000, i + 0x03ff, 2, DrvZ80RAM);
+		ZetMapMemory(DrvZ80RAM, i + 0x0000, i + 0x03ff, MAP_RAM);
 	}
 
-	if (MegaCart) {
+    if (use_EEPROM) {  // similar to MegaCart but with diff. mapper addresses
+		// Boxxle
+		MegaCartBanks = MegaCart / 0x4000;
+		bprintf(0, _T("ColecoVision BoxxleCart mapping.\n"));
+		ZetMapMemory(DrvCartROM, 0x8000, 0xbfff, MAP_ROM);
+		ZetSetReadHandler(main_read);
+        ZetSetWriteHandler(main_write);
+    }
+    else if (MegaCart) {
 		// MegaCart
-		UINT32 MegaCartBanks = MegaCart / 0x4000;
+		MegaCartBanks = MegaCart / 0x4000;
 		UINT32 lastbank = (MegaCartBanks - 1) * 0x4000;
 		bprintf(0, _T("ColecoVision MegaCart: mapping cartrom[%X] to 0x8000 - 0xbfff.\n"), lastbank);
-		ZetMapArea(0x8000, 0xbfff, 0, DrvCartROM + lastbank);
-		ZetMapArea(0x8000, 0xbfff, 2, DrvCartROM + lastbank);
+		ZetMapMemory(DrvCartROM + lastbank, 0x8000, 0xbfff, MAP_ROM);
 		ZetSetReadHandler(main_read);
 		//ZetSetWriteHandler(main_write);
 	} else {
 		// Regular CV Cart
-		ZetMapArea(0x8000, 0xffff, 0, DrvCartROM);
-		ZetMapArea(0x8000, 0xffff, 2, DrvCartROM);
+		ZetMapMemory(DrvCartROM, 0x8000, 0xffff, MAP_ROM);
 	}
-
 
 	ZetSetOutHandler(coleco_write_port);
 	ZetSetInHandler(coleco_read_port);
@@ -419,9 +502,27 @@ static INT32 DrvInit()
 
 	SN76489AInit(0, 3579545, 0);
 
+    AY8910Init(0, 3579545, 1); // SGM
+	AY8910SetAllRoutes(0, 0.30, BURN_SND_ROUTE_BOTH);
+
 	DrvDoReset();
 
 	return 0;
+}
+
+static INT32 DrvInitSGM() // w/SGM
+{
+    use_SGM = 1;
+
+    return DrvInit();
+}
+
+static INT32 DrvInitEEPROM() // w/EEPROM (boxxle)
+{
+    // 24cXX e2prom isn't actually supported, but the game works fine (minus highscore saving)
+    use_EEPROM = 1;
+
+    return DrvInit();
 }
 
 static INT32 DrvExit()
@@ -429,8 +530,12 @@ static INT32 DrvExit()
 	TMS9928AExit();
 	ZetExit();
 	SN76496Exit();
+	AY8910Exit(0);
 
 	BurnFree (AllMem);
+
+    use_SGM = 0;
+    use_EEPROM = 0;
 
 	return 0;
 }
@@ -454,24 +559,38 @@ static INT32 DrvFrame()
 	INT32 nInterleave = 256;
 	INT32 nCyclesTotal = 3579545 / 60;
 	INT32 nCyclesDone  = 0;
+	INT32 nSoundBufferPos = 0;
 
 	ZetOpen(0);
 
 	for (INT32 i = 0; i < nInterleave; i++)
 	{
-		INT32 nSegment = nCyclesTotal / nInterleave;
-
-		nCyclesDone += ZetRun(nSegment);
+		nCyclesDone += ZetRun(((i + 1) * nCyclesTotal / nInterleave) - nCyclesDone);
 
 		TMS9928AScanline(i);
 
 		if ((i%5)==4) paddle_callback(); // 50x / frame (3000x / sec)
+
+        // Render Sound Segment
+		if (pBurnSoundOut && (i%4)==3) {
+			INT32 nSegmentLength = nBurnSoundLen / (nInterleave/4);
+			INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
+			SN76496Update(0, pSoundBuf, nSegmentLength);
+			AY8910Render(pSoundBuf, nSegmentLength);
+			nSoundBufferPos += nSegmentLength;
+		}
 	}
 
 	ZetClose();
 
+	// Make sure the buffer is entirely filled.
 	if (pBurnSoundOut) {
-		SN76496Update(0, pBurnSoundOut, nBurnSoundLen);
+		INT32 nSegmentLength = nBurnSoundLen - nSoundBufferPos;
+		INT16* pSoundBuf = pBurnSoundOut + (nSoundBufferPos << 1);
+		if (nSegmentLength) {
+			SN76496Update(0, pSoundBuf, nSegmentLength);
+			AY8910Render(pSoundBuf, nSegmentLength);
+		}
 	}
 
 	if (pBurnDraw) {
@@ -500,11 +619,17 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		ZetScan(nAction);
 		SN76496Scan(nAction, pnMin);
 
+        if (use_SGM)
+            AY8910Scan(nAction, pnMin);
+
 		TMS9928AScan(nAction, pnMin);
 
 		SCAN_VAR(joy_mode);
 		SCAN_VAR(joy_status);
 		SCAN_VAR(last_state);
+        SCAN_VAR(MegaCartBank);
+        SCAN_VAR(SGM_map_24k);
+        SCAN_VAR(SGM_map_8k);
 	}
 
 	return 0;
@@ -535,7 +660,8 @@ INT32 CVGetZipName(char** pszName, UINT32 i)
 	}
 
 	// remove the "CV_"
-	for (UINT32 j = 0; j < strlen(pszGameName); j++) {
+	memset(szFilename, 0, MAX_PATH);
+	for (UINT32 j = 0; j < (strlen(pszGameName) - 3); j++) {
 		szFilename[j] = pszGameName[j + 3];
 	}
 
@@ -615,7 +741,7 @@ struct BurnDriver BurnDrvcv_princessquest = {
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_COLECO, GBF_MISC, 0,
 	CVGetZipName, cv_princessquestRomInfo, cv_princessquestRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
-	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	DrvInitSGM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
 	272, 228, 4, 3
 };
 
@@ -4101,10 +4227,10 @@ STDROMPICKEXT(cv_dlair, cv_dlair, cv_coleco)
 STD_ROM_FN(cv_dlair)
 
 struct BurnDriver BurnDrvcv_dlair = {
-	"cv_dlair", NULL, "cv_coleco", NULL, "1984",
+	"cv_dlair", "cv_dlairsgm", "cv_coleco", NULL, "1984",
 	"Dragon's Lair (Prototype, 0416)\0", NULL, "Coleco", "ColecoVision",
 	NULL, NULL, NULL, NULL,
-	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_COLECO, GBF_MISC, 0,
 	CVGetZipName, cv_dlairRomInfo, cv_dlairRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
 	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
 	272, 228, 4, 3
@@ -4978,4 +5104,228 @@ struct BurnDriver BurnDrvcv_ttennis = {
 	272, 228, 4, 3
 };
 
+// CV Joystick Test
+static struct BurnRomInfo cv_cvjoytestRomDesc[] = {
+	{ "Super Action Controller Test Cartridge (1983) (Nuvatec).rom",	0x004000, 0xeb6cb4d8, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_cvjoytest, cv_cvjoytest, cv_coleco)
+STD_ROM_FN(cv_cvjoytest)
+
+struct BurnDriver BurnDrvcv_cvjoytest = {
+	"cv_cvjoytest", NULL, "cv_coleco", NULL, "1983",
+	"ColecoVision Joystick Test\0", NULL, "Coleco", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_cvjoytestRomInfo, cv_cvjoytestRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// CV SGM Test
+static struct BurnRomInfo cv_sgmtestRomDesc[] = {
+	{ "super_game_module_test.rom",	0x002000, 0xabc4763d, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_sgmtest, cv_sgmtest, cv_coleco)
+STD_ROM_FN(cv_sgmtest)
+
+struct BurnDriver BurnDrvcv_sgmtest = {
+	"cv_sgmtest", NULL, "cv_coleco", NULL, "200x",
+	"ColecoVision SuperGame Module (SGM) Test\0", NULL, "Coleco", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_sgmtestRomInfo, cv_sgmtestRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInitSGM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Mecha 8
+static struct BurnRomInfo cv_mecha8RomDesc[] = {
+	{ "mecha_8.rom",	0x020000, 0x53da40bc, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_mecha8, cv_mecha8, cv_coleco)
+STD_ROM_FN(cv_mecha8)
+
+struct BurnDriver BurnDrvcv_mecha8 = {
+	"cv_mecha8", NULL, "cv_coleco", NULL, "2013",
+	"Mecha-8\0", NULL, "Oscar Toledo G.", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_mecha8RomInfo, cv_mecha8RomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInitSGM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Zaxxon SuperGame (SGM)
+
+static struct BurnRomInfo cv_zaxxonsgmRomDesc[] = {
+	{ "zaxxon_super_game_colecovision_sgm.rom",	0x020000, 0xa5a90f63, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_zaxxonsgm, cv_zaxxonsgm, cv_coleco)
+STD_ROM_FN(cv_zaxxonsgm)
+
+struct BurnDriver BurnDrvcv_zaxxonsgm = {
+	"cv_zaxxonsgm", NULL, "cv_coleco", NULL, "1982",
+	"Zaxxon Super Game\0", NULL, "Coleco", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_zaxxonsgmRomInfo, cv_zaxxonsgmRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInitSGM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Dragon's Lair (SGM)
+
+static struct BurnRomInfo cv_dlairsgmRomDesc[] = {
+	{ "dragons_lair_colecovision_sgm.rom",	0x040000, 0x12ceee08, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_dlairsgm, cv_dlairsgm, cv_coleco)
+STD_ROM_FN(cv_dlairsgm)
+
+struct BurnDriver BurnDrvcv_dlairsgm = {
+	"cv_dlairsgm", NULL, "cv_coleco", NULL, "1982",
+	"Dragon's Lair SGM\0", NULL, "Coleco", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_dlairsgmRomInfo, cv_dlairsgmRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInitSGM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Kaboom!
+
+static struct BurnRomInfo cv_kaboomRomDesc[] = {
+	{ "kaboom_colecovision.rom",	0x04000, 0x24a2b61b, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_kaboom, cv_kaboom, cv_coleco)
+STD_ROM_FN(cv_kaboom)
+
+struct BurnDriver BurnDrvcv_kaboom = {
+	"cv_kaboom", NULL, "cv_coleco", NULL, "1981",
+	"Kaboom!\0", NULL, "Activision", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_kaboomRomInfo, cv_kaboomRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Frost Bite
+
+static struct BurnRomInfo cv_frostbiteRomDesc[] = {
+	{ "frostbite_colecovision.rom",	0x08000, 0xb3212318, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_frostbite, cv_frostbite, cv_coleco)
+STD_ROM_FN(cv_frostbite)
+
+struct BurnDriver BurnDrvcv_frostbite = {
+	"cv_frostbite", NULL, "cv_coleco", NULL, "1983",
+	"Frost Bite\0", NULL, "Activision", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_frostbiteRomInfo, cv_frostbiteRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Cold Blood
+
+static struct BurnRomInfo cv_coldbloodRomDesc[] = {
+	{ "cold_blood_colecovision_sgm.rom",	0x08000, 0x960f7086, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_coldblood, cv_coldblood, cv_coleco)
+STD_ROM_FN(cv_coldblood)
+
+struct BurnDriver BurnDrvcv_coldblood = {
+	"cv_coldblood", NULL, "cv_coleco", NULL, "1981",
+	"Cold Blood\0", NULL, "Activision", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_coldbloodRomInfo, cv_coldbloodRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInitSGM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Buck Rogers (SGM)
+
+static struct BurnRomInfo cv_buckrogsgmRomDesc[] = {
+    { "buck_rogers_super_game_colecovision_sgm",	0x40000, 0xc4f1a85a, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_buckrogsgm, cv_buckrogsgm, cv_coleco)
+STD_ROM_FN(cv_buckrogsgm)
+
+struct BurnDriver BurnDrvcv_buckrogsgm = {
+    "cv_buckrogsgm", NULL, "cv_coleco", NULL, "2013",
+    "Buck Rogers SGM\0", NULL, "Coleco", "ColecoVision",
+    NULL, NULL, NULL, NULL,
+    BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+    CVGetZipName, cv_buckrogsgmRomInfo, cv_buckrogsgmRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+    DrvInitSGM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+    272, 228, 4, 3
+};
+
+// Boxxle
+
+static struct BurnRomInfo cv_boxxleRomDesc[] = {
+	{ "boxxle_colecovision.rom",	0x10000, 0x62dacf07, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_boxxle, cv_boxxle, cv_coleco)
+STD_ROM_FN(cv_boxxle)
+
+struct BurnDriver BurnDrvcv_boxxle = {
+	"cv_boxxle", NULL, "cv_coleco", NULL, "2015",
+	"Boxxle\0", NULL, "Coleco", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_boxxleRomInfo, cv_boxxleRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInitEEPROM, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Module Man
+
+static struct BurnRomInfo cv_modulemanRomDesc[] = {
+	{ "module-man-2013.rom",	0x08000, 0xeb6be8ec, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_moduleman, cv_moduleman, cv_coleco)
+STD_ROM_FN(cv_moduleman)
+
+struct BurnDriver BurnDrvcv_moduleman = {
+	"cv_moduleman", NULL, "cv_coleco", NULL, "2013",
+	"Module Man\0", NULL, "Coleco", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_modulemanRomInfo, cv_modulemanRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
+
+// Star Fortress
+
+static struct BurnRomInfo cv_starfortressRomDesc[] = {
+	{ "star-fortress.rom",	0x04000, 0xf7f18e6f, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(cv_starfortress, cv_starfortress, cv_coleco)
+STD_ROM_FN(cv_starfortress)
+
+struct BurnDriver BurnDrvcv_starfortress = {
+	"cv_starfortress", NULL, "cv_coleco", NULL, "1997",
+	"Star Fortress\0", NULL, "Coleco", "ColecoVision",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_COLECO, GBF_MISC, 0,
+	CVGetZipName, cv_starfortressRomInfo, cv_starfortressRomName, NULL, NULL, NULL, NULL, ColecoInputInfo, ColecoDIPInfo,
+	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, TMS9928A_PALETTE_SIZE,
+	272, 228, 4, 3
+};
 

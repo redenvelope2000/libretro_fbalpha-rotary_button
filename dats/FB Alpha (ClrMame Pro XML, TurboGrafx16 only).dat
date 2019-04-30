@@ -48,17 +48,17 @@
 		<manufacturer>NEC</manufacturer>
 		<rom name="bloody wolf (usa).pce" size="524288" crc="37baf6bc"/>
 	</game>
-	<game name="bombman">
-		<description>Bomberman</description>
-		<year>1991</year>
-		<manufacturer>NEC</manufacturer>
-		<rom name="bomberman (usa).pce" size="262144" crc="5f6f3c2a"/>
-	</game>
 	<game name="bombmn93">
 		<description>Bomberman '93</description>
 		<year>1990</year>
 		<manufacturer>Hudson Soft</manufacturer>
 		<rom name="bomberman '93 (usa).pce" size="524288" crc="56171c1c"/>
+	</game>
+	<game name="bombman">
+		<description>Bomberman</description>
+		<year>1991</year>
+		<manufacturer>NEC</manufacturer>
+		<rom name="bomberman (usa).pce" size="262144" crc="5f6f3c2a"/>
 	</game>
 	<game name="bonk3">
 		<description>Bonk III - Bonk's Big Adventure</description>
@@ -294,17 +294,17 @@
 		<manufacturer>NEC</manufacturer>
 		<rom name="moto roader (usa).pce" size="262144" crc="e2b0d544"/>
 	</game>
-	<game name="neutopia">
-		<description>Neutopia</description>
-		<year>1990</year>
-		<manufacturer>NEC</manufacturer>
-		<rom name="neutopia (usa).pce" size="393216" crc="a9a94e1b"/>
-	</game>
 	<game name="neutopi2">
 		<description>Neutopia II</description>
 		<year>1992</year>
 		<manufacturer>NEC</manufacturer>
 		<rom name="neutopia ii (usa).pce" size="786432" crc="c4ed4307"/>
+	</game>
+	<game name="neutopia">
+		<description>Neutopia</description>
+		<year>1990</year>
+		<manufacturer>NEC</manufacturer>
+		<rom name="neutopia (usa).pce" size="393216" crc="a9a94e1b"/>
 	</game>
 	<game name="advislnd">
 		<description>New Adventure Island</description>
@@ -468,17 +468,17 @@
 		<manufacturer>NEC</manufacturer>
 		<rom name="talespin (usa).pce" size="524288" crc="bae9cecc"/>
 	</game>
-	<game name="legaxe">
-		<description>The Legendary Axe</description>
-		<year>1989</year>
-		<manufacturer>NEC</manufacturer>
-		<rom name="legendary axe, the (usa).pce" size="262144" crc="2d211007"/>
-	</game>
 	<game name="legaxe2">
 		<description>The Legendary Axe II</description>
 		<year>1990</year>
 		<manufacturer>NEC</manufacturer>
 		<rom name="legendary axe ii, the (usa).pce" size="262144" crc="220ebf91"/>
+	</game>
+	<game name="legaxe">
+		<description>The Legendary Axe</description>
+		<year>1989</year>
+		<manufacturer>NEC</manufacturer>
+		<rom name="legendary axe, the (usa).pce" size="262144" crc="2d211007"/>
 	</game>
 	<game name="tigerrod">
 		<description>Tiger Road</description>

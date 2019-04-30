@@ -1700,8 +1700,10 @@ INT32 MSXGetZipName(char** pszName, UINT32 i)
 		*pszName = NULL;
 		return 1;
 	}
-   // remove msx_
-	for (UINT32 j = 0; j < strlen(pszGameName); j++) {
+
+	// remove msx_
+	memset(szFilename, 0, MAX_PATH);
+	for (UINT32 j = 0; j < (strlen(pszGameName) - 4); j++) {
 		szFilename[j] = pszGameName[j + 4];
 	}
 
@@ -18944,18 +18946,18 @@ struct BurnDriver BurnDrvMSX_cowabduct = {
 	272, 228, 4, 3
 };
 
-// Deep Dungeon
+// Deep Dungeon Adventure
 
 static struct BurnRomInfo MSX_deepdunRomDesc[] = {
-	{ "DDUNGEON.ROM",	0x08000, 0x012e13d3, BRF_PRG | BRF_ESS },
+	{ "deepdung.rom",	0x0c000, 0x96bd10ee, BRF_PRG | BRF_ESS },
 };
 
 STDROMPICKEXT(MSX_deepdun, MSX_deepdun, msx_msx)
 STD_ROM_FN(MSX_deepdun)
 
 struct BurnDriver BurnDrvMSX_deepdun = {
-	"msx_deepdun", NULL, "msx_msx", NULL, "2008",
-	"Deep Dungeon\0", NULL, "Trilobyte", "MSX",
+	"msx_deepdun", NULL, "msx_msx", NULL, "2013",
+	"Deep Dungeon Adventure\0", NULL, "Trilobyte", "MSX",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING, 2, HARDWARE_MSX, GBF_MISC, 0,
 	MSXGetZipName, MSX_deepdunRomInfo, MSX_deepdunRomName, NULL, NULL, NULL, NULL, MSXInputInfo, MSXDIPInfo,
@@ -24540,6 +24542,25 @@ struct BurnDriver BurnDrvMSX_transball = {
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING, 2, HARDWARE_MSX, GBF_MISC, 0,
 	MSXGetZipName, MSX_transballRomInfo, MSX_transballRomName, NULL, NULL, NULL, NULL, MSXInputInfo, MSXDIPInfo,
+	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, 0x10,
+	272, 228, 4, 3
+};
+
+// Danger Tower
+
+static struct BurnRomInfo MSX_dangertowerRomDesc[] = {
+	{ "dangertower.rom",	0x08000, 0x02c3af4a, BRF_PRG | BRF_ESS },
+};
+
+STDROMPICKEXT(MSX_dangertower, MSX_dangertower, msx_msx)
+STD_ROM_FN(MSX_dangertower)
+
+struct BurnDriver BurnDrvMSX_dangertower = {
+	"msx_dangertower", NULL, "msx_msx", NULL, "2009",
+	"Danger Tower\0", NULL, "Danger Team", "MSX",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_MSX, GBF_MISC, 0,
+	MSXGetZipName, MSX_dangertowerRomInfo, MSX_dangertowerRomName, NULL, NULL, NULL, NULL, MSXInputInfo, MSXDIPInfo,
 	DrvInit, DrvExit, DrvFrame, TMS9928ADraw, DrvScan, NULL, 0x10,
 	272, 228, 4, 3
 };

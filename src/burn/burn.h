@@ -304,6 +304,15 @@ void BurnRandomSetSeed(UINT64 nSeed);               // Set the seed - useful for
 INT32 BurnSynchroniseStream(INT32 nSoundRate);
 double BurnGetTime();
 
+// Handy debug binary-file dumper
+#if defined (FBA_DEBUG)
+void BurnDump_(char *filename, UINT8 *buffer, INT32 bufsize);
+#define BurnDump(fn, b, bs) do { \
+    bprintf(0, _T("Dumping %S (0x%x bytes) to %S\n"), #b, bs, #fn); \
+    BurnDump_(fn, b, bs); } while (0)
+
+#endif
+
 // ---------------------------------------------------------------------------
 // Retrieve driver information
 
@@ -350,6 +359,7 @@ INT32 BurnDrvGetHDDName(char** pszName, UINT32 i, INT32 nAka);
 void Reinitialise();
 
 extern bool bDoIpsPatch;
+extern INT32 nIpsMaxFileLen;
 void IpsApplyPatches(UINT8* base, char* rom_name);
 
 // ---------------------------------------------------------------------------

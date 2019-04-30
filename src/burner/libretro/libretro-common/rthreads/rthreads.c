@@ -48,8 +48,6 @@
 #endif
 #elif defined(GEKKO)
 #include "gx_pthread.h"
-#elif defined(HAVE_LIBNX)
-#include "switch_pthread.h"
 #elif defined(_3DS)
 #include "ctr_pthread.h"
 #elif defined(__CELLOS_LV2__)
@@ -853,9 +851,9 @@ bool scond_wait_timeout(scond_t *cond, slock_t *lock, int64_t timeout_us)
    now.tv_sec  = s;
    now.tv_nsec = n;
 #elif defined(PS2)
-   int tickUS = cpu_ticks()/295.0;
-   now.tv_sec = tickUS/1000000;
-   now.tv_nsec = tickUS * 1000;
+   int tickms = clock();
+   now.tv_sec = tickms/1000;
+   now.tv_nsec = tickms * 1000;
 #elif defined(__mips__) || defined(VITA) || defined(_3DS)
    struct timeval tm;
 

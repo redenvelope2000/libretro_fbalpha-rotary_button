@@ -49,13 +49,11 @@ struct RomBiosInfo uni_bioses[] = {
 RomBiosInfo *available_mvs_bios = NULL;
 RomBiosInfo *available_aes_bios = NULL;
 RomBiosInfo *available_uni_bios = NULL;
-std::vector<macro_core_option> macro_core_options;
 std::vector<dipswitch_core_option> dipswitch_core_options;
 struct GameInp *pgi_reset;
 struct GameInp *pgi_diag;
 bool is_neogeo_game = false;
 bool allow_neogeo_mode = true;
-bool core_aspect_par = false;
 bool bVerticalMode = false;
 bool bAllowDepth32 = false;
 UINT32 nFrameskip = 1;
@@ -79,7 +77,6 @@ static UINT8 diag_input_select_l_r[] =  {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DE
 
 // Global core options
 static const struct retro_variable var_empty = { NULL, NULL };
-static const struct retro_variable var_fba_aspect = { "fba-aspect", "Core-provided aspect ratio; DAR|PAR" };
 static const struct retro_variable var_fba_allow_depth_32 = { "fba-allow-depth-32", "Use 32-bits color depth when available; disabled|enabled" };
 static const struct retro_variable var_fba_vertical_mode = { "fba-vertical-mode", "Vertical mode; disabled|enabled" };
 static const struct retro_variable var_fba_frameskip = { "fba-frameskip", "Frameskip; 0|1|2|3|4|5" };
@@ -221,6 +218,7 @@ void evaluate_neogeo_bios_mode(const char* drvname)
 void set_environment()
 {
 	std::vector<const retro_variable*> vars_systems;
+	struct retro_variable *vars;
 #ifdef _MSC_VER
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
 	struct retro_vfs_interface_info vfs_iface_info;
@@ -228,13 +226,13 @@ void set_environment()
 #endif
 
 	// Add the Global core options
-	vars_systems.push_back(&var_fba_aspect);
 	vars_systems.push_back(&var_fba_allow_depth_32);
 	vars_systems.push_back(&var_fba_vertical_mode);
 	vars_systems.push_back(&var_fba_frameskip);
 	vars_systems.push_back(&var_fba_cpu_speed_adjust);
 	vars_systems.push_back(&var_fba_hiscores);
-	vars_systems.push_back(&var_fba_samplerate);
+	if (nGameType != RETRO_GAME_TYPE_NEOCD)
+		vars_systems.push_back(&var_fba_samplerate);
 	vars_systems.push_back(&var_fba_sample_interpolation);
 	vars_systems.push_back(&var_fba_fm_interpolation);
 	vars_systems.push_back(&var_fba_analog_speed);
@@ -256,13 +254,12 @@ void set_environment()
 
 	int nbr_vars = vars_systems.size();
 	int nbr_dips = dipswitch_core_options.size();
-	int nbr_macros = macro_core_options.size();
 
 #if 0
-	log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d, MACRO: %d\n", nbr_vars, nbr_dips, nbr_macros);
+	log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d\n", nbr_vars, nbr_dips);
 #endif
 
-	std::vector<retro_variable> vars(nbr_vars + nbr_dips + nbr_macros + 1); // + 1 for the empty ending retro_variable
+	vars = (struct retro_variable*)calloc(nbr_vars + nbr_dips + 1, sizeof(struct retro_variable));
 
 	int idx_var = 0;
 
@@ -290,19 +287,10 @@ void set_environment()
 		}
 	}
 
-	// Add the macro inputs core options
-	for (int macro_idx = 0; macro_idx < nbr_macros; macro_idx++, idx_var++)
-	{
-		vars[idx_var].key = macro_core_options[macro_idx].option_name;
-		vars[idx_var].value = macro_core_options[macro_idx].values_str.c_str();
-#if 0
-		log_cb(RETRO_LOG_INFO, "retro_variable (MACRO)     { '%s', '%s' }\n", vars[idx_var].key, vars[idx_var].value);
-#endif
-	}
-
 	vars[idx_var] = var_empty;
-	environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars.data());
-	
+	environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
+	free(vars);
+
 	// Initialize VFS
 	// Only on UWP for now, since EEPROM saving is not VFS aware
 #ifdef _MSC_VER
@@ -344,15 +332,6 @@ void check_variables(void)
 			nBurnCPUSpeedAdjust = 0x0200;
 		else
 			nBurnCPUSpeedAdjust = 0x0100;
-	}
-
-	var.key = var_fba_aspect.key;
-	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-	{
-		if (strcmp(var.value, "PAR") == 0)
-			core_aspect_par = true;
-		else
-			core_aspect_par = false;
 	}
 
 	var.key = var_fba_allow_depth_32.key;
@@ -478,19 +457,27 @@ void check_variables(void)
 			EnableHiscores = false;
 	}
 
-	var.key = var_fba_samplerate.key;
-	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+	if (nGameType != RETRO_GAME_TYPE_NEOCD)
 	{
-		if (strcmp(var.value, "48000") == 0)
-			g_audio_samplerate = 48000;
-		else if (strcmp(var.value, "44100") == 0)
-			g_audio_samplerate = 44100;
-		else if (strcmp(var.value, "22050") == 0)
-			g_audio_samplerate = 22050;
-		else if (strcmp(var.value, "11025") == 0)
-			g_audio_samplerate = 11025;
-		else
-			g_audio_samplerate = 48000;
+		var.key = var_fba_samplerate.key;
+		if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+		{
+			if (strcmp(var.value, "48000") == 0)
+				g_audio_samplerate = 48000;
+			else if (strcmp(var.value, "44100") == 0)
+				g_audio_samplerate = 44100;
+			else if (strcmp(var.value, "22050") == 0)
+				g_audio_samplerate = 22050;
+			else if (strcmp(var.value, "11025") == 0)
+				g_audio_samplerate = 11025;
+			else
+				g_audio_samplerate = 48000;
+		}
+	}
+	else
+	{
+		// src/burn/drv/neogeo/neo_run.cpp is mentioning issues with ngcd cdda playback if samplerate isn't 44100
+		g_audio_samplerate = 44100;
 	}
 
 	var.key = var_fba_sample_interpolation.key;

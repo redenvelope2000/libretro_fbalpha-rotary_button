@@ -3366,6 +3366,12 @@
 		<manufacturer>Sega</manufacturer>
 		<rom name="wimbledon ii (europe).bin" size="262144" crc="7f3afe58"/>
 	</game>
+	<game name="wingwarriors">
+		<description>Wing Warriors (April 18, 2019 Test)</description>
+		<year>2019</year>
+		<manufacturer>Kitmaker</manufacturer>
+		<rom name="WingWarriors.sms" size="131072" crc="14e13a82"/>
+	</game>
 	<game name="wintolb" cloneof="wintol" romof="wintol">
 		<description>Winter Olympics - Lillehammer '94 (Bra)</description>
 		<year>1993</year>

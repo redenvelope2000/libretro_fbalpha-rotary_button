@@ -25,13 +25,13 @@ void ProcessJoystick(UINT8 *input, INT8 playernum, INT8 up_bit, INT8 down_bit, I
 			if((fourway[playernum] & rl) && (fourway[playernum] & ud))
 				fourway[playernum] ^= (fourway[playernum] & (DrvInputPrev[playernum] & udrlmask));
 
-			if((fourway[playernum] & rl) && (fourway[playernum] & ud)) // if it starts out diagonally, pick a direction
-				fourway[playernum] &= (rand()&1) ? rl : ud;
+			if((fourway[playernum] & rl) && (fourway[playernum] & ud))
+				fourway[playernum] &= ud | ud; // diagonals aren't allowed w/INPUT_4WAY
 		}
 
 		DrvInputPrev[playernum] = *input;
 
-		*input = fourway[playernum] | (DrvInputPrev[playernum] & othermask); // preserve the unprocessed/other bits
+		*input = fourway[playernum] | (DrvInputPrev[playernum] & othermask); // add back the unprocessed/other bits
 	}
 
 	if (flags & INPUT_CLEAROPPOSITES) {
@@ -87,10 +87,20 @@ static UINT32 scalerange(UINT32 x, UINT32 in_min, UINT32 in_max, UINT32 out_min,
 
 UINT8 ProcessAnalog(INT16 anaval, INT32 reversed, INT32 flags, UINT8 scalemin, UINT8 scalemax)
 {
-	if (flags & INPUT_MIGHTBEDIGITAL && (UINT16)anaval == 0xffff) {
+    UINT8 linear_min = 0, linear_max = 0;
+
+    if (flags & INPUT_MIGHTBEDIGITAL && (UINT16)anaval == 0xffff) {
 		anaval = 0x3fc; // digital button mapped here & pressed.
 	}
-	if (flags & INPUT_LINEAR) anaval = abs(anaval);
+
+    if (flags & INPUT_LINEAR) {
+        anaval = abs(anaval);
+        linear_min = scalemin;
+        linear_max = scalemax;
+        scalemin = 0x00;
+        scalemax = 0xff;
+    }
+
 	INT32 DeadZone = (flags & INPUT_DEADZONE) ? 10 : 0;
 	INT16 Temp = (reversed) ? (0x7f - (anaval / 16)) : (0x7f + (anaval / 16));  // - for reversed, + for normal
 
@@ -115,7 +125,7 @@ UINT8 ProcessAnalog(INT16 anaval, INT32 reversed, INT32 flags, UINT8 scalemin, U
 
 	if (flags & INPUT_LINEAR) {
 		Temp -= 0x80;
-		Temp = scalerange(Temp, 0, 0x7f, 0, 0xff);
+		Temp = scalerange(Temp, 0, 0x7f, linear_min, linear_max);
 	}
 
 	return Temp;

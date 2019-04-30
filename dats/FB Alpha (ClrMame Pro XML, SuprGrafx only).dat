@@ -30,12 +30,6 @@
 		<manufacturer>Hudson</manufacturer>
 		<rom name="battle ace (japan).pce" size="524288" crc="3b13af61"/>
 	</game>
-	<game name="daimakai">
-		<description>Dai Makaimura</description>
-		<year>1990</year>
-		<manufacturer>NEC Avenue</manufacturer>
-		<rom name="daimakai mura (japan).pce" size="1048576" crc="b486a8ed"/>
-	</game>
 	<game name="daimakai1" cloneof="daimakai" romof="daimakai">
 		<description>Dai Makaimura (Alt)</description>
 		<year>1990</year>
@@ -47,6 +41,12 @@
 		<year>1990</year>
 		<manufacturer>NEC Avenue</manufacturer>
 		<rom name="daimakai mura (japan)[debug].pce" size="1048576" crc="d6722c04"/>
+	</game>
+	<game name="daimakai">
+		<description>Dai Makaimura</description>
+		<year>1990</year>
+		<manufacturer>NEC Avenue</manufacturer>
+		<rom name="daimakai mura (japan).pce" size="1048576" crc="b486a8ed"/>
 	</game>
 	<game name="granzort">
 		<description>Madou Ou Granzort</description>

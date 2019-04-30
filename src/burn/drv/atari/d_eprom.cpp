@@ -8,6 +8,7 @@
 #include "atariic.h"
 #include "atarimo.h"
 #include "atarijsa.h"
+#include "burn_ym2151.h"
 
 static UINT8 *AllMem;
 static UINT8 *AllRam;
@@ -98,7 +99,13 @@ static void update_interrupts()
 		SekSetIRQLine(7, CPU_IRQSTATUS_NONE);
 	}
 
-	if (atarijsa_int_state != 0 && cpu == 1) return;
+	if (atarijsa_int_state != 0 && (cpu^1) == 1) return;
+
+    state = 0;
+	if (video_int_state) state = 4;
+	if (atarijsa_int_state && (cpu^1) == 0) {
+		state = 6;
+	}
 
 	SekClose();
 	SekOpen(cpu^1);
@@ -227,11 +234,10 @@ static void __fastcall eprom_main_write_byte(UINT32 address, UINT8 data)
 			AtariJSAResetWrite(0);
 		return;
 
-		case 0x360030:
 		case 0x360031:
 			AtariJSAWrite(data);
 		return;
-	}
+    }
 }
 
 static UINT16 special_port_read()
@@ -287,8 +293,8 @@ static UINT8 __fastcall eprom_main_read_byte(UINT32 address)
 	}
 
 	if ((address & 0xfffffe) == 0x260030) {
-		return AtariJSARead();
-	}
+		return AtariJSARead() >> (8 * (~address & 1));
+    }
 
 	return 0;
 }
@@ -517,6 +523,7 @@ static INT32 DrvInit()
 	BurnWatchdogInit(DrvDoReset, 180);
 
 	AtariJSAInit(DrvM6502ROM, &update_interrupts, NULL, NULL);
+    BurnYM2151SetInterleave((262/2)+1);
 
 	GenericTilesInit();
 	GenericTilemapInit(0, TILEMAP_SCAN_COLS, eprbg_map_callback, 8, 8, 64, 64);
@@ -800,10 +807,6 @@ static INT32 DrvFrame()
 			update_interrupts();
 			SekClose();
 
-			SekOpen(1);
-			update_interrupts();
-			SekClose();
-
 			if (pBurnDraw) {
 				BurnDrvRedraw();
 			}
@@ -822,7 +825,7 @@ static INT32 DrvFrame()
 		INT32 nSegment = nBurnSoundLen - nSoundBufferPos;
 		if (nSegment > 0) {
 			AtariJSAUpdate(pBurnSoundOut + (nSoundBufferPos << 1), nSegment);
-		}
+        }
 	}
 
 	M6502Close();

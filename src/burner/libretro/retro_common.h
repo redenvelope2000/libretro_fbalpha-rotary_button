@@ -5,26 +5,17 @@
 #include <vector>
 #include "burner.h"
 
-struct macro_core_option_value
-{
-	unsigned retro_device_id;
-	const char* friendly_name;
-	macro_core_option_value(unsigned device_id, const char* name):
-		retro_device_id(device_id),
-		friendly_name(name)
-	{
-	}
-};
-
-struct macro_core_option
-{
-	struct GameInp *pgi;
-	char option_name[100];
-	char friendly_name[100];
-	std::string values_str;
-	std::vector<macro_core_option_value> values;
-	macro_core_option_value *selected_value;
-};
+#define RETRO_GAME_TYPE_CV		1
+#define RETRO_GAME_TYPE_GG		2
+#define RETRO_GAME_TYPE_MD		3
+#define RETRO_GAME_TYPE_MSX		4
+#define RETRO_GAME_TYPE_PCE		5
+#define RETRO_GAME_TYPE_SG1K	6
+#define RETRO_GAME_TYPE_SGX		7
+#define RETRO_GAME_TYPE_SMS		8
+#define RETRO_GAME_TYPE_TG		9
+#define RETRO_GAME_TYPE_SPEC	10
+#define RETRO_GAME_TYPE_NEOCD	11
 
 struct dipswitch_core_option_value
 {
@@ -66,7 +57,6 @@ extern retro_environment_t environ_cb;
 extern RomBiosInfo *available_mvs_bios;
 extern RomBiosInfo *available_aes_bios;
 extern RomBiosInfo *available_uni_bios;
-extern std::vector<macro_core_option> macro_core_options;
 extern std::vector<dipswitch_core_option> dipswitch_core_options;
 extern struct GameInp *pgi_reset;
 extern struct GameInp *pgi_diag;
@@ -80,6 +70,8 @@ extern UINT8 NeoSystem;
 extern INT32 g_audio_samplerate;
 extern UINT8 *diag_input;
 extern neo_geo_modes g_opt_neo_geo_mode;
+extern unsigned nGameType;
+extern char g_rom_dir[MAX_PATH];
 
 char* str_char_replace(char* destination, char c_find, char c_replace);
 void set_neo_system_bios();

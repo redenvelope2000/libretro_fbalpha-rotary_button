@@ -91,17 +91,17 @@
 		<manufacturer>Sega</manufacturer>
 		<rom name="mpr-13956.bin" size="1048576" crc="f2c58bf7"/>
 	</game>
-	<game name="bugslife">
-		<description>A Bug's Life</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="bug's life, a (unl).bin" size="1048576" crc="10458e09"/>
-	</game>
 	<game name="bugslifea" cloneof="bugslife" romof="bugslife">
 		<description>A Bug's Life (Alt?)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="bug's life (unl).bin" size="1048576" crc="ed1c1a67"/>
+	</game>
+	<game name="bugslife">
+		<description>A Bug's Life</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="bug's life, a (unl).bin" size="1048576" crc="10458e09"/>
 	</game>
 	<game name="dinotale">
 		<description>A Dinosaur's Tale (USA)</description>
@@ -1543,17 +1543,17 @@
 		<manufacturer>Gametec?</manufacturer>
 		<rom name="chao ji da fu weng (chi) (unl).bin" size="1048576" crc="2e2ea687"/>
 	</game>
-	<game name="chase">
-		<description>Chase</description>
-		<year>2014</year>
-		<manufacturer>2014 Jack Nolddor &amp; Davidian</manufacturer>
-		<rom name="Chase (v2.00).bin" size="393216" crc="0b3426ed"/>
-	</game>
 	<game name="chasehq2">
 		<description>Chase H.Q. II (USA)</description>
 		<year>1992</year>
 		<manufacturer>Taito</manufacturer>
 		<rom name="chase h.q. ii (usa).bin" size="524288" crc="f39e4bf2"/>
+	</game>
+	<game name="chase">
+		<description>Chase</description>
+		<year>2014</year>
+		<manufacturer>2014 Jack Nolddor &amp; Davidian</manufacturer>
+		<rom name="Chase (v2.00).bin" size="393216" crc="0b3426ed"/>
 	</game>
 	<game name="chavez2" cloneof="boxinglg" romof="boxinglg">
 		<description>Chavez II (USA)</description>
@@ -4318,17 +4318,17 @@
 		<manufacturer>Seismic</manufacturer>
 		<rom name="hellfire (usa).bin" size="524288" crc="184018f9"/>
 	</game>
-	<game name="hercules" cloneof="dahnam" romof="dahnam">
-		<description>Hercules</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="hercules (unl).bin" size="1048576" crc="ff75d9d0"/>
-	</game>
 	<game name="herculs2">
 		<description>Hercules 2</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="hercules 2 (unl).bin" size="2097152" crc="292623db"/>
+	</game>
+	<game name="hercules" cloneof="dahnam" romof="dahnam">
+		<description>Hercules</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="hercules (unl).bin" size="1048576" crc="ff75d9d0"/>
 	</game>
 	<game name="herzog">
 		<description>Herzog Zwei (Euro, USA)</description>
@@ -4594,17 +4594,17 @@
 		<manufacturer>2016 Sprill</manufacturer>
 		<rom name="issdx_real_hack.bin" size="2097152" crc="ad08d78e"/>
 	</game>
-	<game name="iraqwar">
-		<description>Iraq War 2003</description>
-		<year>199?</year>
-		<manufacturer>Tomsoft</manufacturer>
-		<rom name="iraq war 2003 (unl).bin" size="1048576" crc="49dd6f52"/>
-	</game>
 	<game name="iraqwara" cloneof="iraqwar" romof="iraqwar">
 		<description>Iraq War 2003 (Alt)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="iraq war 2003 (alt) (unl).bin" size="1048576" crc="23689237"/>
+	</game>
+	<game name="iraqwar">
+		<description>Iraq War 2003</description>
+		<year>199?</year>
+		<manufacturer>Tomsoft</manufacturer>
+		<rom name="iraq war 2003 (unl).bin" size="1048576" crc="49dd6f52"/>
 	</game>
 	<game name="ishido">
 		<description>Ishido - The Way of Stones (USA)</description>
@@ -5014,17 +5014,17 @@
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="king of fighters 2000 (unl).bin" size="2097152" crc="34cbac5d"/>
 	</game>
-	<game name="kof98">
-		<description>K.O.F 98'</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="king of fighters '98, the (unl).bin" size="2097152" crc="cbc38eea"/>
-	</game>
 	<game name="kof98a" cloneof="kof98" romof="kof98">
 		<description>K.O.F 98' (Unprotected?)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="king of fighters '98, the (unl) (pirate).bin" size="2097152" crc="c79e1074"/>
+	</game>
+	<game name="kof98">
+		<description>K.O.F 98'</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="king of fighters '98, the (unl).bin" size="2097152" crc="cbc38eea"/>
 	</game>
 	<game name="kagekij" cloneof="kageki" romof="kageki">
 		<description>Ka-Ge-Ki (Jpn)</description>
@@ -5428,12 +5428,6 @@
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="elf wor (chi) (unl).bin" size="1048576" crc="e24ac6b2"/>
 	</game>
-	<game name="lionkin3">
-		<description>Lion King 3</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="shi zi wang 3 - the lion king 3 (chi) (unl).bin" size="2097152" crc="c004219d"/>
-	</game>
 	<game name="lionkin3b" cloneof="lionkin3" romof="lionkin3">
 		<description>Lion King 3 (Alt 2?)</description>
 		<year>199?</year>
@@ -5445,6 +5439,12 @@
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="lion_king_3.bin" size="2097152" crc="87e86943"/>
+	</game>
+	<game name="lionkin3">
+		<description>Lion King 3</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="shi zi wang 3 - the lion king 3 (chi) (unl).bin" size="2097152" crc="c004219d"/>
 	</game>
 	<game name="lobo">
 		<description>Lobo (USA, Prototype)</description>
@@ -6250,17 +6250,17 @@
 		<manufacturer>Data East</manufacturer>
 		<rom name="minnesota fats - pool legend (usa).bin" size="1048576" crc="38174f40"/>
 	</game>
-	<game name="mk5">
-		<description>MK 5 - Mortal Combat - SubZero</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="mk 5 - mortal combat - subzero (unl).bin" size="2097152" crc="11e367a1"/>
-	</game>
 	<game name="mk5a" cloneof="mk5" romof="mk5">
 		<description>MK 5 - Mortal Combat - SubZero (Pirate)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="mk 5 - mortal combat - subzero (unl) (pirate).bin" size="2097152" crc="41203006"/>
+	</game>
+	<game name="mk5">
+		<description>MK 5 - Mortal Combat - SubZero</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="mk 5 - mortal combat - subzero (unl).bin" size="2097152" crc="11e367a1"/>
 	</game>
 	<game name="mlbpa">
 		<description>MLBPA Baseball (USA)</description>
@@ -6340,17 +6340,17 @@
 		<manufacturer>2011 Nemesis_c, r57shell</manufacturer>
 		<rom name="Mortal Kombat 3 Mini-Hack.bin" size="4194304" crc="d925aa80"/>
 	</game>
-	<game name="mk2">
-		<description>Mortal Kombat II (World)</description>
-		<year>1994</year>
-		<manufacturer>Acclaim Entertainment</manufacturer>
-		<rom name="s376-u2.1+s382-u1.1.bin" size="3145728" crc="a9e013d8"/>
-	</game>
 	<game name="mk2wu" cloneof="mk2" romof="mk2">
 		<description>Mortal Kombat II (World) Unlimited (Hack, v1.0)</description>
 		<year>1994</year>
 		<manufacturer>2011 Smoke</manufacturer>
 		<rom name="Mortal Kombat II Unlimited (V1.0) (Hack By Smoke).bin" size="4136840" crc="53206165"/>
+	</game>
+	<game name="mk2">
+		<description>Mortal Kombat II (World)</description>
+		<year>1994</year>
+		<manufacturer>Acclaim Entertainment</manufacturer>
+		<rom name="s376-u2.1+s382-u1.1.bin" size="3145728" crc="a9e013d8"/>
 	</game>
 	<game name="mkr" cloneof="umk3t" romof="umk3t">
 		<description>Mortal Kombat Revelations (Hack, Version 1.0)</description>
@@ -7910,12 +7910,6 @@
 		<manufacturer>Disney Interactive</manufacturer>
 		<rom name="pocahontas (usa).bin" size="4194304" crc="6ddd1c6d"/>
 	</game>
-	<game name="pokemon">
-		<description>Pocket Monsters</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="pocket monsters (unl).bin" size="2097152" crc="f68f6367"/>
-	</game>
 	<game name="pokemona" cloneof="pokemon" romof="pokemon">
 		<description>Pocket Monsters (Alt)</description>
 		<year>199?</year>
@@ -7928,17 +7922,23 @@
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="pocket monsters 2 (unl).bin" size="2097152" crc="30f7031f"/>
 	</game>
-	<game name="pokecd">
-		<description>Pokemon Crazy Drummer</description>
+	<game name="pokemon">
+		<description>Pocket Monsters</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="pokemon crazy drummer (unl).bin" size="2097152" crc="8838a25d"/>
+		<rom name="pocket monsters (unl).bin" size="2097152" crc="f68f6367"/>
 	</game>
 	<game name="pokecda" cloneof="pokecd" romof="pokecd">
 		<description>Pokemon Crazy Drummer (Alt)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="pokemon crazy drummer (unl) [a].bin" size="2097152" crc="84f49061"/>
+	</game>
+	<game name="pokecd">
+		<description>Pokemon Crazy Drummer</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="pokemon crazy drummer (unl).bin" size="2097152" crc="8838a25d"/>
 	</game>
 	<game name="pokestad">
 		<description>Pokemon Stadium</description>
@@ -9129,17 +9129,17 @@
 		<manufacturer>Sega</manufacturer>
 		<rom name="shi no meikyuu - labyrinth of death (jpn) (sn).bin" size="262144" crc="a6d7e02d"/>
 	</game>
-	<game name="lionkin2">
-		<description>Shi Zi Wang II - Lion King II</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="shi zi wang ii - the lion king ii, the (chi) (unl).bin" size="2097152" crc="aff46765"/>
-	</game>
 	<game name="lionkin2a" cloneof="lionkin2" romof="lionkin2">
 		<description>Shi Zi Wang II - Lion King II (Pirate, Hacked?)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="shi zi wang ii - the lion king ii, the (chi) (unl) (pirate).bin" size="2097152" crc="721b4981"/>
+	</game>
+	<game name="lionkin2">
+		<description>Shi Zi Wang II - Lion King II</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="shi zi wang ii - the lion king ii, the (chi) (unl).bin" size="2097152" crc="aff46765"/>
 	</game>
 	<game name="sokoban" cloneof="shoveit" romof="shoveit">
 		<description>Shijou Saidai no Soukoban (Jpn)</description>
@@ -9705,12 +9705,6 @@
 		<manufacturer>Sega</manufacturer>
 		<rom name="sonic eraser (jpn) (sn).bin" size="262144" crc="62d8a0e7"/>
 	</game>
-	<game name="sonicjam">
-		<description>Sonic Jam 6</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="sonic jam 6 (unl).bin" size="2097152" crc="bf39d897"/>
-	</game>
 	<game name="sonicjam1" cloneof="sonicjam" romof="sonicjam">
 		<description>Sonic Jam 6 (Alt)</description>
 		<year>199?</year>
@@ -9722,6 +9716,12 @@
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="sonic_6.bin" size="2097152" crc="87d86501"/>
+	</game>
+	<game name="sonicjam">
+		<description>Sonic Jam 6</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="sonic jam 6 (unl).bin" size="2097152" crc="bf39d897"/>
 	</game>
 	<game name="sonicmmix" cloneof="sonic" romof="sonic">
 		<description>Sonic Megamix (Hack By Team Megamix V3.0)</description>
@@ -9927,17 +9927,17 @@
 		<manufacturer>Sega</manufacturer>
 		<rom name="mpr-12906.bin" size="524288" crc="a143a8c5"/>
 	</game>
-	<game name="soulblad">
-		<description>Soul Blade</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="soul blade (unl).bin" size="4194304" crc="f26f88d1"/>
-	</game>
 	<game name="soulblada" cloneof="soulblad" romof="soulblad">
 		<description>Soul Blade (Alt)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="soul blade (unl)[p].bin" size="3145728" crc="dd1c7a79"/>
+	</game>
+	<game name="soulblad">
+		<description>Soul Blade</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="soul blade (unl).bin" size="4194304" crc="f26f88d1"/>
 	</game>
 	<game name="souledge">
 		<description>Soul Edge vs Samurai Spirits (Pirate)</description>
@@ -10383,17 +10383,17 @@
 		<manufacturer>Sega</manufacturer>
 		<rom name="mpr-14125a.ic1" size="524288" crc="4052e845"/>
 	</game>
-	<game name="sor2u" cloneof="sor2" romof="sor2">
-		<description>Streets of Rage 2 (USA)</description>
-		<year>1992</year>
-		<manufacturer>Sega</manufacturer>
-		<rom name="streets of rage 2 (usa).bin" size="2097152" crc="e01fa526"/>
-	</game>
 	<game name="sor2usw" cloneof="sor2" romof="sor2">
 		<description>Streets of Rage 2 (USA) Syndicate Wars 2016 (Hack, April 30, 2016)</description>
 		<year>1992</year>
 		<manufacturer>2016 Gsaurus</manufacturer>
 		<rom name="sor2 sw.bin" size="3257806" crc="b49b4a9b"/>
+	</game>
+	<game name="sor2u" cloneof="sor2" romof="sor2">
+		<description>Streets of Rage 2 (USA)</description>
+		<year>1992</year>
+		<manufacturer>Sega</manufacturer>
+		<rom name="streets of rage 2 (usa).bin" size="2097152" crc="e01fa526"/>
 	</game>
 	<game name="sor2bk3b" cloneof="sor2" romof="sor2">
 		<description>Streets of Rage 2 - Bare Knuckle 3 Boss Edition (V1.1) (Hack)</description>
@@ -10791,17 +10791,17 @@
 		<manufacturer>Mairtrus</manufacturer>
 		<rom name="muls_1.4.2.bin" size="65536" crc="87a8c533"/>
 	</game>
-	<game name="smario64">
-		<description>Super Mario World 64</description>
-		<year>199?</year>
-		<manufacturer>&lt;unknown&gt;</manufacturer>
-		<rom name="super mario world 64 (unl).bin" size="1048576" crc="e7ac4161"/>
-	</game>
 	<game name="smario64h" cloneof="smario64" romof="smario64">
 		<description>Super Mario World 64 (Hacked Protection)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unknown&gt;</manufacturer>
 		<rom name="super mario world 64 (hacked).bin" size="1048576" crc="a20f98aa"/>
+	</game>
+	<game name="smario64">
+		<description>Super Mario World 64</description>
+		<year>199?</year>
+		<manufacturer>&lt;unknown&gt;</manufacturer>
+		<rom name="super mario world 64 (unl).bin" size="1048576" crc="e7ac4161"/>
 	</game>
 	<game name="smb">
 		<description>Super Mario World ~ Super Mario Bros. (Pirate)</description>
@@ -11469,17 +11469,17 @@
 		<manufacturer>Electronic Arts</manufacturer>
 		<rom name="aqua01.bin" size="524288" crc="400f4ba7"/>
 	</game>
-	<game name="redcliff">
-		<description>The Battle of Red Cliffs - Romance of the Three Kingdoms</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="the battle of red cliffs - romance of the three kingdoms (unl).bin" size="2097157" crc="44463492"/>
-	</game>
 	<game name="redcliffa" cloneof="redcliff" romof="redcliff">
 		<description>The Battle of Red Cliffs - Romance of the Three Kingdoms (Hacked out Protection?)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="the battle of red cliffs (unl).bin" size="2097152" crc="63eca090"/>
+	</game>
+	<game name="redcliff">
+		<description>The Battle of Red Cliffs - Romance of the Three Kingdoms</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="the battle of red cliffs - romance of the three kingdoms (unl).bin" size="2097157" crc="44463492"/>
 	</game>
 	<game name="berensp20" cloneof="berens" romof="berens">
 		<description>The Berenstain Bears' Camping Adventure (Prototype, 19940323)</description>
@@ -11745,17 +11745,17 @@
 		<manufacturer>Electronic Arts Victor</manufacturer>
 		<rom name="killing game show, the (jpn).bin" size="1048576" crc="b8e7668a"/>
 	</game>
-	<game name="kof99">
-		<description>The King of Fighters '99</description>
-		<year>199?</year>
-		<manufacturer>&lt;unlicensed&gt;</manufacturer>
-		<rom name="the king of fighters 99 (unl).bin" size="3145728" crc="54638c11"/>
-	</game>
 	<game name="kof99a" cloneof="kof99" romof="kof99">
 		<description>The King of Fighters '99 (Alt)</description>
 		<year>199?</year>
 		<manufacturer>&lt;unlicensed&gt;</manufacturer>
 		<rom name="king of fighters 99 (unl).bin" size="3145728" crc="ab82afbe"/>
+	</game>
+	<game name="kof99">
+		<description>The King of Fighters '99</description>
+		<year>199?</year>
+		<manufacturer>&lt;unlicensed&gt;</manufacturer>
+		<rom name="the king of fighters 99 (unl).bin" size="3145728" crc="54638c11"/>
 	</game>
 	<game name="lawnmowr">
 		<description>The Lawnmower Man (Euro, USA)</description>

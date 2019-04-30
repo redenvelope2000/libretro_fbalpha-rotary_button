@@ -432,8 +432,10 @@ INT32 SMSGetZipName(char** pszName, UINT32 i)
 		*pszName = NULL;
 		return 1;
 	}
-   // remove sms_
-	for (UINT32 j = 0; j < strlen(pszGameName); j++) {
+
+	// remove sms_
+	memset(szFilename, 0, MAX_PATH);
+	for (UINT32 j = 0; j < (strlen(pszGameName) - 4); j++) {
 		szFilename[j] = pszGameName[j+4];
 	}
 
@@ -461,8 +463,10 @@ INT32 GGGetZipName(char** pszName, UINT32 i)
 		*pszName = NULL;
 		return 1;
 	}
-   // remove sms_
-	for (UINT32 j = 0; j < strlen(pszGameName); j++) {
+
+	// remove gg_
+	memset(szFilename, 0, MAX_PATH);
+	for (UINT32 j = 0; j < (strlen(pszGameName) - 3); j++) {
 		szFilename[j] = pszGameName[j+3];
 	}
 
@@ -27636,6 +27640,25 @@ struct BurnDriver BurnDrvsms_fpigarus = {
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING, 2, HARDWARE_SEGA_MASTER_SYSTEM, GBF_MISC, 0,
 	SMSGetZipName, sms_fpigarusRomInfo, sms_fpigarusRomName, NULL, NULL, NULL, NULL, SMSInputInfo, SMSDIPInfo,
+	SMSInit, SMSExit, SMSFrame, SMSDraw, SMSScan, &SMSPaletteRecalc, 0x1000,
+	256, 192, 4, 3
+};
+
+// Wing Warriors
+
+static struct BurnRomInfo sms_wingwarriorsRomDesc[] = {
+	{ "WingWarriors.sms",	0x20000, 0x14e13a82, BRF_PRG | BRF_ESS },
+};
+
+STD_ROM_PICK(sms_wingwarriors)
+STD_ROM_FN(sms_wingwarriors)
+
+struct BurnDriver BurnDrvsms_wingwarriors = {
+	"sms_wingwarriors", NULL, NULL, NULL, "2019",
+	"Wing Warriors (April 18, 2019 Test)\0", NULL, "Kitmaker", "Sega Master System",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_SEGA_MASTER_SYSTEM, GBF_MISC, 0,
+	SMSGetZipName, sms_wingwarriorsRomInfo, sms_wingwarriorsRomName, NULL, NULL, NULL, NULL, SMSInputInfo, SMSDIPInfo,
 	SMSInit, SMSExit, SMSFrame, SMSDraw, SMSScan, &SMSPaletteRecalc, 0x1000,
 	256, 192, 4, 3
 };

@@ -1,9 +1,6 @@
 // FB Alpha Incredible technologies (32-bit blitter) driver module
 // Based on MAME driver by Aaron Giles and Brian Troha
 
-// todo/etc:
-//  wcbowl140 has issues booting
-
 #include "tiles_generic.h"
 #include "m68000_intf.h"
 #include "m6809_intf.h"
@@ -64,9 +61,12 @@ static UINT8 DrvJoy3[8];
 static UINT8 DrvJoy4[8];
 static UINT8 DrvJoy5[8];
 static UINT8 DrvJoy6[8];
+static UINT8 DrvSvc0[1]; // f2/service mode(diag) button
 static UINT8 DrvDips[1];
 static UINT8 DrvReset;
 static UINT8 DrvInputs[6];
+
+static INT32 is_shufshot = 0;
 
 static INT16 DrvAnalogPort0 = 0;
 static INT16 DrvAnalogPort1 = 0;
@@ -115,6 +115,7 @@ static struct BurnInputInfo TimekillInputList[] = {
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy4 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -123,7 +124,7 @@ STDINPUTINFO(Timekill)
 static struct BurnInputInfo BloodstmInputList[] = {
 	{"P1 Coin",			BIT_DIGITAL,	DrvJoy1 + 0,	"p1 coin"	},
 	{"P1 Start",		BIT_DIGITAL,	DrvJoy1 + 1,	"p1 start"	},
-	{"P1 Up",			BIT_DIGITAL,	DrvJoy1 + 7,	"p1 up"			},
+	{"P1 Up",			BIT_DIGITAL,	DrvJoy1 + 7,	"p1 up"		},
 	{"P1 Down",			BIT_DIGITAL,	DrvJoy1 + 6,	"p1 down"	},
 	{"P1 Left",			BIT_DIGITAL,	DrvJoy1 + 5,	"p1 left"	},
 	{"P1 Right",		BIT_DIGITAL,	DrvJoy1 + 4,	"p1 right"	},
@@ -147,6 +148,7 @@ static struct BurnInputInfo BloodstmInputList[] = {
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy5 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -189,6 +191,7 @@ static struct BurnInputInfo HardyardInputList[] = {
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy5 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -201,12 +204,12 @@ static struct BurnInputInfo SftmInputList[] = {
 	{"P1 Down",			BIT_DIGITAL,	DrvJoy1 + 6,	"p1 down"	},
 	{"P1 Left",			BIT_DIGITAL,	DrvJoy1 + 5,	"p1 left"	},
 	{"P1 Right",		BIT_DIGITAL,	DrvJoy1 + 4,	"p1 right"	},
-	{"P1 Button 1",		BIT_DIGITAL,	DrvJoy1 + 2,	"p1 fire 1"	},
-	{"P1 Button 2",		BIT_DIGITAL,	DrvJoy1 + 3,	"p1 fire 2"	},
-	{"P1 Button 3",		BIT_DIGITAL,	DrvJoy3 + 0,	"p1 fire 3"	},
-	{"P1 Button 4",		BIT_DIGITAL,	DrvJoy3 + 2,	"p1 fire 4"	},
-	{"P1 Button 5",		BIT_DIGITAL,	DrvJoy3 + 4,	"p1 fire 5"	},
-	{"P1 Button 6",		BIT_DIGITAL,	DrvJoy3 + 6,	"p1 fire 6"	},
+	{"P1 Weak Punch",	BIT_DIGITAL,	DrvJoy1 + 2,	"p1 fire 1"	},
+	{"P1 Medium Punch",	BIT_DIGITAL,	DrvJoy1 + 3,	"p1 fire 2"	},
+	{"P1 Strong Punch",	BIT_DIGITAL,	DrvJoy3 + 0,	"p1 fire 3"	},
+	{"P1 Weak Kick",	BIT_DIGITAL,	DrvJoy3 + 2,	"p1 fire 4"	},
+	{"P1 Medium Kick",	BIT_DIGITAL,	DrvJoy3 + 4,	"p1 fire 5"	},
+	{"P1 Strong Kick",	BIT_DIGITAL,	DrvJoy3 + 6,	"p1 fire 6"	},
 
 	{"P2 Coin",			BIT_DIGITAL,	DrvJoy2 + 0,	"p2 coin"	},
 	{"P2 Start",		BIT_DIGITAL,	DrvJoy2 + 1,	"p2 start"	},
@@ -214,15 +217,16 @@ static struct BurnInputInfo SftmInputList[] = {
 	{"P2 Down",			BIT_DIGITAL,	DrvJoy2 + 6,	"p2 down"	},
 	{"P2 Left",			BIT_DIGITAL,	DrvJoy2 + 5,	"p2 left"	},
 	{"P2 Right",		BIT_DIGITAL,	DrvJoy2 + 4,	"p2 right"	},
-	{"P2 Button 1",		BIT_DIGITAL,	DrvJoy2 + 2,	"p2 fire 1"	},
-	{"P2 Button 2",		BIT_DIGITAL,	DrvJoy2 + 3,	"p2 fire 2"	},
-	{"P2 Button 3",		BIT_DIGITAL,	DrvJoy3 + 1,	"p2 fire 3"	},
-	{"P2 Button 4",		BIT_DIGITAL,	DrvJoy3 + 3,	"p2 fire 4"	},
-	{"P2 Button 5",		BIT_DIGITAL,	DrvJoy3 + 5,	"p2 fire 5"	},
-	{"P2 Button 6",		BIT_DIGITAL,	DrvJoy3 + 7,	"p2 fire 6"	},
+	{"P2 Weak Punch",	BIT_DIGITAL,	DrvJoy2 + 2,	"p2 fire 1"	},
+	{"P2 Medium Punch",	BIT_DIGITAL,	DrvJoy2 + 3,	"p2 fire 2"	},
+	{"P2 Strong Punch",	BIT_DIGITAL,	DrvJoy3 + 1,	"p2 fire 3"	},
+	{"P2 Weak Kick",	BIT_DIGITAL,	DrvJoy3 + 3,	"p2 fire 4"	},
+	{"P2 Medium Kick",	BIT_DIGITAL,	DrvJoy3 + 5,	"p2 fire 5"	},
+	{"P2 Strong Kick",	BIT_DIGITAL,	DrvJoy3 + 7,	"p2 fire 6"	},
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy5 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -248,6 +252,7 @@ static struct BurnInputInfo PairsInputList[] = {
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy5 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -271,6 +276,7 @@ static struct BurnInputInfo WcbowlInputList[] = {
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy5 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -293,6 +299,7 @@ static struct BurnInputInfo ShufshotInputList[] = {
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy5 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -318,6 +325,7 @@ static struct BurnInputInfo Gt3dInputList[] = {
 
 	{"Reset",			BIT_DIGITAL,	&DrvReset,		"reset"		},
 	{"Service",			BIT_DIGITAL,	DrvJoy5 + 1,	"service"	},
+	{"Service Mode",	BIT_DIGITAL,	DrvSvc0 + 0,	"diag"		},
 	{"Dip A",			BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 };
 
@@ -326,534 +334,459 @@ STDINPUTINFO(Gt3d)
 
 static struct BurnDIPInfo TimekillDIPList[]=
 {
-	{0x18, 0xff, 0xff, 0x07, NULL				},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x18, 0x01, 0x01, 0x00, "Off"				},
-	{0x18, 0x01, 0x01, 0x01, "On"				},
+	{0x19, 0xff, 0xff, 0x07, NULL				},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"		},
-	{0x18, 0x01, 0x10, 0x00, "-"				},
-	{0x18, 0x01, 0x10, 0x10, "+"				},
+	{0x19, 0x01, 0x10, 0x00, "-"				},
+	{0x19, 0x01, 0x10, 0x10, "+"				},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"		},
-	{0x18, 0x01, 0x20, 0x00, "Off"				},
-	{0x18, 0x01, 0x20, 0x20, "On"				},
+	{0x19, 0x01, 0x20, 0x00, "Off"				},
+	{0x19, 0x01, 0x20, 0x20, "On"				},
 
 	{0   , 0xfe, 0   ,    2, "Violence"			},
-	{0x18, 0x01, 0x40, 0x40, "Off"				},
-	{0x18, 0x01, 0x40, 0x00, "On"				},
+	{0x19, 0x01, 0x40, 0x40, "Off"				},
+	{0x19, 0x01, 0x40, 0x00, "On"				},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x18, 0x01, 0x80, 0x00, "Off"				},
-	{0x18, 0x01, 0x80, 0x80, "On"				},
+	{0x19, 0x01, 0x80, 0x00, "Off"				},
+	{0x19, 0x01, 0x80, 0x80, "On"				},
 };
 
 STDDIPINFO(Timekill)
 
 static struct BurnDIPInfo BloodstmDIPList[]=
 {
-	{0x18, 0xff, 0xff, 0x07, NULL				},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x18, 0x01, 0x01, 0x00, "Off"				},
-	{0x18, 0x01, 0x01, 0x01, "On"				},
+	{0x19, 0xff, 0xff, 0x07, NULL				},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"		},
-	{0x18, 0x01, 0x10, 0x00, "-"				},
-	{0x18, 0x01, 0x10, 0x10, "+"				},
+	{0x19, 0x01, 0x10, 0x00, "-"				},
+	{0x19, 0x01, 0x10, 0x10, "+"				},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"		},
-	{0x18, 0x01, 0x20, 0x00, "Off"				},
-	{0x18, 0x01, 0x20, 0x20, "On"				},
+	{0x19, 0x01, 0x20, 0x00, "Off"				},
+	{0x19, 0x01, 0x20, 0x20, "On"				},
 
 	{0   , 0xfe, 0   ,    2, "Violence"			},
-	{0x18, 0x01, 0x40, 0x40, "Off"				},
-	{0x18, 0x01, 0x40, 0x00, "On"				},
+	{0x19, 0x01, 0x40, 0x40, "Off"				},
+	{0x19, 0x01, 0x40, 0x00, "On"				},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x18, 0x01, 0x80, 0x00, "Off"				},
-	{0x18, 0x01, 0x80, 0x80, "On"				},
+	{0x19, 0x01, 0x80, 0x00, "Off"				},
+	{0x19, 0x01, 0x80, 0x80, "On"				},
 };
 
 STDDIPINFO(Bloodstm)
 
 static struct BurnDIPInfo HardyardDIPList[]=
 {
-	{0x20, 0xff, 0xff, 0x07, NULL				},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x20, 0x01, 0x01, 0x00, "Off"				},
-	{0x20, 0x01, 0x01, 0x01, "On"				},
+	{0x21, 0xff, 0xff, 0x07, NULL				},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"		},
-	{0x20, 0x01, 0x10, 0x00, "-"				},
-	{0x20, 0x01, 0x10, 0x10, "+"				},
+	{0x21, 0x01, 0x10, 0x00, "-"				},
+	{0x21, 0x01, 0x10, 0x10, "+"				},
 
 	{0   , 0xfe, 0   ,    1, "Cabinet"			},
-	{0x20, 0x01, 0x20, 0x00, "Upright"			},
+	{0x21, 0x01, 0x20, 0x00, "Upright"			},
 
 	{0   , 0xfe, 0   ,    2, "Players"			},
-	{0x20, 0x01, 0x40, 0x00, "4"				},
-	{0x20, 0x01, 0x40, 0x40, "2"				},
+	{0x21, 0x01, 0x40, 0x00, "4"				},
+	{0x21, 0x01, 0x40, 0x40, "2"				},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x20, 0x01, 0x80, 0x00, "Off"				},
-	{0x20, 0x01, 0x80, 0x80, "On"				},
+	{0x21, 0x01, 0x80, 0x00, "Off"				},
+	{0x21, 0x01, 0x80, 0x80, "On"				},
 };
 
 STDDIPINFO(Hardyard)
 
 static struct BurnDIPInfo SftmDIPList[]=
 {
-	{0x1a, 0xff, 0xff, 0x00, NULL				},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x1a, 0x01, 0x01, 0x00, "Off"				},
-	{0x1a, 0x01, 0x01, 0x01, "On"				},
+	{0x1b, 0xff, 0xff, 0x01, NULL				},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"		},
-	{0x1a, 0x01, 0x10, 0x00, "-"				},
-	{0x1a, 0x01, 0x10, 0x10, "+"				},
+	{0x1b, 0x01, 0x10, 0x00, "-"				},
+	{0x1b, 0x01, 0x10, 0x10, "+"				},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"		},
-	{0x1a, 0x01, 0x20, 0x00, "Off"				},
-	{0x1a, 0x01, 0x20, 0x20, "On"				},
+	{0x1b, 0x01, 0x20, 0x00, "Off"				},
+	{0x1b, 0x01, 0x20, 0x20, "On"				},
 
 	{0   , 0xfe, 0   ,    2, "Freeze Screen"	},
-	{0x1a, 0x01, 0x40, 0x00, "Off"				},
-	{0x1a, 0x01, 0x40, 0x40, "On"				},
+	{0x1b, 0x01, 0x40, 0x00, "Off"				},
+	{0x1b, 0x01, 0x40, 0x40, "On"				},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"		},
-	{0x1a, 0x01, 0x80, 0x00, "Off"				},
-	{0x1a, 0x01, 0x80, 0x80, "On"				},
+	{0x1b, 0x01, 0x80, 0x00, "Off"				},
+	{0x1b, 0x01, 0x80, 0x80, "On"				},
 };
 
 STDDIPINFO(Sftm)
 
 static struct BurnDIPInfo PairsDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"			},
-	{0x10, 0x01, 0x10, 0x00, "-"					},
-	{0x10, 0x01, 0x10, 0x10, "+"					},
+	{0x11, 0x01, 0x10, 0x00, "-"					},
+	{0x11, 0x01, 0x10, 0x10, "+"					},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"			},
-	{0x10, 0x01, 0x20, 0x00, "Off"					},
-	{0x10, 0x01, 0x20, 0x20, "On"					},
+	{0x11, 0x01, 0x20, 0x00, "Off"					},
+	{0x11, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Modesty"				},
-	{0x10, 0x01, 0x40, 0x00, "Off"					},
-	{0x10, 0x01, 0x40, 0x40, "On"					},
+	{0x11, 0x01, 0x40, 0x00, "Off"					},
+	{0x11, 0x01, 0x40, 0x40, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Pairs)
 
 static struct BurnDIPInfo WcbowlDIPList[]=
 {
-	{0x0e, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode "		},
-	{0x0e, 0x01, 0x01, 0x00, "Off"					},
-	{0x0e, 0x01, 0x01, 0x01, "On"					},
+	{0x0f, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"			},
-	{0x0e, 0x01, 0x10, 0x00, "-"					},
-	{0x0e, 0x01, 0x10, 0x10, "+"					},
+	{0x0f, 0x01, 0x10, 0x00, "-"					},
+	{0x0f, 0x01, 0x10, 0x10, "+"					},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"			},
-	{0x0e, 0x01, 0x20, 0x00, "Off"					},
-	{0x0e, 0x01, 0x20, 0x20, "On"					},
+	{0x0f, 0x01, 0x20, 0x00, "Off"					},
+	{0x0f, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x0e, 0x01, 0x40, 0x40, "Off"					},
-	{0x0e, 0x01, 0x40, 0x00, "On"					},
+	{0x0f, 0x01, 0x40, 0x40, "Off"					},
+	{0x0f, 0x01, 0x40, 0x00, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x80, 0x00, "Off"					},
-	{0x0e, 0x01, 0x80, 0x80, "On"					},
+	{0x0f, 0x01, 0x80, 0x00, "Off"					},
+	{0x0f, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Wcbowl)
 
 static struct BurnDIPInfo WcbowljDIPList[]=
 {
-	{0x0e, 0xff, 0xff, 0x07, NULL					},
+	{0x0f, 0xff, 0xff, 0x07, NULL					},
 
-	{0   , 0xfe, 0   ,    2, "Service Mode "		},
-	{0x0e, 0x01, 0x01, 0x00, "Off"					},
-	{0x0e, 0x01, 0x01, 0x01, "On"					},
-
-	{0   , 0xfe, 0   ,    2, "Video Sync"			},
-	{0x0e, 0x01, 0x10, 0x00, "-"					},
-	{0x0e, 0x01, 0x10, 0x10, "+"					},
+    {0   , 0xfe, 0   ,    2, "Video Sync"			},
+	{0x0f, 0x01, 0x10, 0x00, "-"					},
+	{0x0f, 0x01, 0x10, 0x10, "+"					},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"			},
-	{0x0e, 0x01, 0x20, 0x00, "Off"					},
-	{0x0e, 0x01, 0x20, 0x20, "On"					},
+	{0x0f, 0x01, 0x20, 0x00, "Off"					},
+	{0x0f, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Controls"				},
-	{0x0e, 0x01, 0x40, 0x00, "One Trackball"		},
-	{0x0e, 0x01, 0x40, 0x40, "Two Trackballs"		},
+	{0x0f, 0x01, 0x40, 0x00, "One Trackball"		},
+	{0x0f, 0x01, 0x40, 0x40, "Two Trackballs"		},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x80, 0x00, "Off"					},
-	{0x0e, 0x01, 0x80, 0x80, "On"					},
+	{0x0f, 0x01, 0x80, 0x00, "Off"					},
+	{0x0f, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Wcbowlj)
 
 static struct BurnDIPInfo WcbowlnDIPList[]=
 {
-	{0x0e, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x01, 0x00, "Off"					},
-	{0x0e, 0x01, 0x01, 0x01, "On"					},
+	{0x0f, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x0e, 0x01, 0x10, 0x00, "Off"					},
-	{0x0e, 0x01, 0x10, 0x10, "On"					},
+	{0x0f, 0x01, 0x10, 0x00, "Off"					},
+	{0x0f, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Cabinet"				},
-	{0x0e, 0x01, 0x20, 0x00, "Upright"				},
-	{0x0e, 0x01, 0x20, 0x20, "Cocktail"				},
+	{0x0f, 0x01, 0x20, 0x00, "Upright"				},
+	{0x0f, 0x01, 0x20, 0x20, "Cocktail"				},
 
 	{0   , 0xfe, 0   ,    2, "Freeze Screen"		},
-	{0x0e, 0x01, 0x40, 0x00, "Off"					},
-	{0x0e, 0x01, 0x40, 0x40, "On"					},
+	{0x0f, 0x01, 0x40, 0x00, "Off"					},
+	{0x0f, 0x01, 0x40, 0x40, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x80, 0x00, "Off"					},
-	{0x0e, 0x01, 0x80, 0x80, "On"					},
+	{0x0f, 0x01, 0x80, 0x00, "Off"					},
+	{0x0f, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Wcbowln)
 
 static struct BurnDIPInfo WcbowldxDIPList[]=
 {
-	{0x0e, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x01, 0x00, "Off"					},
-	{0x0e, 0x01, 0x01, 0x01, "On"					},
+	{0x0f, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x0e, 0x01, 0x10, 0x00, "Off"					},
-	{0x0e, 0x01, 0x10, 0x10, "On"					},
+	{0x0f, 0x01, 0x10, 0x00, "Off"					},
+	{0x0f, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"			},
-	{0x0e, 0x01, 0x20, 0x00, "Off"					},
-	{0x0e, 0x01, 0x20, 0x20, "On"					},
+	{0x0f, 0x01, 0x20, 0x00, "Off"					},
+	{0x0f, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x0e, 0x01, 0x40, 0x40, "Off"					},
-	{0x0e, 0x01, 0x40, 0x00, "On"					},
+	{0x0f, 0x01, 0x40, 0x40, "Off"					},
+	{0x0f, 0x01, 0x40, 0x00, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x80, 0x00, "Off"					},
-	{0x0e, 0x01, 0x80, 0x80, "On"					},
+	{0x0f, 0x01, 0x80, 0x00, "Off"					},
+	{0x0f, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Wcbowldx)
 
 static struct BurnDIPInfo WcbowloDIPList[]=
 {
-	{0x0e, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x01, 0x00, "Off"					},
-	{0x0e, 0x01, 0x01, 0x01, "On"					},
+	{0x0f, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x0e, 0x01, 0x10, 0x00, "Off"					},
-	{0x0e, 0x01, 0x10, 0x10, "On"					},
+	{0x0f, 0x01, 0x10, 0x00, "Off"					},
+	{0x0f, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"			},
-	{0x0e, 0x01, 0x20, 0x00, "Off"					},
-	{0x0e, 0x01, 0x20, 0x20, "On"					},
+	{0x0f, 0x01, 0x20, 0x00, "Off"					},
+	{0x0f, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Freeze Screen"		},
-	{0x0e, 0x01, 0x40, 0x40, "Off"					},
-	{0x0e, 0x01, 0x40, 0x00, "On"					},
+	{0x0f, 0x01, 0x40, 0x40, "Off"					},
+	{0x0f, 0x01, 0x40, 0x00, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x80, 0x00, "Off"					},
-	{0x0e, 0x01, 0x80, 0x80, "On"					},
+	{0x0f, 0x01, 0x80, 0x00, "Off"					},
+	{0x0f, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Wcbowlo)
 
 static struct BurnDIPInfo ShufshotDIPList[]=
 {
-	{0x0e, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x01, 0x00, "Off"					},
-	{0x0e, 0x01, 0x01, 0x01, "On"					},
+	{0x0f, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"			},
-	{0x0e, 0x01, 0x10, 0x00, "-"					},
-	{0x0e, 0x01, 0x10, 0x10, "+"					},
+	{0x0f, 0x01, 0x10, 0x00, "-"					},
+	{0x0f, 0x01, 0x10, 0x10, "+"					},
 
 	{0   , 0xfe, 0   ,    2, "Cabinet"				},
-	{0x0e, 0x01, 0x20, 0x00, "Upright"				},
-	{0x0e, 0x01, 0x20, 0x20, "Cocktail"				},
+	{0x0f, 0x01, 0x20, 0x00, "Upright"				},
+	{0x0f, 0x01, 0x20, 0x20, "Cocktail"				},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x0e, 0x01, 0x40, 0x40, "Off"					},
-	{0x0e, 0x01, 0x40, 0x00, "On"					},
+	{0x0f, 0x01, 0x40, 0x40, "Off"					},
+	{0x0f, 0x01, 0x40, 0x00, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x80, 0x00, "Off"					},
-	{0x0e, 0x01, 0x80, 0x80, "On"					},
+	{0x0f, 0x01, 0x80, 0x00, "Off"					},
+	{0x0f, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Shufshot)
 
 static struct BurnDIPInfo ShufshtoDIPList[]=
 {
-	{0x0e, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x01, 0x00, "Off"					},
-	{0x0e, 0x01, 0x01, 0x01, "On"					},
+	{0x0f, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Video Sync"			},
-	{0x0e, 0x01, 0x10, 0x00, "-"					},
-	{0x0e, 0x01, 0x10, 0x10, "+"					},
+	{0x0f, 0x01, 0x10, 0x00, "-"					},
+	{0x0f, 0x01, 0x10, 0x10, "+"					},
 
 	{0   , 0xfe, 0   ,    2, "Flip Screen"			},
-	{0x0e, 0x01, 0x20, 0x00, "Off"					},
-	{0x0e, 0x01, 0x20, 0x20, "On"					},
+	{0x0f, 0x01, 0x20, 0x00, "Off"					},
+	{0x0f, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Freeze Screen"		},
-	{0x0e, 0x01, 0x40, 0x40, "Off"					},
-	{0x0e, 0x01, 0x40, 0x00, "On"					},
+	{0x0f, 0x01, 0x40, 0x40, "Off"					},
+	{0x0f, 0x01, 0x40, 0x00, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x0e, 0x01, 0x80, 0x00, "Off"					},
-	{0x0e, 0x01, 0x80, 0x80, "On"					},
+	{0x0f, 0x01, 0x80, 0x00, "Off"					},
+	{0x0f, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Shufshto)
 
 static struct BurnDIPInfo Gt3dDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x10, 0x00, "Off"					},
-	{0x10, 0x01, 0x10, 0x10, "On"					},
+	{0x11, 0x01, 0x10, 0x00, "Off"					},
+	{0x11, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Trackball Orientation"},
-	{0x10, 0x01, 0x20, 0x00, "Normal Mount"			},
-	{0x10, 0x01, 0x20, 0x20, "45 Degree Angle"		},
+	{0x11, 0x01, 0x20, 0x00, "Normal Mount"			},
+	{0x11, 0x01, 0x20, 0x20, "45 Degree Angle"		},
 
 	{0   , 0xfe, 0   ,    2, "Controls"				},
-	{0x10, 0x01, 0x40, 0x00, "One Trackball"		},
-	{0x10, 0x01, 0x40, 0x40, "Two Trackballs"		},
+	{0x11, 0x01, 0x40, 0x00, "One Trackball"		},
+	{0x11, 0x01, 0x40, 0x40, "Two Trackballs"		},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Gt3d)
 
 static struct BurnDIPInfo Gt97DIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Freeze Screen"		},
-	{0x10, 0x01, 0x10, 0x10, "Off"					},
-	{0x10, 0x01, 0x10, 0x10, "On"					},
+	{0x11, 0x01, 0x10, 0x10, "Off"					},
+	{0x11, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x20, 0x00, "Off"					},
-	{0x10, 0x01, 0x20, 0x20, "On"					},
+	{0x11, 0x01, 0x20, 0x00, "Off"					},
+	{0x11, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Cabinet"				},
-	{0x0e, 0x01, 0x40, 0x00, "Upright"				},
-	{0x0e, 0x01, 0x40, 0x40, "Cocktail"				},
+	{0x11, 0x01, 0x40, 0x00, "Upright"				},
+	{0x11, 0x01, 0x40, 0x40, "Cocktail"				},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Gt97)
 
 static struct BurnDIPInfo Gt97oDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Freeze Screen"		},
-	{0x10, 0x01, 0x10, 0x00, "Off"					},
-	{0x10, 0x01, 0x10, 0x10, "On"					},
+	{0x11, 0x01, 0x10, 0x00, "Off"					},
+	{0x11, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Trackball Orientation"},
-	{0x10, 0x01, 0x20, 0x00, "Normal Mount"			},
-	{0x10, 0x01, 0x20, 0x20, "45 Degree Angle"		},
+	{0x11, 0x01, 0x20, 0x00, "Normal Mount"			},
+	{0x11, 0x01, 0x20, 0x20, "45 Degree Angle"		},
 
 	{0   , 0xfe, 0   ,    2, "Controls"				},
-	{0x10, 0x01, 0x40, 0x00, "One Trackball"		},
-	{0x10, 0x01, 0x40, 0x40, "Two Trackballs"		},
+	{0x11, 0x01, 0x40, 0x00, "One Trackball"		},
+	{0x11, 0x01, 0x40, 0x40, "Two Trackballs"		},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Gt97o)
 
 static struct BurnDIPInfo Gt97sDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Freeze Screen"		},
-	{0x10, 0x01, 0x10, 0x00, "Off"					},
-	{0x10, 0x01, 0x10, 0x10, "On"					},
+	{0x11, 0x01, 0x10, 0x00, "Off"					},
+	{0x11, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Trackball Orientation"},
-	{0x10, 0x01, 0x20, 0x00, "Normal Mount"			},
-	{0x10, 0x01, 0x20, 0x20, "45 Degree Angle"		},
+	{0x11, 0x01, 0x20, 0x00, "Normal Mount"			},
+	{0x11, 0x01, 0x20, 0x20, "45 Degree Angle"		},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x40, 0x00, "Off"					},
-	{0x10, 0x01, 0x40, 0x40, "On"					},
+	{0x11, 0x01, 0x40, 0x00, "Off"					},
+	{0x11, 0x01, 0x40, 0x40, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Gt97s)
 
 static struct BurnDIPInfo Gt98DIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x10, 0x00, "Off"					},
-	{0x10, 0x01, 0x10, 0x10, "On"					},
+	{0x11, 0x01, 0x10, 0x00, "Off"					},
+	{0x11, 0x01, 0x10, 0x10, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x20, 0x00, "Off"					},
-	{0x10, 0x01, 0x20, 0x20, "On"					},
+	{0x11, 0x01, 0x20, 0x00, "Off"					},
+	{0x11, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Cabinet"				},
-	{0x0e, 0x01, 0x40, 0x00, "Upright"				},
-	{0x0e, 0x01, 0x40, 0x40, "Cocktail"				},
+	{0x11, 0x01, 0x40, 0x00, "Upright"				},
+	{0x11, 0x01, 0x40, 0x40, "Cocktail"				},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Gt98)
 
 static struct BurnDIPInfo Gt98sDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
+
+	{0   , 0xfe, 0   ,    2, "Unknown"				},
+	{0x11, 0x01, 0x10, 0x00, "Off"					},
+	{0x11, 0x01, 0x10, 0x10, "On"					},
+
+	{0   , 0xfe, 0   ,    2, "Unknown"				},
+	{0x11, 0x01, 0x20, 0x00, "Off"					},
+	{0x11, 0x01, 0x20, 0x20, "On"					},
+
+	{0   , 0xfe, 0   ,    2, "Unknown"				},
+	{0x11, 0x01, 0x40, 0x00, "Off"					},
+	{0x11, 0x01, 0x40, 0x40, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
-
-	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x10, 0x00, "Off"					},
-	{0x10, 0x01, 0x10, 0x10, "On"					},
-
-	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x20, 0x00, "Off"					},
-	{0x10, 0x01, 0x20, 0x20, "On"					},
-
-	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x40, 0x00, "Off"					},
-	{0x10, 0x01, 0x40, 0x40, "On"					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Gt98s)
 
 static struct BurnDIPInfo S_verDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Trackball Orientation"},
-	{0x10, 0x01, 0x10, 0x00, "Normal Mount"			},
-	{0x10, 0x01, 0x10, 0x10, "45 Degree Angle"		},
+	{0x11, 0x01, 0x10, 0x00, "Normal Mount"			},
+	{0x11, 0x01, 0x10, 0x10, "45 Degree Angle"		},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x20, 0x00, "Off"					},
-	{0x10, 0x01, 0x20, 0x20, "On"					},
+	{0x11, 0x01, 0x20, 0x00, "Off"					},
+	{0x11, 0x01, 0x20, 0x20, "On"					},
 
 	{0   , 0xfe, 0   ,    2, "Unknown"				},
-	{0x10, 0x01, 0x40, 0x00, "Off"					},
-	{0x10, 0x01, 0x40, 0x40, "On"					},
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x40, 0x00, "Off"					},
+	{0x11, 0x01, 0x40, 0x40, "On"					},
+
+    {0   , 0xfe, 0   ,    2, "Service Mode"			},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(S_ver)
 
 static struct BurnDIPInfo AamaDIPList[]=
 {
-	{0x10, 0xff, 0xff, 0x07, NULL					},
-
-	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x01, 0x00, "Off"					},
-	{0x10, 0x01, 0x01, 0x01, "On"					},
+	{0x11, 0xff, 0xff, 0x07, NULL					},
 
 	{0   , 0xfe, 0   ,    2, "Trackball Orientation"},
-	{0x10, 0x01, 0x10, 0x00, "Normal Mount"			},
-	{0x10, 0x01, 0x10, 0x10, "45 Degree Angle"		},
+	{0x11, 0x01, 0x10, 0x00, "Normal Mount"			},
+	{0x11, 0x01, 0x10, 0x10, "45 Degree Angle"		},
 
 	{0   , 0xfe, 0   ,    2, "Cabinet"				},
-	{0x0e, 0x01, 0x20, 0x00, "Upright"				},
-	{0x0e, 0x01, 0x20, 0x20, "Cocktail"				},
+	{0x11, 0x01, 0x20, 0x00, "Upright"				},
+	{0x11, 0x01, 0x20, 0x20, "Cocktail"				},
 
 	{0   , 0xfe, 0   ,    2, "Controls"				},
-	{0x10, 0x01, 0x40, 0x00, "One Trackball"		},
-	{0x10, 0x01, 0x40, 0x40, "Two Trackballs"		},
+	{0x11, 0x01, 0x40, 0x00, "One Trackball"		},
+	{0x11, 0x01, 0x40, 0x40, "Two Trackballs"		},
 
 	{0   , 0xfe, 0   ,    2, "Service Mode"			},
-	{0x10, 0x01, 0x80, 0x00, "Off"					},
-	{0x10, 0x01, 0x80, 0x80, "On"					},
+	{0x11, 0x01, 0x80, 0x00, "Off"					},
+	{0x11, 0x01, 0x80, 0x80, "On"					},
 };
 
 STDDIPINFO(Aama)
@@ -2113,8 +2046,8 @@ static UINT8 __fastcall common16_main_read_byte(UINT32 address)
 
 static void __fastcall common32_main_write_long(UINT32 address, UINT32 data)
 {
-	if ((address & 0xfff800) == 0x681000) {
-		bprintf (0, _T("MWL: %5.5x, %8.8x\n"), address, data);
+	if ((address & 0xfff800) == 0x681000) { // timekeeper (in bytehandler)
+        SEK_DEF_WRITE_LONG(0, address, data);
 		return;
 	}
 
@@ -2149,7 +2082,7 @@ static void __fastcall common32_main_write_long(UINT32 address, UINT32 data)
 		return;
 	}
 
-	bprintf (0, _T("MWL: %5.5x, %8.8x\n"), address, data);
+	//bprintf (0, _T("MWL: %5.5x, %8.8x\n"), address, data);
 }
 
 static void __fastcall common32_main_write_word(UINT32 address, UINT16 data)
@@ -2162,10 +2095,8 @@ static void __fastcall common32_main_write_word(UINT32 address, UINT16 data)
 		return;
 	}
 
-	if ((address & 0xfff800) == 0x681000) {
-	//	bprintf (0, _T("MWW: %5.5x, %4.4x\n"), address, data);
-		TimeKeeperWrite((address & 0x7fe)|0, data >> 8);
-		TimeKeeperWrite((address & 0x7ff)|1, data);
+	if ((address & 0xfff800) == 0x681000) { // timekeeper (in bytehandler)
+        SEK_DEF_WRITE_WORD(0, address, data);
 		return;
 	}
 
@@ -2206,7 +2137,8 @@ static void __fastcall common32_main_write_word(UINT32 address, UINT16 data)
 		return;
 	}
 
-	bprintf (0, _T("MWW: %5.5x, %4.4x\n"), address, data);
+	if ((address&0xffff00) != 0x61ff00)
+		bprintf (0, _T("MWW: %5.5x, %4.4x\n"), address, data);
 }
 
 static void __fastcall common32_main_write_byte(UINT32 address, UINT8 data)
@@ -2217,8 +2149,7 @@ static void __fastcall common32_main_write_byte(UINT32 address, UINT8 data)
 	}
 
 	if ((address & 0xfff800) == 0x681000) {
-	//	bprintf (0, _T("MWB: %5.5x, %2.2x\n"), address, data);
-		TimeKeeperWrite(address & 0x7ff, data);
+        TimeKeeperWrite(address & 0x7ff, data);
 		return;
 	}
 
@@ -2274,7 +2205,8 @@ static void __fastcall common32_main_write_byte(UINT32 address, UINT8 data)
 		return;
 	}
 
-	bprintf (0, _T("MWB: %5.5x, %2.2x\n"), address, data);
+	if ((address&0xffff00) != 0x61ff00)
+		bprintf (0, _T("MWB: %5.5x, %2.2x\n"), address, data);
 }
 
 static UINT8 wcbowl_track_read(INT32 player)
@@ -2285,6 +2217,17 @@ static UINT8 wcbowl_track_read(INT32 player)
 static UINT16 track_read_8bit(INT32 player)
 {
 	return (BurnTrackballRead(player, 0) & 0xff) | ((BurnTrackballRead(player, 1) & 0xff) << 8);
+}
+
+static INT32 shufshot_weird_y(INT16 ana)
+{
+	// todo: revisit at a later time.
+	// "git 'r dun"-style
+	if (ana > 1024) ana = 1024;
+	if (ana < -1024) ana = -1024;
+	ana /= 256; // -4 - +4
+	ana *= 0.9; // tone it down a bit..
+	return (ana);
 }
 
 static UINT32 track_read_4bit(INT32 player)
@@ -2306,6 +2249,12 @@ static UINT32 track_read_4bit(INT32 player)
 		else if (dy > 0x80) dy -= 0x100;
 		if (dy > 7) dy = 7;
 		else if (dy < -7) dy = -7;
+
+		if (is_shufshot) {
+			// keep shufshot happy...
+			dy = shufshot_weird_y((player == 0) ? DrvAnalogPort1 : DrvAnalogPort3);
+		}
+
 		tb_effy[player] = (tb_effy[player] + dy) & 0xff;
 		INT32 upper = tb_effy[player] & 15;
 
@@ -2324,16 +2273,12 @@ static UINT32 track_read_4bit_both()
 
 static UINT32 __fastcall common32_main_read_long(UINT32 address)
 {
-//	bprintf (0, _T("MRL: %5.5x\n"), address);
-
 	if ((address & 0xffff00) == 0x500000) {
 		return itech32_video_read((address / 4) & 0x3f) | (itech32_video_read((address / 4) & 0x3f) << 16);
 	}
 
-	if ((address & 0xfff800) == 0x681000) {
-		bprintf (0, _T("MRL: %5.5x\n"), address);
-		return (TimeKeeperRead(address & 0x7fc)<<24)+(TimeKeeperRead((address & 0x7fc)|1)<<16)
-			  +(TimeKeeperRead((address & 0x7fc)|2)<<8)+(TimeKeeperRead((address & 0x7fc)|4)<<0);
+    if ((address & 0xfff800) == 0x681000) { // timekeeper (in bytehandler)
+        SEK_DEF_READ_LONG(0, address);
 	}
 
 	// wcbowl trackball
@@ -2402,15 +2347,12 @@ static UINT32 __fastcall common32_main_read_long(UINT32 address)
 
 static UINT16 __fastcall common32_main_read_word(UINT32 address)
 {
-//	bprintf (0, _T("MRW: %5.5x\n"), address);
-
 	if ((address & 0xffff00) == 0x500000) {
 		return itech32_video_read((address / 4) & 0x3f);
 	}
 
-	if ((address & 0xfff800) == 0x681000) {
-		bprintf (0, _T("MRW: %5.5x\n"), address);
-		return (TimeKeeperRead(address & 0x7fe)*256)+TimeKeeperRead((address & 0x7fe)|1);
+    if ((address & 0xfff800) == 0x681000) { // timekeeper (in bytehandler)
+        SEK_DEF_READ_WORD(0, address);
 	}
 
 	// wcbowl trackball
@@ -2488,14 +2430,11 @@ static UINT16 __fastcall common32_main_read_word(UINT32 address)
 
 static UINT8 __fastcall common32_main_read_byte(UINT32 address)
 {
-//	bprintf (0, _T("MRB: %5.5x\n"), address);
-
 	if ((address & 0xffff00) == 0x500000) {
 		return itech32_video_read((address / 4) & 0x3f) >> ((~address & 1) * 8);
 	}
 
 	if ((address & 0xfff800) == 0x681000) {
-	//	bprintf (0, _T("MRB: %5.5x\n"), address);
 		return TimeKeeperRead(address & 0x7ff);
 	}
 
@@ -2812,8 +2751,9 @@ static INT32 DrvGetRoms(bool bLoad)
 			if (bLoad) {
 				if (BurnLoadRom(pSndLoad[bank] + 1, i, 2)) return 1;
 			}
-			if (nSndROMLen[1]) {
+			if (nSndROMLen[1] || is_shufshot) {
 				// wcbowl,wcbowldx,wcbowl{140,165,161,16} have bank1 and 0x200000 spacing
+				// shufshot has 0x200000 spacing but only bank0
 				pSndLoad[bank] += 0x200000;
 			} else {
 				pSndLoad[bank] += ri.nLen * 2;
@@ -3000,6 +2940,8 @@ static INT32 DrvExit()
 
 	Trackball_Type = -1;
 
+	is_shufshot = 0;
+
 	return 0;
 }
 
@@ -3100,7 +3042,9 @@ static INT32 DrvFrame()
 			BurnTrackballConfig(1, AXIS_REVERSED, AXIS_NORMAL);
 			BurnTrackballFrame(1, DrvAnalogPort2, DrvAnalogPort3, 0x06, 0x0a);
 			BurnTrackballUpdate(1);
-		}
+        }
+
+        DrvDips[0] = (DrvDips[0] & ~1) | (~DrvSvc0[0] & 1); // F2 (svc mode)
 	}
 
 	INT32 nInterleave = (maincpu_clock == 25000000) ? 286 : 262;
@@ -4066,7 +4010,7 @@ static struct BurnRomInfo wcbowl140RomDesc[] = {
 STD_ROM_PICK(wcbowl140)
 STD_ROM_FN(wcbowl140)
 
-static INT32 Wcbowl140Init() // needs timekeeper!! (something else? not booting right..)
+static INT32 Wcbowl140Init()
 {
 	Trackball_Type = TB_TYPE0;
 
@@ -4211,7 +4155,7 @@ struct BurnDriver BurnDrvWcbowl161 = {
 };
 
 
-// World Class Bowling (v1.65)
+// World Class Bowling (v1.6)
 
 static struct BurnRomInfo wcbowl16RomDesc[] = {
 	{ "wcb_prom0_v1.6n.prom0",				0x020000, 0x332c558f, 1 | BRF_PRG | BRF_ESS }, //  0 68K Code
@@ -4242,7 +4186,7 @@ STD_ROM_FN(wcbowl16)
 
 struct BurnDriver BurnDrvWcbowl16 = {
 	"wcbowl16", "wcbowl", NULL, NULL, "1995",
-	"World Class Bowling (v1.65)\0", NULL, "Incredible Technologies", "Miscellaneous",
+	"World Class Bowling (v1.6)\0", NULL, "Incredible Technologies", "Miscellaneous",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_POST90S, GBF_MISC, 0,
 	NULL, wcbowl16RomInfo, wcbowl16RomName, NULL, NULL, NULL, NULL, WcbowlInputInfo, WcbowloDIPInfo,
@@ -4744,7 +4688,7 @@ struct BurnDriver BurnDrvSftm110 = {
 
 // Street Fighter: The Movie (v1.12N, Japan)
 
-static struct BurnRomInfo sftmjRomDesc[] = {
+static struct BurnRomInfo sftmj112RomDesc[] = {
 	{ "sfmn_0_v1.12.prom0",					0x040000, 0x640a04a8, 1 | BRF_PRG | BRF_ESS }, //  0 68K Code
 	{ "sfmn_1_v1.12.prom1",					0x040000, 0x2a27b690, 1 | BRF_PRG | BRF_ESS }, //  1
 	{ "sfmn_2_v1.12.prom2",					0x040000, 0xcec1dd7b, 1 | BRF_PRG | BRF_ESS }, //  2
@@ -4770,15 +4714,15 @@ static struct BurnRomInfo sftmjRomDesc[] = {
 	{ "sfm_srom3.srom3",					0x080000, 0x4f181534, 7 | BRF_SND },           // 18 Ensoniq Bank 3
 };
 
-STD_ROM_PICK(sftmj)
-STD_ROM_FN(sftmj)
+STD_ROM_PICK(sftmj112)
+STD_ROM_FN(sftmj112)
 
-struct BurnDriver BurnDrvSftmj = {
-	"sftmj", "sftm", NULL, NULL, "1995",
+struct BurnDriver BurnDrvSftmj112 = {
+	"sftmj112", "sftm", NULL, NULL, "1995",
 	"Street Fighter: The Movie (v1.12N, Japan)\0", NULL, "Capcom / Incredible Technologies", "Miscellaneous",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_POST90S, GBF_MISC, 0,
-	NULL, sftmjRomInfo, sftmjRomName, NULL, NULL, NULL, NULL, SftmInputInfo, SftmDIPInfo,
+	NULL, sftmj112RomInfo, sftmj112RomName, NULL, NULL, NULL, NULL, SftmInputInfo, SftmDIPInfo,
 	SftmInit, DrvExit, DrvFrame, DrvDraw32, DrvScan, &DrvRecalc, 0x8000,
 	384, 256, 4, 3
 };
@@ -4821,6 +4765,7 @@ STD_ROM_FN(shufshot)
 static INT32 ShufshotInit()
 {
 	Trackball_Type = TB_TYPE0;
+	is_shufshot = 1;
 
 	return Common32BitInit(0x111a, 1, 0);
 }
@@ -5124,7 +5069,7 @@ struct BurnDriver BurnDrvGt3dl191 = {
 };
 
 
-// Golden Tee 3D Golf (v1.92L)
+// Golden Tee 3D Golf (v1.9L)
 
 static struct BurnRomInfo gt3dl19RomDesc[] = {
 	{ "gtg3_prom0_v1.9l.prom0",				0x080000, 0xb6293cf6, 1 | BRF_PRG | BRF_ESS }, //  0 68K Code
@@ -5160,7 +5105,7 @@ STD_ROM_FN(gt3dl19)
 
 struct BurnDriver BurnDrvGt3dl19 = {
 	"gt3dl19", "gt3d", NULL, NULL, "1995",
-	"Golden Tee 3D Golf (v1.92L)\0", NULL, "Incredible Technologies", "Miscellaneous",
+	"Golden Tee 3D Golf (v1.9L)\0", NULL, "Incredible Technologies", "Miscellaneous",
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_CLONE, 2, HARDWARE_MISC_POST90S, GBF_MISC, 0,
 	NULL, gt3dl19RomInfo, gt3dl19RomName, NULL, NULL, NULL, NULL, Gt3dInputInfo, Gt3dDIPInfo,
