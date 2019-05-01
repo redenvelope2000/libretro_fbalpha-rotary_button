@@ -1198,7 +1198,7 @@ static INT32 GalagaDraw()
    GenericTilemapSetEnable(0, 1);
    GenericTilemapDraw(0, pTransDraw, 0 | TMAP_TRANSPARENT);
 
-	//GalagaRenderStars();
+	GalagaRenderStars();
 	GalagaRenderSprites();	
 
 	BurnTransferCopy(graphics.Palette);
