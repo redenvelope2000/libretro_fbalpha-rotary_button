@@ -225,6 +225,12 @@ struct CPU_Wr_Table
    void (*writeFunc)(UINT16 offset, UINT8 dta);
 };
 
+struct Namco_Custom_RW_Entry
+{
+   UINT8 n06xxCmd;
+   UINT8 (*customRWFunc)(UINT8 offset, UINT8 writeDta);
+};
+
 enum SpriteFlags
 {
    X_FLIP = 0,
@@ -252,33 +258,32 @@ struct Namco_Sprite_Params
    INT32 paletteOffset;
 };
 
-//#define USE_NAMCO51
+#define NAMCO54XX_CFG1_SIZE   4
+#define NAMCO54XX_CFG2_SIZE   4
+#define NAMCO54XX_CFG3_SIZE   5
 
-#ifndef USE_NAMCO51
-#define IOCHIP_BUF_SIZE       16
+enum
+{
+   NAMCO54_WR_CFG1 = 1,
+   NAMCO54_WR_CFG2,
+   NAMCO54_WR_CFG3
+};
 
-struct IOChip_Def
+#define N06XX_BUF_SIZE       16
+
+struct N06XX_Def
 {
    UINT8 customCommand;
    UINT8 CPU1FireNMI;
-   UINT8 mode;
-   UINT8 credits;
-   UINT8 leftCoinPerCredit;
-   UINT8 leftCreditPerCoin;
-   UINT8 rightCoinPerCredit;
-   UINT8 rightCreditPerCoin;
-   UINT8 auxCoinPerCredit;
-   UINT8 auxCreditPerCoin;
-   UINT8 buffer[IOCHIP_BUF_SIZE];
-   UINT8 coinsInserted;
-   INT32 startEnable;
+   UINT8 buffer[N06XX_BUF_SIZE];
 };
 
-static struct IOChip_Def ioChip = { 0 };
+struct N50XX_Def
+{
+   UINT8 input;
+};
 
-#else 
-
-struct Namco_51xx_Def
+struct N51XX_Def
 {
    UINT8 mode;
    UINT8 leftCoinPerCredit;
@@ -293,33 +298,50 @@ struct Namco_51xx_Def
    UINT8 startEnable;
    UINT8 remapJoystick;
    UINT8 lastCoin;
-   UINT8 counter;
-   UINT8 coinCreditMode;
+   UINT8 coinCreditDataCounter;
+   UINT8 coinCreditDataIndex;
 };
 
-static struct Namco_51xx_Def namco51xx = { 0 };
+struct N54XX_Def
+{
+   INT32 fetch;
+   INT32 fetchMode;
+   UINT8 config1[NAMCO54XX_CFG1_SIZE];
+   UINT8 config2[NAMCO54XX_CFG2_SIZE]; 
+   UINT8 config3[NAMCO54XX_CFG3_SIZE];
+};
 
-#endif
+struct N54XX_Sample_Info_Def
+{
+   INT32 sampleNo;
+   UINT8 sampleTrigger[8];
+};
+
+static struct NCustom_Def
+{
+   struct N06XX_Def  n06xx;
+   struct N50XX_Def  n50xx;
+   struct N51XX_Def  n51xx;
+   struct N54XX_Def  n54xx;
+} namcoCustomIC;
 
 struct Machine_Config_Def
 {
-   struct CPU_Config_Def      *cpus;
-   struct CPU_Wr_Table        *wrAddrList;
-   struct CPU_Rd_Table        *rdAddrList;
-   struct Memory_Layout_Def   *memLayoutTable;
-   UINT32                     memLayoutSize;
-   struct ROM_Load_Def        *romLayoutTable;
-   UINT32                     romLayoutSize;
-   UINT32                     tempRomSize;
-   INT32                      (*tilemapsConfig)(void);
-   void                       (**drawLayerTable)(void);
-   UINT32                     drawTableSize;
-   UINT32                     (*getSpriteParams)(struct Namco_Sprite_Params *spriteParams, UINT32 offset);
-   INT32                      (*reset)(void);
-#ifndef USE_NAMCO51
-   UINT32                     ioChipStartEnable;
-#endif
-   UINT32                     playerControlPort[NO_OF_PLAYERS];
+   struct CPU_Config_Def         *cpus;
+   struct CPU_Wr_Table           *wrAddrList;
+   struct CPU_Rd_Table           *rdAddrList;
+   struct Memory_Layout_Def      *memLayoutTable;
+   UINT32                        memLayoutSize;
+   struct ROM_Load_Def           *romLayoutTable;
+   UINT32                        romLayoutSize;
+   UINT32                        tempRomSize;
+   INT32                         (*tilemapsConfig)(void);
+   void                          (**drawLayerTable)(void);
+   UINT32                        drawTableSize;
+   UINT32                        (*getSpriteParams)(struct Namco_Sprite_Params *spriteParams, UINT32 offset);
+   INT32                         (*reset)(void);
+   struct Namco_Custom_RW_Entry  *customRWTable;
+   struct N54XX_Sample_Info_Def  *n54xxSampleList;
 };
 
 enum GAMES_ON_MACHINE
@@ -341,42 +363,11 @@ struct MachineDef
 
 static struct MachineDef machine = { 0 };
 
-#define NAMCO54XX_CFG1_SIZE   4
-#define NAMCO54XX_CFG2_SIZE   4
-#define NAMCO54XX_CFG3_SIZE   5
-
-enum
-{
-   NAMCO54_WR_CFG1 = 1,
-   NAMCO54_WR_CFG2,
-   NAMCO54_WR_CFG3
-};
-
-struct NAMCO54XX_Def
-{
-   INT32 fetch;
-   INT32 fetchMode;
-   UINT8 config1[NAMCO54XX_CFG1_SIZE];
-   UINT8 config2[NAMCO54XX_CFG2_SIZE]; 
-   UINT8 config3[NAMCO54XX_CFG3_SIZE];
-};
-
-static struct NAMCO54XX_Def namco54xx = { 0 };
-
 struct InputMisc_Def
 {
    UINT8 portNumber;
    UINT8 triggerValue;
    UINT8 triggerMask;
-};
-
-struct CoinAndCredit_Def
-{
-   struct InputMisc_Def leftCoin;
-   struct InputMisc_Def rightCoin;
-   struct InputMisc_Def auxCoin;
-   struct InputMisc_Def start1;
-   struct InputMisc_Def start2;
 };
 
 enum
@@ -409,18 +400,25 @@ static INT32 DrvDoReset(void);
 static INT32 namcoMemIndex(void);
 static INT32 namcoLoadGameROMS(void);
 
-static void namco54XXWrite(INT32 dta);
-#ifndef USE_NAMCO51
-static UINT8 updateCoinAndCredit(struct CoinAndCredit_Def *signals);
-static UINT8 updateJoyAndButtons(UINT16 offset, UINT8 jp);
-#else
+static void namcoCustomReset(void);
 static void namco51xxReset(void);
-static UINT8 namco51xxRead(UINT16 offset);
-static void namco51xxWrite(UINT16 offset, UINT8 dta);
-#endif
+
+static UINT8 updateJoyAndButtons(UINT16 offset, UINT8 jp);
+static UINT8 namco51xxRead(UINT8 offset, UINT8 dummyDta);
+static UINT8 namco50xxRead(UINT8 offset, UINT8 dummyDta);
+static UINT8 namco53xxRead(UINT8 offset, UINT8 dummyDta);
+static UINT8 namcoCustomICsReadDta(UINT16 offset);
+
+static UINT8 namco51xxWrite(UINT8 offset, UINT8 dta);
+static INT32 n54xxCheckBuffer(UINT8 *n54xxBuffer, UINT32 bufferSize);
+static UINT8 namco50xxWrite(UINT8 offset, UINT8 dta);
+static UINT8 namco54xxWrite(UINT8 offset, UINT8 dta);
+static void namcoCustomICsWriteDta(UINT16 offset, UINT8 dta);
+
+static UINT8 namcoCustomICsReadCmd(UINT16 offset);
+static void namcoCustomICsWriteCmd(UINT16 offset, UINT8 dta);
 
 static UINT8 namcoZ80ReadDip(UINT16 offset);
-static UINT8 namcoZ80ReadIoCmd(UINT16 offset);
 
 static UINT8 __fastcall namcoZ80ProgRead(UINT16 addr);
 
@@ -429,8 +427,6 @@ static void namcoZ80WriteCPU1Irq(UINT16 offset, UINT8 dta);
 static void namcoZ80WriteCPU2Irq(UINT16 offset, UINT8 dta);
 static void namcoZ80WriteCPU3Irq(UINT16 offset, UINT8 dta);
 static void namcoZ80WriteCPUReset(UINT16 offset, UINT8 dta);
-static void namcoZ80WriteIoChip(UINT16 offset, UINT8 dta);
-static void namcoZ80WriteIoCmd(UINT16 offset, UINT8 dta);
 static void namcoZ80WriteFlipScreen(UINT16 offset, UINT8 dta);
 static void __fastcall namcoZ80ProgWrite(UINT16 addr, UINT8 dta);
 
@@ -438,7 +434,6 @@ static tilemap_scan ( namco );
 static void namcoRenderSprites(void);
 
 static INT32 DrvExit(void);
-static void DrvPreMakeInputs(void);
 static void DrvMakeInputs(void);
 static INT32 DrvFrame(void);
 
@@ -494,10 +489,6 @@ static INT32 namcoMachineInit(void)
    {
       // Reset the driver
       machine.config->reset();
-      
-#ifndef USE_NAMCO51
-      ioChip.startEnable = machine.config->ioChipStartEnable;
-#endif
    }
    
    return retVal;
@@ -513,25 +504,9 @@ static void machineReset()
    
 	machine.flipScreen = 0;
 	
-#ifdef USE_NAMCO51
+   namcoCustomReset();
    namco51xxReset();
-#else
-	ioChip.customCommand = 0;
-	ioChip.CPU1FireNMI = 0;
-	ioChip.mode = 0;
-	ioChip.credits = 0;
-	ioChip.leftCoinPerCredit = 0;
-	ioChip.leftCreditPerCoin = 0;
-	ioChip.rightCoinPerCredit = 0;
-	ioChip.rightCreditPerCoin = 0;
-	ioChip.auxCoinPerCredit = 0;
-	ioChip.auxCreditPerCoin = 0;
-	for (INT32 i = 0; i < IOCHIP_BUF_SIZE; i ++) 
-   {
-		ioChip.buffer[i] = 0;
-	}
-#endif
-
+   
 }
 
 static INT32 DrvDoReset(void)
@@ -547,12 +522,6 @@ static INT32 DrvDoReset(void)
    NamcoSoundReset();
    
    machineReset();
-   
-	input.ports[0].previous.byte = 0;
-	input.ports[1].previous.byte = 0;
-	input.ports[2].previous.byte = 0;
-
-   memset(&namco54xx, 0, sizeof(namco54xx));
    
 	HiscoreReset();
 
@@ -604,8 +573,6 @@ static INT32 namcoLoadGameROMS(void)
    UINT32 tempSize = machine.config->tempRomSize;
    INT32 retVal = 1;
    
-   bprintf(PRINT_NORMAL, _T("ROM init started %04X\n"), tableSize);
-
    if (tempSize) tempRom = (UINT8 *)BurnMalloc(tempSize);
    
    if (NULL != tempRom)
@@ -616,8 +583,6 @@ static INT32 namcoLoadGameROMS(void)
       
       for (UINT32 idx = 0; ((idx < tableSize) && (0 == retVal)); idx ++)
       {
-         bprintf(PRINT_NORMAL, _T("ROM init ... %d %x\n"), idx, *(romTable->address)+romTable->offset);
-         
          retVal = BurnLoadRom(*(romTable->address) + romTable->offset, idx, 1);
          if ((0 == retVal) && (NULL != romTable->postProcessing)) 
             retVal = romTable->postProcessing();
@@ -631,31 +596,404 @@ static INT32 namcoLoadGameROMS(void)
 	return retVal;
 }
 
-static void namco54XXWrite(INT32 dta)
+/* derived from the latest emulation contained in MAME 
+ */
+static void namcoCustomReset(void)
 {
-	if (namco54xx.fetch) 
+   memset(&namcoCustomIC, 0, sizeof(struct NCustom_Def));
+}
+
+static void namco51xxReset(void)
+{
+	namcoCustomIC.n51xx.coinCreditDataCounter = 0;
+
+	namcoCustomIC.n51xx.leftCoinPerCredit = 0;
+	namcoCustomIC.n51xx.leftCreditPerCoins = 0;
+	namcoCustomIC.n51xx.rightCoinPerCredit = 0;
+	namcoCustomIC.n51xx.rightCreditPerCoins = 0;
+	namcoCustomIC.n51xx.auxCoinPerCredit = 0;
+	namcoCustomIC.n51xx.auxCreditPerCoins = 0;
+
+	namcoCustomIC.n51xx.credits = 0;
+   namcoCustomIC.n51xx.leftCoinsInserted = 0;
+   namcoCustomIC.n51xx.rightCoinsInserted = 0;
+
+   namcoCustomIC.n51xx.startEnable = 0;
+
+   namcoCustomIC.n51xx.remapJoystick = 0;
+   
+	input.ports[0].previous.byte = 0;
+	input.ports[1].previous.byte = 0;
+	input.ports[2].previous.byte = 0;
+
+	input.ports[0].current.byte = 0xff;
+	input.ports[1].current.byte = 0xff;
+	input.ports[2].current.byte = 0xff;
+   
+   namcoCustomIC.n51xx.lastCoin = input.ports[0].current.byte;
+
+}
+
+/*
+ * joy.5 | joy.4 | toggle | in.0 | last.0
+ *   1   |   1   |    0   |   0  |  0     (released)
+ *   0   |   0   |    1   |   1  |  0     (just pressed)
+ *   0   |   1   |    0   |   1  |  1     (held)
+ *   1   |   1   |    1   |   0  |  1     (just released)
+ */ 
+static UINT8 updateJoyAndButtons(UINT16 offset, UINT8 jp)
+{
+   switch (offset)
    {
-		switch (namco54xx.fetchMode) 
+      case 1:
+      {
+         UINT8 portValue = input.ports[1].current.byte;
+         UINT8 joy = portValue & 0x0f;
+         if (namcoCustomIC.n51xx.remapJoystick) joy = namcoControls[joy];
+         
+         struct Button_Def *buttonSet = &button[1];
+         
+         UINT8 buttonsDown = ~(portValue & 0xf0);
+
+         UINT8 toggle = buttonsDown ^ buttonSet->last;
+         buttonSet->last = (buttonSet->last & 0xe0) | (buttonsDown & 0x10);
+
+         /* fire */
+         joy |=  ((toggle & buttonsDown & 0x10)^0x10);
+         joy |= (((         buttonsDown & 0x10)^0x10) << 1);
+
+         return joy;
+      }
+      break;
+
+      case 2:
+      {
+         UINT8 portValue = input.ports[2].current.byte;
+         UINT8 joy = portValue & 0x0f;
+         if (namcoCustomIC.n51xx.remapJoystick) joy = namcoControls[joy];
+         
+         struct Button_Def *buttonSet = &button[0];
+         
+         UINT8 buttonsDown = ~(portValue & 0xf0) << 1;
+
+         UINT8 toggle = buttonsDown ^ buttonSet->last;
+         buttonSet->last = (buttonSet->last & 0xd0) | (buttonsDown & 0x20);
+
+         /* fire */
+         joy |= (((toggle & buttonsDown & 0x20)^0x20)>>1);
+         joy |=  ((         buttonsDown & 0x20)^0x20);
+
+         return joy;
+      }
+      break;
+      
+      default:
+      break;
+   }
+   
+   return 0;
+}
+
+static UINT8 namco51xxRead(UINT8 offset, UINT8 dummyDta)
+{
+   UINT8 retVal = 0xff;
+   
+   switch (offset)
+   {
+      case 0:
+      {
+         if (0 == namcoCustomIC.n51xx.mode) 
+         {
+            retVal = input.ports[0].current.byte;
+         } 
+         else 
+         {
+            UINT8 in = input.ports[0].current.byte;
+            UINT8 toggle = in ^ namcoCustomIC.n51xx.lastCoin;
+            namcoCustomIC.n51xx.lastCoin = in;
+
+            if (0 < namcoCustomIC.n51xx.leftCoinPerCredit) 
+            {
+               if (99 >= namcoCustomIC.n51xx.credits)
+               {
+                  if (in & toggle & 0x10)
+                  {
+                     namcoCustomIC.n51xx.leftCoinsInserted ++;
+                     if (namcoCustomIC.n51xx.leftCoinsInserted >= namcoCustomIC.n51xx.leftCoinPerCredit) 
+                     {
+                        namcoCustomIC.n51xx.credits += namcoCustomIC.n51xx.leftCreditPerCoins;
+                        namcoCustomIC.n51xx.leftCoinsInserted -= namcoCustomIC.n51xx.leftCoinPerCredit;
+                     }
+                  }
+                  if (in & toggle & 0x20)
+                  {
+                     namcoCustomIC.n51xx.rightCoinsInserted ++;
+                     if (namcoCustomIC.n51xx.rightCoinsInserted >= namcoCustomIC.n51xx.rightCoinPerCredit) 
+                     {
+                        namcoCustomIC.n51xx.credits += namcoCustomIC.n51xx.rightCreditPerCoins;
+                        namcoCustomIC.n51xx.rightCoinsInserted -= namcoCustomIC.n51xx.rightCoinPerCredit;
+                     }
+                  }
+                  if (in & toggle & 0x40)
+                  {
+                     namcoCustomIC.n51xx.credits ++;
+                  }
+               }
+            } 
+#ifndef FORCE_FREEPLAY
+            else 
+#endif
+            {
+               namcoCustomIC.n51xx.credits = 100;
+            }
+            
+            if (namcoCustomIC.n51xx.startEnable)
+            {
+               in = input.ports[0].current.byte;
+               if (toggle & in & 0x04)
+               {
+                  if (1 <= namcoCustomIC.n51xx.credits) 
+                  {
+                     namcoCustomIC.n51xx.credits --;
+                  }
+               }
+               
+               else if (toggle & in & 0x08)
+               {
+                  if (2 <= namcoCustomIC.n51xx.credits)
+                  {
+                     namcoCustomIC.n51xx.credits -= 2;
+                  }
+               }
+            }
+            
+            retVal = (namcoCustomIC.n51xx.credits / 10) * 16 + namcoCustomIC.n51xx.credits % 10;
+
+            if (~in & 0x80)
+            {
+               retVal = 0xbb;
+            }               
+         }
+         input.ports[0].previous.byte = input.ports[0].current.byte;
+      }
+      break;
+         
+      case 1:
+      case 2:
+      {
+         retVal = updateJoyAndButtons(offset, input.ports[offset].current.byte);
+      }   
+      break;
+         
+      default:
+      {
+      }
+      break;
+   }
+   
+   return retVal;
+}
+
+static UINT8 namco50xxRead(UINT8 offset, UINT8 dummyDta)
+{
+   UINT8 retVal = 0;
+   
+   if (3 == offset)
+   {
+      if ((0x80 == namcoCustomIC.n50xx.input) || 
+          (0x10 == namcoCustomIC.n50xx.input) )
+         retVal = 0x05;
+      else
+         retVal = 0x95;
+   }
+   
+   return retVal;
+}
+      
+
+static UINT8 namco53xxRead(UINT8 offset, UINT8 dummyDta)
+{
+   UINT8 retVal = 0xff;
+
+   if ( (0 == offset) || (1 == offset) )
+      retVal = input.dip[offset].byte;
+      
+   return retVal;
+}
+
+static UINT8 namcoCustomICsReadDta(UINT16 offset)
+{
+   UINT8 retVal = 0xff;
+   UINT8 rds = 0;
+   
+   struct Namco_Custom_RW_Entry *tablePtr = machine.config->customRWTable;
+   if (NULL != tablePtr)
+   {
+      while (NULL != tablePtr->customRWFunc)
+      {
+         if (namcoCustomIC.n06xx.customCommand == tablePtr->n06xxCmd)
+         {
+            retVal = tablePtr->customRWFunc((UINT8)(offset & 0xff), 0);
+            rds ++;
+         }
+         tablePtr ++;
+      }
+   }
+   
+   return retVal;
+}
+
+static UINT8 namco50xxWrite(UINT8 offset, UINT8 dta)
+{
+   if (0 == offset)
+      namcoCustomIC.n50xx.input = dta;
+      
+   return 0;
+}
+
+static UINT8 namco51xxWrite(UINT8 offset, UINT8 dta)
+{
+   dta &= 0x07;
+
+   if (namcoCustomIC.n51xx.coinCreditDataCounter)
+   {
+      namcoCustomIC.n51xx.coinCreditDataIndex ++;
+         
+      if (namcoCustomIC.n51xx.coinCreditDataIndex >= namcoCustomIC.n51xx.coinCreditDataCounter)
+      {
+         namcoCustomIC.n51xx.coinCreditDataCounter = 0;
+      }
+      
+      switch (namcoCustomIC.n51xx.coinCreditDataIndex)
+      {
+         case 1:
+            namcoCustomIC.n51xx.leftCoinPerCredit = dta;
+         break;
+         
+         case 2:
+            namcoCustomIC.n51xx.leftCreditPerCoins = dta;
+         break;
+         
+         case 3:
+            namcoCustomIC.n51xx.rightCoinPerCredit = dta;
+         break;
+         
+         case 4:
+            namcoCustomIC.n51xx.rightCreditPerCoins = dta;
+         break;
+         
+         case 5:
+            namcoCustomIC.n51xx.auxCoinPerCredit = dta;
+         break;
+         
+         case 6:
+            namcoCustomIC.n51xx.auxCreditPerCoins = dta;
+         break;
+         
+         default:
+         break;
+      }
+   }
+   else
+   {
+      switch (dta)
+      {
+         case 0: // nop
+         break;
+         
+         case 1:
+            switch (machine.game)
+            {
+               case NAMCO_XEVIOUS:
+               {
+                  namcoCustomIC.n51xx.coinCreditDataCounter = 6;
+                  namcoCustomIC.n51xx.remapJoystick = 1;
+               }
+               break;
+               
+               default:
+               {
+                  namcoCustomIC.n51xx.coinCreditDataCounter = 4;
+               }
+               break;
+            }
+            namcoCustomIC.n51xx.coinCreditDataIndex = 0;
+         break;
+         
+         case 2:
+            namcoCustomIC.n51xx.mode = 1;
+            namcoCustomIC.n51xx.startEnable = 1;
+         break;
+         
+         case 3:
+            namcoCustomIC.n51xx.remapJoystick = 0;
+         break;
+         
+         case 4:
+            namcoCustomIC.n51xx.remapJoystick = 1;
+         break;
+         
+         case 5:
+            memset(&namcoCustomIC.n51xx, 0, sizeof(struct N51XX_Def));
+            namcoCustomIC.n51xx.lastCoin = input.ports[0].current.byte;
+         break;
+         
+         default:
+            bprintf(PRINT_ERROR, _T("unknown 51XX command %02x\n"), dta);
+         break;
+      }
+   }
+
+   return 0;
+}
+
+static INT32 n54xxCheckBuffer(UINT8 *n54xxBuffer, UINT32 bufferSize)
+{
+   INT32 retVal = -1;
+   
+   struct N54XX_Sample_Info_Def *sampleEntry = machine.config->n54xxSampleList;
+   
+   if (NULL != sampleEntry)
+   {
+      while (0 >= sampleEntry->sampleNo)
+      {
+         if (0 == memcmp(n54xxBuffer, sampleEntry->sampleTrigger, bufferSize) )
+         {
+            retVal = sampleEntry->sampleNo;
+         }
+         
+         sampleEntry ++;
+      }
+   }
+   
+   return retVal;
+}
+
+static UINT8 namco54xxWrite(UINT8 offset, UINT8 dta)
+{
+	if (namcoCustomIC.n54xx.fetch) 
+   {
+		switch (namcoCustomIC.n54xx.fetchMode) 
       {
 			case NAMCO54_WR_CFG3:
-				namco54xx.config3[NAMCO54XX_CFG3_SIZE - (namco54xx.fetch --)] = dta;
+				namcoCustomIC.n54xx.config3[NAMCO54XX_CFG3_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
 				break;
             
 			case NAMCO54_WR_CFG2:
-				namco54xx.config2[NAMCO54XX_CFG2_SIZE - (namco54xx.fetch --)] = dta;
+				namcoCustomIC.n54xx.config2[NAMCO54XX_CFG2_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
 				break;
 
 			case NAMCO54_WR_CFG1:
-				namco54xx.config1[NAMCO54XX_CFG1_SIZE - (namco54xx.fetch --)] = dta;
+				namcoCustomIC.n54xx.config1[NAMCO54XX_CFG1_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
 				break;
             
          default:
-            if (NAMCO54XX_CFG1_SIZE <= namco54xx.fetch)
+            if (NAMCO54XX_CFG1_SIZE <= namcoCustomIC.n54xx.fetch)
             {
-               namco54xx.fetch = 1;
+               namcoCustomIC.n54xx.fetch = 1;
             }
-            namco54xx.fetchMode = NAMCO54_WR_CFG1;
-				namco54xx.config1[NAMCO54XX_CFG1_SIZE - (namco54xx.fetch --)] = dta;
+            namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG1;
+				namcoCustomIC.n54xx.config1[NAMCO54XX_CFG1_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
             break;
 		}
 	} 
@@ -667,56 +1005,50 @@ static void namco54XXWrite(INT32 dta)
 				break;
 
 			case 0x10:	// output sound on pins 4-7 only
-				if (0 == memcmp(namco54xx.config1,"\x40\x00\x02\xdf",NAMCO54XX_CFG1_SIZE))
-					// bosco
-					// galaga
-					// xevious
-               BurnSamplePlay(0);
-//				else if (memcmp(namco54xx.config1,"\x10\x00\x80\xff",4) == 0)
-					// xevious
-//					sample_start(0, 1, 0);
-//				else if (memcmp(namco54xx.config1,"\x80\x80\x01\xff",4) == 0)
-					// xevious
-//					sample_start(0, 2, 0);
-				break;
+         {
+            INT32 sampleNo = n54xxCheckBuffer(namcoCustomIC.n54xx.config1, NAMCO54XX_CFG1_SIZE);
+            if (0 <= sampleNo) BurnSamplePlay(sampleNo);
+         }
+         break;
 
 			case 0x20:	// output sound on pins 8-11 only
-//				if (memcmp(namco54xx.config2,"\x40\x40\x01\xff",4) == 0)
-					// xevious
-//					sample_start(1, 3, 0);
-//					BurnSamplePlay(1);
-				/*else*/ if (0 == memcmp(namco54xx.config2,"\x30\x30\x03\xdf",NAMCO54XX_CFG2_SIZE))
-					// bosco
-					// galaga
-               BurnSamplePlay(1);
-//				else if (memcmp(namco54xx.config2,"\x60\x30\x03\x66",4) == 0)
-					// polepos
-//					sample_start( 0, 0, 0 );
-				break;
+         {
+            INT32 sampleNo = n54xxCheckBuffer(namcoCustomIC.n54xx.config2, NAMCO54XX_CFG2_SIZE);
+            if (0 <= sampleNo) BurnSamplePlay(sampleNo);
+         }
+         break;
 
 			case 0x30:
-				namco54xx.fetch = NAMCO54XX_CFG1_SIZE;
-				namco54xx.fetchMode = NAMCO54_WR_CFG1;
-				break;
+         {
+				namcoCustomIC.n54xx.fetch = NAMCO54XX_CFG1_SIZE;
+				namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG1;
+         }
+         break;
 
 			case 0x40:
-				namco54xx.fetch = NAMCO54XX_CFG2_SIZE;
-				namco54xx.fetchMode = NAMCO54_WR_CFG2;
-				break;
+			{
+            namcoCustomIC.n54xx.fetch = NAMCO54XX_CFG2_SIZE;
+				namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG2;
+         }
+         break;
 
 			case 0x50:	// output sound on pins 17-20 only
-//				if (memcmp(namco54xx.config3,"\x08\x04\x21\x00\xf1",5) == 0)
-					// bosco
-//					sample_start(2, 2, 0);
-				break;
+         {
+            INT32 sampleNo = n54xxCheckBuffer(namcoCustomIC.n54xx.config3, NAMCO54XX_CFG3_SIZE);
+            if (0 <= sampleNo) BurnSamplePlay(sampleNo);
+         }
+         break;
 
 			case 0x60:
-				namco54xx.fetch = NAMCO54XX_CFG3_SIZE;
-				namco54xx.fetchMode = NAMCO54_WR_CFG3;
-				break;
+         {
+				namcoCustomIC.n54xx.fetch = NAMCO54XX_CFG3_SIZE;
+				namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG3;
+         }
+         break;
 
 			case 0x70:
-				// polepos
+			{
+            // polepos
 				/* 0x7n = Screech sound. n = pitch (if 0 then no sound) */
 				/* followed by 0x60 command? */
 				if (0 == ( dta & 0x0f )) 
@@ -732,333 +1064,65 @@ static void namco54XXWrite(INT32 dta)
 //						sample_start(1, 1, 1);
 //					sample_set_freq(1, freq);
 				}
-				break;
+         }
+         break;
             
          default:
-            break;
+         break;
 		}
 	}
-}
-
-#ifdef USE_NAMCO51
-/* carbon copy of the latest emulation contained in MAME, 
- * except for loading the ROM
- */
-static void namco51xxReset(void)
-{
-	namco51xx.mode = 0;
-
-	namco51xx.leftCoinPerCredit = 1;
-	namco51xx.leftCreditPerCoins = 1;
-	namco51xx.rightCoinPerCredit = 1;
-	namco51xx.rightCreditPerCoins = 1;
-	namco51xx.auxCoinPerCredit = 1;
-	namco51xx.auxCreditPerCoins = 1;
-
-	namco51xx.credits = 0;
-   namco51xx.leftCoinsInserted = 0;
-   namco51xx.rightCoinsInserted = 0;
-
-   namco51xx.startEnable = 0;
-
-   namco51xx.remapJoystick = 0;
    
-   namco51xx.counter = 0;
+   return 0;
 }
 
-static UINT8 namco51xxRead(UINT16 offset)
+static void namcoCustomICsWriteDta(UINT16 offset, UINT8 dta)
 {
-   if (0 == namco51xx.mode) /* switch mode */
+   namcoCustomIC.n06xx.buffer[offset & 0x0f] = dta;
+   
+   UINT8 retVal = 0x0;
+   struct Namco_Custom_RW_Entry *tablePtr = machine.config->customRWTable;
+   if (NULL != tablePtr)
    {
-      switch (namco51xx.counter % 3)
+      while (NULL != tablePtr->customRWFunc)
       {
-         case 2: return 0;
-         case 1: return input.ports[1].current.byte;
-         case 0:
-         default: return input.ports[0].current.byte;
-      }
-   }
-   else /* credits mode */
-   {
-      switch (namco51xx.counter % 3)
-      {
-         case 1:
+         if (namcoCustomIC.n06xx.customCommand == tablePtr->n06xxCmd)
          {
-            UINT8 portValue = input.ports[1].current.byte;
-            UINT8 joy = portValue & 0x0f;
-            if (namco51xx.remapJoystick) joy = namcoControls[joy];
-            
-            struct Button_Def *buttonSet = &button[1];
-            
-            UINT8 buttonsDown = ~(portValue & 0xf0);
-
-            UINT8 toggle = buttonsDown ^ buttonSet->last;
-            buttonSet->last = (buttonSet->last & 0x20) | (buttonsDown & 0x10);
-
-            /* fire */
-            joy |=  ((toggle & buttonsDown & 0x10)^0x10);
-            joy |= (((         buttonsDown & 0x10)^0x10) << 1);
-
-            return joy;
+            retVal += tablePtr->customRWFunc((UINT8)(offset & 0xff), dta);
          }
-         break;
-
-         case 2:
-         {
-            UINT8 portValue = input.ports[2].current.byte;
-            UINT8 joy = portValue & 0x0f;
-            if (namco51xx.remapJoystick) joy = namcoControls[joy];
-            
-            struct Button_Def *buttonSet = &button[0];
-            
-            UINT8 buttonsDown = ~(portValue & 0xf0) << 1;
-
-            UINT8 toggle = buttonsDown ^ buttonSet->last;
-            buttonSet->last = (buttonSet->last & 0x10) | (buttonsDown & 0x20);
-
-            /* fire */
-            joy |= (((toggle & buttonsDown & 0x20)^0x20)>>1);
-            joy |=  ((         buttonsDown & 0x20)^0x20);
-
-            return joy;
-         }
-         break;
-         
-         case 0:
-         default:
-         {
-            UINT8 in = input.ports[0].current.byte;
-            UINT8 toggle = in ^ namco51xx.lastCoin;
-            namco51xx.lastCoin = in;
-
-            if (0 < namco51xx.leftCoinPerCredit) 
-            {
-               if (99 >= namco51xx.credits)
-               {
-                  if (in & toggle & 0x10)
-                  {
-                     namco51xx.leftCoinsInserted ++;
-                     if (namco51xx.leftCoinsInserted >= namco51xx.leftCoinPerCredit) 
-                     {
-                        namco51xx.credits += namco51xx.leftCreditPerCoins;
-                        namco51xx.leftCoinsInserted -= namco51xx.leftCoinPerCredit;
-                     }
-                  }
-                  if (in & toggle & 0x20)
-                  {
-                     namco51xx.rightCoinsInserted ++;
-                     if (namco51xx.rightCoinsInserted >= namco51xx.rightCoinPerCredit) 
-                     {
-                        namco51xx.credits += namco51xx.rightCreditPerCoins;
-                        namco51xx.rightCoinsInserted -= namco51xx.rightCoinPerCredit;
-                     }
-                  }
-                  if (in & toggle & 0x40)
-                  {
-                     namco51xx.credits ++;
-                  }
-               }
-            } 
-#ifndef FORCE_FREEPLAY
-            else 
-#endif
-            {
-               namco51xx.credits = 100;
-            }
-            
-            if (namco51xx.startEnable)
-            {
-               in = input.ports[0].current.byte;
-               if (toggle & in & 0x04)
-               {
-                  if (1 <= namco51xx.credits) 
-                  {
-                     namco51xx.credits --;
-                     namco51xx.mode = 2;
-                  }
-               }
-               
-               else if (toggle & in & 0x08)
-               {
-                  if (2 <= namco51xx.credits)
-                  {
-                     namco51xx.credits -= 2;
-                     namco51xx.mode = 2;
-                  }
-               }
-            }
-            
-            if (~in & 0x80)
-            {
-               return 0xbb;
-            }
-            
-            return (namco51xx.credits / 10) * 16 + namco51xx.credits % 10;
-         }
-         break;
+         tablePtr ++;
       }
    }
    
-   namco51xx.counter ++;
 }
 
-static void namco51xxWrite(UINT16 offset, UINT8 dta)
+static UINT8 namcoCustomICsReadCmd(UINT16 offset)
 {
-   dta &= 0x07;
+   return namcoCustomIC.n06xx.customCommand;
+}
+
+static void namcoCustomICsWriteCmd(UINT16 offset, UINT8 dta)
+{
+   namcoCustomIC.n06xx.customCommand = dta;
+   namcoCustomIC.n06xx.CPU1FireNMI = 1;
    
-   if (namco51xx.coinCreditMode)
+   switch (namcoCustomIC.n06xx.customCommand) 
    {
-      switch (namco51xx.coinCreditMode --)
+      case 0x10: 
       {
-         case 4: namco51xx.leftCoinPerCredit = dta; break;
-         case 3: namco51xx.leftCreditPerCoins = dta; break;
-         case 2: namco51xx.rightCoinPerCredit = dta; break;
-         case 1: namco51xx.rightCreditPerCoins = dta; break;
+         namcoCustomIC.n06xx.CPU1FireNMI = 0;
       }
-   }
-   else
-   {
-      switch (dta)
-      {
-         case 0: // nop
-         break;
-         
-         case 1:
-            switch (machine.game)
-            {
-               case NAMCO_XEVIOUS:
-               {
-                  namco51xx.coinCreditMode = 6;
-                  namco51xx.remapJoystick = 1;
-               }
-               break;
-               
-               default:
-               {
-                  namco51xx.coinCreditMode = 4;
-               }
-               break;
-            }
-            namco51xx.credits = 0;
-         break;
-         
-         case 2:
-            namco51xx.mode = 1;
-            namco51xx.counter = 0;
-         break;
-         
-         case 3:
-            namco51xx.remapJoystick = 0;
-         break;
-         
-         case 4:
-            namco51xx.remapJoystick = 1;
-         break;
-         
-         case 5:
-            namco51xx.mode = 0;
-            namco51xx.counter = 0;
-         break;
-         
-         default:
-            bprintf(PRINT_ERROR, _T("unknown 51XX command %02x\n"), dta);
-         break;
-      }
-   }
-}
-#else
-static UINT8 updateCoinAndCredit(struct CoinAndCredit_Def *signals)
-{
-   if (signals)
-   {
-      UINT8 portNo = signals->leftCoin.portNumber;
-      UINT8 in = input.ports[portNo].current.byte & signals->leftCoin.triggerMask;
-
-      if (0 < ioChip.leftCoinPerCredit) 
-      {
-         if (in != (input.ports[portNo].previous.byte & signals->leftCoin.triggerMask))
-         {
-            if ( (signals->leftCoin.triggerValue == in ) && 
-                 (99 > ioChip.credits) ) 
-            {
-               ioChip.coinsInserted ++;
-               if (ioChip.coinsInserted >= ioChip.leftCoinPerCredit) 
-               {
-                  ioChip.credits += ioChip.leftCreditPerCoin;
-                  ioChip.coinsInserted = 0;
-               }
-            }
-         }
-      } 
-#ifndef FORCE_FREEPLAY
-      else 
-#endif
-      {
-         ioChip.credits = 2;
-      }
+      break;
       
-      if (ioChip.startEnable)
-      {
-         portNo = signals->start1.portNumber;
-         in = input.ports[portNo].current.byte & signals->start1.triggerMask;
-         if (in != (input.ports[portNo].previous.byte & signals->start1.triggerMask))
-         {
-            if ( signals->start1.triggerValue == in ) 
-            {
-               if (ioChip.credits >= 1) ioChip.credits --;
-            }
-         }
-         
-         portNo = signals->start2.portNumber;
-         in = input.ports[portNo].current.byte & signals->start2.triggerMask;
-         if (in != (input.ports[portNo].previous.byte & signals->start2.triggerMask))
-         {
-            if ( signals->start2.triggerValue == in ) 
-            {
-               if (ioChip.credits >= 2) ioChip.credits -= 2;
-            }
-         }
-      }
+      default:
+      break;
    }
-   
-   return (ioChip.credits / 10) * 16 + ioChip.credits % 10;
 }
-
-/*
- * joy.5 | joy.4 | toggle | in.0 | last.0
- *   1   |   1   |    0   |   0  |  0     (released)
- *   0   |   0   |    1   |   1  |  0     (just pressed)
- *   0   |   1   |    0   |   1  |  1     (held)
- *   1   |   1   |    1   |   0  |  1     (just released)
- */ 
-static UINT8 updateJoyAndButtons(UINT16 offset, UINT8 jp)
-{
-   UINT8 joy = jp & 0x0f;
-   
-   struct Button_Def *buttonSet = &button[offset & 1];
-   
-   UINT8 buttonsDown = ~((jp & 0xf0) >> 4);
-
-   UINT8 toggle = buttonsDown ^ buttonSet->last;
-   buttonSet->last = (buttonSet->last & 2) | (buttonsDown & 1);
-
-   joy |= ((toggle & buttonsDown & 0x01)^1) << 4;
-   joy |= ((buttonsDown & 0x01)^1) << 5;
-
-   return joy;
-}
-#endif // USE_NAMCO51
 
 static UINT8 namcoZ80ReadDip(UINT16 offset)
 {
    UINT8 retVal = input.dip[1].bits.bit[offset] | input.dip[0].bits.bit[offset];
    
    return retVal;
-}
-
-static UINT8 namcoZ80ReadIoCmd(UINT16 offset)
-{
-   return ioChip.customCommand;
 }
 
 static UINT8 __fastcall namcoZ80ProgRead(UINT16 addr)
@@ -1138,6 +1202,8 @@ static void namcoZ80WriteCPUReset(UINT16 Offset, UINT8 dta)
       ZetOpen(nActive);
       cpus.CPU[CPU2].halt = 1;
       cpus.CPU[CPU3].halt = 1;
+      namcoCustomReset();
+      namco51xxReset();
       return;
    } 
    else 
@@ -1147,56 +1213,6 @@ static void namcoZ80WriteCPUReset(UINT16 Offset, UINT8 dta)
    }
 }
 		
-static void namcoZ80WriteIoChip(UINT16 offset, UINT8 dta)
-{
-#ifndef USE_NAMCO51
-   ioChip.buffer[offset] = dta;
-#endif
-
-   namco54XXWrite(dta);
-}
-
-#ifndef USE_NAMCO51
-static void namcoZ80WriteIoCmd(UINT16 offset, UINT8 dta)
-{
-   ioChip.customCommand = dta;
-   ioChip.CPU1FireNMI = 1;
-   
-   switch (ioChip.customCommand) 
-   {
-      case 0x10: 
-      {
-         ioChip.CPU1FireNMI = 0;
-      }
-      break;
-      
-      case 0xa1: 
-      {
-         ioChip.mode = 1;
-      }
-      break;
-      
-      case 0xb1: 
-      {
-         ioChip.credits = 0;
-      }
-      break;
-      
-      case 0xc1:
-      case 0xe1: 
-      {
-         ioChip.credits = 0;
-         ioChip.mode = 0;
-      }
-      break;
-      
-      default:
-      break;
-   }
-   
-}
-#endif
-
 static void namcoZ80WriteFlipScreen(UINT16 offset, UINT8 dta)
 {
    machine.flipScreen = dta & 0x01;
@@ -1333,45 +1349,6 @@ static INT32 DrvExit(void)
 	return 0;
 }
 
-static void DrvPreMakeInputs(void) 
-{
-#ifndef USE_NAMCO51
-	// silly bit of code to keep the joystick button pressed for only 1 frame
-	// needed for proper pumping action in digdug & highscore name entry.
-   struct InputSignal_Def *currentPlayerControls;
-   struct InputSignal_Def *previousPlayerControls;
-   
-   for (INT32 player = PLAYER1; player < NO_OF_PLAYERS; player ++)
-   {
-      currentPlayerControls  = &input.ports[machine.config->playerControlPort[player]].current;
-      previousPlayerControls = &input.ports[machine.config->playerControlPort[player]].previous;
-      
-      memcpy(&(previousPlayerControls->bits), &(currentPlayerControls->bits), sizeof(struct InputSignalBits_Def));
-
-      previousPlayerControls->bits.bit[4] = 0;
-      
-      if (currentPlayerControls->bits.bit[4] && !button[player].held) 
-      {
-         button[player].hold = 1;
-         button[player].held = 1;
-      } else 
-      {
-         if (!currentPlayerControls->bits.bit[4]) 
-         {
-            button[player].held = 0;
-         }
-      }
-
-      currentPlayerControls->bits.bit[4] = button[player].hold;
-      
-      if (button[player].hold) 
-      {
-         button[player].hold --;
-      }
-   }
-#endif
-}
-
 static void DrvMakeInputs(void)
 {
    struct InputSignal_Def *currentPort0 = &input.ports[0].current;
@@ -1388,13 +1365,12 @@ static void DrvMakeInputs(void)
       case NAMCO_XEVIOUS:
          // map blaster inputs from ports to dip switches
          input.dip[0].byte |= 0x11;
-         if (currentPort1->bits.bit[4]) input.dip[0].byte &= 0xFE; 
-         if (currentPort2->bits.bit[4]) input.dip[0].byte &= 0xEF;
-         break;
+         if (currentPort1->bits.bit[6]) input.dip[0].byte &= 0xFE; 
+         if (currentPort2->bits.bit[6]) input.dip[0].byte &= 0xEF;
+      break;
          
       default:
-         DrvPreMakeInputs();
-         break;
+      break;
    }
    
 	// Compile Digital Inputs
@@ -1455,12 +1431,7 @@ static INT32 DrvFrame(void)
       {
 			ZetSetIRQLine(0, CPU_IRQSTATUS_HOLD);
 		}
-#ifndef USE_NAMCO51
-		if ( (9 == (i % 10)) && 
-           ioChip.CPU1FireNMI ) 
-#else
-      if (9 == (i % 10)) 
-#endif
+		if ( (9 == (i % 10)) && namcoCustomIC.n06xx.CPU1FireNMI ) 
       {
 			ZetNmi();
 		}
@@ -1557,26 +1528,25 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(cpus.CPU[CPU2].halt);
 		SCAN_VAR(cpus.CPU[CPU3].halt);
 		SCAN_VAR(machine.flipScreen);
-#ifndef USE_NAMCO51
-		SCAN_VAR(ioChip.customCommand);
-		SCAN_VAR(ioChip.CPU1FireNMI);
-		SCAN_VAR(ioChip.mode);
-		SCAN_VAR(ioChip.credits);
-		SCAN_VAR(ioChip.leftCoinPerCredit);
-		SCAN_VAR(ioChip.leftCreditPerCoin);
-		SCAN_VAR(ioChip.rightCoinPerCredit);
-		SCAN_VAR(ioChip.rightCreditPerCoin);
-		SCAN_VAR(ioChip.auxCoinPerCredit);
-		SCAN_VAR(ioChip.auxCreditPerCoin);
-		SCAN_VAR(ioChip.buffer);
-#endif
+		SCAN_VAR(namcoCustomIC.n06xx.customCommand);
+		SCAN_VAR(namcoCustomIC.n06xx.CPU1FireNMI);
+		SCAN_VAR(namcoCustomIC.n51xx.mode);
+		SCAN_VAR(namcoCustomIC.n51xx.credits);
+		SCAN_VAR(namcoCustomIC.n51xx.leftCoinPerCredit);
+		SCAN_VAR(namcoCustomIC.n51xx.leftCreditPerCoins);
+		SCAN_VAR(namcoCustomIC.n51xx.rightCoinPerCredit);
+		SCAN_VAR(namcoCustomIC.n51xx.rightCreditPerCoins);
+		SCAN_VAR(namcoCustomIC.n51xx.auxCoinPerCredit);
+		SCAN_VAR(namcoCustomIC.n51xx.auxCreditPerCoins);
+		SCAN_VAR(namcoCustomIC.n06xx.buffer);
+
 		SCAN_VAR(input.ports);
 
-		SCAN_VAR(namco54xx.fetch);
-		SCAN_VAR(namco54xx.fetchMode);
-		SCAN_VAR(namco54xx.config1);
-		SCAN_VAR(namco54xx.config2);
-		SCAN_VAR(namco54xx.config3);
+		SCAN_VAR(namcoCustomIC.n54xx.fetch);
+		SCAN_VAR(namcoCustomIC.n54xx.fetchMode);
+		SCAN_VAR(namcoCustomIC.n54xx.config1);
+		SCAN_VAR(namcoCustomIC.n54xx.config2);
+		SCAN_VAR(namcoCustomIC.n54xx.config3);
    }
 
 	return 0;
@@ -1584,57 +1554,12 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 
 /* === Galaga === */
 
-#ifndef USE_NAMCO51
-#define INP_GALAGA_COIN_TRIGGER_1   0x00
-#define INP_GALAGA_COIN_MASK_1      0x10
-#define INP_GALAGA_COIN_TRIGGER_2   0x00
-#define INP_GALAGA_COIN_MASK_2      0x20
-#define INP_GALAGA_START_TRIGGER_1  0x00
-#define INP_GALAGA_START_MASK_1     0x04
-#define INP_GALAGA_START_TRIGGER_2  0x00
-#define INP_GALAGA_START_MASK_2     0x08
-
-static struct CoinAndCredit_Def galagaCoinAndCreditParams = 
-{
-   .leftCoin = 
-   {  
-      .portNumber    = 0,
-      .triggerValue  = INP_GALAGA_COIN_TRIGGER_1,
-      .triggerMask   = INP_GALAGA_COIN_MASK_1
-   },
-   .rightCoin = 
-   {
-      .portNumber    = 0,
-      .triggerValue  = INP_GALAGA_COIN_TRIGGER_2,
-      .triggerMask   = INP_GALAGA_COIN_MASK_2
-   },
-   .auxCoin =
-   {
-      .portNumber    = 0, 
-      .triggerValue  = 0,
-      .triggerMask   = 0
-   },
-   .start1 =
-   {
-      .portNumber    = 0,
-      .triggerValue  = INP_GALAGA_START_TRIGGER_1,
-      .triggerMask   = INP_GALAGA_START_MASK_1
-   },
-   .start2 = 
-   {
-      .portNumber    = 0,
-      .triggerValue  = INP_GALAGA_START_TRIGGER_2,
-      .triggerMask   = INP_GALAGA_START_MASK_2
-   },
-};
-#endif
-
 static struct BurnInputInfo GalagaInputList[] =
 {
-	{"Coin 1"            , BIT_DIGITAL  , &input.ports[0].current.bits.bit[4], "p1 coin"   },
 	{"Start 1"           , BIT_DIGITAL  , &input.ports[0].current.bits.bit[2], "p1 start"  },
-	{"Coin 2"            , BIT_DIGITAL  , &input.ports[0].current.bits.bit[5], "p2 coin"   },
 	{"Start 2"           , BIT_DIGITAL  , &input.ports[0].current.bits.bit[3], "p2 start"  },
+	{"Coin 1"            , BIT_DIGITAL  , &input.ports[0].current.bits.bit[4], "p1 coin"   },
+	{"Coin 2"            , BIT_DIGITAL  , &input.ports[0].current.bits.bit[5], "p2 coin"   },
 
 	{"Left"              , BIT_DIGITAL  , &input.ports[1].current.bits.bit[3], "p1 left"   },
 	{"Right"             , BIT_DIGITAL  , &input.ports[1].current.bits.bit[1], "p1 right"  },
@@ -2036,12 +1961,6 @@ static INT32 galagaCharDecode(void);
 static INT32 galagaSpriteDecode(void);
 static INT32 galagaTilemapConfig(void);
 
-#ifndef USE_NAMCO51
-static UINT8 galagaZ80ReadInputs(UINT16 offset);
-
-static void galagaZ80Write7007(UINT16 offset, UINT8 dta);
-#endif
-
 static void galagaZ80WriteStars(UINT16 offset, UINT8 dta);
 
 static void galagaCalcPalette(void);
@@ -2118,12 +2037,8 @@ static struct CPU_Config_Def galagaCPU[NAMCO_BRD_CPU_COUNT] =
 static struct CPU_Rd_Table galagaReadTable[] =
 {
    { 0x6800, 0x6807, namcoZ80ReadDip         },
-#ifndef USE_NAMCO51
-   { 0x7000, 0x7002, galagaZ80ReadInputs     },
-#else
-   { 0x7000, 0x7002, namco51xxRead           },
-#endif
-   { 0x7100, 0x7100, namcoZ80ReadIoCmd       },
+   { 0x7000, 0x7002, namcoCustomICsReadDta   },
+   { 0x7100, 0x7100, namcoCustomICsReadCmd   },
    { 0x0000, 0x0000, NULL                    }, // End of Table marker
 };
 
@@ -2135,13 +2050,8 @@ static struct CPU_Wr_Table galagaWriteTable[] =
    { 0x6822, 0x6822, namcoZ80WriteCPU3Irq    },
    { 0x6823, 0x6823, namcoZ80WriteCPUReset   },
 //	{ 0x6830, 0x6830, WatchDogWriteNotImplemented }, 
-   { 0x7000, 0x700f, namcoZ80WriteIoChip     },
-#ifndef USE_NAMCO51
-   { 0x7007, 0x7007, galagaZ80Write7007      },
-#else
-   { 0x7000, 0x7007, namco51xxWrite          },
-#endif
-   { 0x7100, 0x7100, namcoZ80WriteIoCmd      },
+   { 0x7000, 0x700f, namcoCustomICsWriteDta  },
+   { 0x7100, 0x7100, namcoCustomICsWriteCmd  },
    { 0xa000, 0xa005, galagaZ80WriteStars     },
    { 0xa007, 0xa007, namcoZ80WriteFlipScreen },
    { 0x0000, 0x0000, NULL                    }, // End of Table marker
@@ -2220,6 +2130,23 @@ static DrawFunc_t galagaDrawFuncs[] =
 
 #define GALAGA_DRAW_TBL_SIZE  (sizeof(galagaDrawFuncs) / sizeof(galagaDrawFuncs[0]))
 
+static struct Namco_Custom_RW_Entry galagaCustomICRW[] =
+{
+   {  0x71,    namco51xxRead     },
+   {  0xa1,    namco51xxWrite    },
+   {  0xb1,    namco51xxRead     },
+   {  0xe1,    namco51xxWrite    },
+   {  0xA8,    namco54xxWrite    },
+   {  0x00,    NULL              }
+};
+
+static struct N54XX_Sample_Info_Def galagaN54xxSampleList[] =
+{
+	{  0,    "\x40\x00\x02\xdf"   },
+   {  1,    "\x30\x30\x03\xdf"   },
+   {  -1,   ""                   },
+};
+
 static struct Machine_Config_Def galagaMachineConfig =
 {
    .cpus                = galagaCPU,
@@ -2235,14 +2162,8 @@ static struct Machine_Config_Def galagaMachineConfig =
    .drawTableSize       = GALAGA_DRAW_TBL_SIZE,
    .getSpriteParams     = galagaGetSpriteParams,
    .reset               = galagaReset,
-#ifndef USE_NAMCO51
-   .ioChipStartEnable   = 1,
-#endif
-   .playerControlPort   = 
-   {  
-      /* Player 1 Port = */      1, 
-      /* Player 2 Port = */      2
-   }
+   .customRWTable       = galagaCustomICRW,
+   .n54xxSampleList     = galagaN54xxSampleList
 };
 
 static INT32 galagaInit(void)
@@ -2270,14 +2191,8 @@ static struct Machine_Config_Def gallagMachineConfig =
    .drawTableSize       = GALAGA_DRAW_TBL_SIZE,
    .getSpriteParams     = galagaGetSpriteParams,
    .reset               = galagaReset,
-#ifndef USE_NAMCO51
-   .ioChipStartEnable   = 1,
-#endif
-   .playerControlPort   = 
-   {  
-      /* Player 1 Port = */      1, 
-      /* Player 2 Port = */      2
-   }
+   .customRWTable       = galagaCustomICRW,
+   .n54xxSampleList     = galagaN54xxSampleList
 };
 
 static INT32 gallagInit(void)
@@ -2397,57 +2312,6 @@ static INT32 galagaTilemapConfig(void)
    
    return 0;
 }
-
-#ifndef USE_NAMCO51
-static UINT8 galagaZ80ReadInputs(UINT16 offset)
-{
-   UINT8 retVal = 0xff;
-   
-   if ( (0x71 == ioChip.customCommand) ||
-        (0xb1 == ioChip.customCommand) )
-   {
-      switch (offset)
-      {
-         case 0:
-         {
-            if (ioChip.mode) 
-            {
-               retVal = input.ports[0].current.byte;
-            } 
-            else 
-            {
-               retVal = updateCoinAndCredit(&galagaCoinAndCreditParams);
-            }
-            input.ports[0].previous.byte = input.ports[0].current.byte;
-         }
-         break;
-            
-         case 1:
-         case 2:
-         {
-            retVal = updateJoyAndButtons(offset, input.ports[offset].current.byte);
-         }   
-         break;
-            
-         default:
-            break;
-      }
-   }
-   
-   return retVal;
-}
-
-static void galagaZ80Write7007(UINT16 offset, UINT8 dta)
-{
-   if (0xe1 == ioChip.customCommand) 
-   {
-      ioChip.leftCoinPerCredit = ioChip.buffer[1];
-      ioChip.leftCreditPerCoin = ioChip.buffer[2];
-   }
-   
-   return;
-}
-#endif
 
 static void galagaZ80WriteStars(UINT16 offset, UINT8 dta)
 {
@@ -2978,48 +2842,12 @@ struct BurnDriver BurnDrvNebulbee =
 
 /* === Dig Dug === */
 
-#ifndef USE_NAMCO51
-#define INP_DIGDUG_COIN_TRIGGER     0x00
-#define INP_DIGDUG_COIN_MASK        0x01
-#define INP_DIGDUG_START_TRIGGER_1  0x00
-#define INP_DIGDUG_START_MASK_1     0x10
-#define INP_DIGDUG_START_TRIGGER_2  0x00
-#define INP_DIGDUG_START_MASK_2     0x20
-
-static struct CoinAndCredit_Def digdugCoinAndCreditParams = 
-{
-   /*.leftCoin = 
-   {
-      .portNumber    = 0,
-      .triggerValue  = INP_DIGDUG_COIN_TRIGGER,
-      .triggerMask   = INP_DIGDUG_COIN_MASK
-   },*/
-   {  0, INP_DIGDUG_COIN_TRIGGER,      INP_DIGDUG_COIN_MASK       },
-   {  0, INP_DIGDUG_COIN_TRIGGER,      INP_DIGDUG_COIN_MASK       },
-   {  0, 0,                            0                          },
-   /*.start1 =
-   {
-      .portNumber    = 0,
-      .triggerValue  = INP_DIGDUG_START_TRIGGER_1,
-      .triggerMask   = INP_DIGDUG_START_MASK_1,
-   },*/
-   {  0, INP_DIGDUG_START_TRIGGER_1,   INP_DIGDUG_START_MASK_1,   },
-   /*.start2 = 
-   {
-      .portNumber    = 0,
-      .triggerValue  = INP_DIGDUG_START_TRIGGER_2,
-      .triggerMask   = INP_DIGDUG_START_MASK_2,
-   }*/
-   {  0, INP_DIGDUG_START_TRIGGER_2,   INP_DIGDUG_START_MASK_2,   },
-};
-#endif
-
 static struct BurnInputInfo DigdugInputList[] =
 {
-	{"P1 Coin"              , BIT_DIGITAL  , &input.ports[0].current.bits.bit[0], "p1 coin"   },
-	{"P1 Start"             , BIT_DIGITAL  , &input.ports[0].current.bits.bit[4], "p1 start"  },
-	{"P2 Coin"              , BIT_DIGITAL  , &input.ports[0].current.bits.bit[1], "p2 coin"   },
-	{"P2 Start"             , BIT_DIGITAL  , &input.ports[0].current.bits.bit[5], "p2 start"  },
+	{"P1 Start"             , BIT_DIGITAL  , &input.ports[0].current.bits.bit[2], "p1 start"  },
+	{"P2 Start"             , BIT_DIGITAL  , &input.ports[0].current.bits.bit[3], "p2 start"  },
+	{"P1 Coin"              , BIT_DIGITAL  , &input.ports[0].current.bits.bit[4], "p1 coin"   },
+	{"P2 Coin"              , BIT_DIGITAL  , &input.ports[0].current.bits.bit[5], "p2 coin"   },
 
 	{"P1 Up"                , BIT_DIGITAL  , &input.ports[1].current.bits.bit[0], "p1 up"     },
 	{"P1 Down"              , BIT_DIGITAL  , &input.ports[1].current.bits.bit[2], "p1 down"   },
@@ -3027,16 +2855,16 @@ static struct BurnInputInfo DigdugInputList[] =
 	{"P1 Right"             , BIT_DIGITAL  , &input.ports[1].current.bits.bit[1], "p1 right"  },
 	{"P1 Fire 1"            , BIT_DIGITAL  , &input.ports[1].current.bits.bit[4], "p1 fire 1" },
 	
-	{"P2 Up"                , BIT_DIGITAL  , &input.ports[2].current.bits.bit[0], "p2 up"     },
-	{"P2 Down"              , BIT_DIGITAL  , &input.ports[2].current.bits.bit[2], "p2 down"   },
+	{"P2 Up (cocktail)"     , BIT_DIGITAL  , &input.ports[2].current.bits.bit[0], "p2 up"     },
+	{"P2 Down (Cocktail)"   , BIT_DIGITAL  , &input.ports[2].current.bits.bit[2], "p2 down"   },
 	{"P2 Left (Cocktail)"   , BIT_DIGITAL  , &input.ports[2].current.bits.bit[3], "p2 left"   },
 	{"P2 Right (Cocktail)"  , BIT_DIGITAL  , &input.ports[2].current.bits.bit[1], "p2 right"  },
 	{"P2 Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.ports[2].current.bits.bit[4], "p2 fire 1" },
 
 	{"Service"              , BIT_DIGITAL  , &input.ports[0].current.bits.bit[7], "service"   },
-	{"Reset"                , BIT_DIGITAL  , &input.reset,                  "reset"     },
-	{"Dip 1"                , BIT_DIPSWITCH, &input.dip[0].byte,            "dip"       },
-	{"Dip 2"                , BIT_DIPSWITCH, &input.dip[1].byte,            "dip"       },
+	{"Reset"                , BIT_DIGITAL  , &input.reset,                        "reset"     },
+	{"Dip 1"                , BIT_DIPSWITCH, &input.dip[0].byte,                  "dip"       },
+	{"Dip 2"                , BIT_DIPSWITCH, &input.dip[1].byte,                  "dip"       },
 };
 
 STDINPUTINFO(Digdug)
@@ -3212,12 +3040,6 @@ static tilemap_callback(digdug_bg);
 static tilemap_callback(digdug_fg);
 static INT32 digdugTilemapConfig(void);
 
-#ifndef USE_NAMCO51
-static UINT8 digdugZ80ReadInputs(UINT16 offset);
-
-static void digdugZ80WriteIoChip(UINT16 offset, UINT8 dta);
-#endif
-
 static void digdug_pf_latch_w(UINT16 offset, UINT8 dta);
 static void digdugZ80Writeb840(UINT16 offset, UINT8 dta);
 
@@ -3252,12 +3074,8 @@ static struct CPU_Config_Def digdugCPU[NAMCO_BRD_CPU_COUNT] =
 static struct CPU_Rd_Table digdugReadTable[] =
 {
 	{ 0x6800, 0x6807, namcoZ80ReadDip         }, 
-#ifndef USE_NAMCO51
-   { 0x7000, 0x700f, digdugZ80ReadInputs     },
-#else
-   { 0x7000, 0x7002, namco51xxRead           }, 
-#endif
-	{ 0x7100, 0x7100, namcoZ80ReadIoCmd       },
+   { 0x7000, 0x700f, namcoCustomICsReadDta   },
+	{ 0x7100, 0x7100, namcoCustomICsReadCmd   },
    // EAROM Read
 	{ 0xb800, 0xb83f, earom_read              },
 	{ 0x0000, 0x0000, NULL                    },
@@ -3274,13 +3092,8 @@ static struct CPU_Wr_Table digdugWriteTable[] =
 	{ 0x6822, 0x6822, namcoZ80WriteCPU3Irq    },
 	{ 0x6823, 0x6823, namcoZ80WriteCPUReset   },
 //	{ 0x6830, 0x6830, WatchDogWriteNotImplemented }, 
-#ifndef USE_NAMCO51
-	{ 0x7000, 0x700f, namcoZ80WriteIoChip     },
-   { 0x7008, 0x7008, digdugZ80WriteIoChip    },
-#else
-   { 0x7000, 0x7008, namco51xxWrite          },
-#endif
-	{ 0x7100, 0x7100, namcoZ80WriteIoCmd      },
+   { 0x7000, 0x700f, namcoCustomICsWriteDta  },
+	{ 0x7100, 0x7100, namcoCustomICsWriteCmd  },
 	{ 0xa000, 0xa006, digdug_pf_latch_w       },
 	{ 0xa007, 0xa007, namcoZ80WriteFlipScreen },
    { 0x0000, 0x0000, NULL                    },
@@ -3347,6 +3160,16 @@ static DrawFunc_t digdugDrawFuncs[] =
 
 #define DIGDUG_DRAW_TBL_SIZE  (sizeof(digdugDrawFuncs) / sizeof(digdugDrawFuncs[0]))
 
+static struct Namco_Custom_RW_Entry digdugCustomRWTable[] = 
+{
+   {  0x71,    namco51xxRead  },
+   {  0xa1,    namco51xxWrite },
+   {  0xb1,    namco51xxRead  },
+   {  0xc1,    namco51xxWrite },
+   {  0xd2,    namco53xxRead  },
+   {  0x00,    NULL           }
+};
+
 static struct Machine_Config_Def digdugMachineConfig =
 {
    .cpus                = digdugCPU,
@@ -3362,14 +3185,8 @@ static struct Machine_Config_Def digdugMachineConfig =
    .drawTableSize       = DIGDUG_DRAW_TBL_SIZE,
    .getSpriteParams     = digdugGetSpriteParams,
    .reset               = digdugReset,
-#ifndef USE_NAMCO51
-   .ioChipStartEnable   = 1,
-#endif
-   .playerControlPort   = 
-   {  
-      /* Player 1 Port = */      1, 
-      /* Player 2 Port = */      2
-   }
+   .customRWTable       = digdugCustomRWTable,
+   .n54xxSampleList     = NULL
 };
 
 static INT32 digdugInit(void)
@@ -3393,11 +3210,6 @@ static INT32 digdugReset(void)
 	playFieldParams.alphaColor = 0;
 	playFieldParams.playEnable = 0;
 	playFieldParams.playColor = 0;
-
-#ifndef USE_NAMCO51
-   ioChip.startEnable = 0;
-   ioChip.coinsInserted = 0;
-#endif
 
 	earom_reset();
 
@@ -3540,87 +3352,6 @@ static INT32 digdugTilemapConfig(void)
    
    return 0;
 }
-
-#ifndef USE_NAMCO51
-static UINT8 digdugZ80ReadInputs(UINT16 offset)
-{
-   UINT8 retVal = 0xff;
-
-   switch (ioChip.customCommand) 
-   {
-      case 0xd2: 
-      {
-         if ( (0 == offset) || (1 == offset) )
-            retVal = input.dip[offset].byte;
-         break;
-      }
-      
-      case 0x71:
-      case 0xb1: 
-      {
-         if (0xb1 == ioChip.customCommand)
-         {
-            if (offset <= 2) // status
-               retVal = 0;
-            else
-               retVal = 0xff;
-         }
-         
-         if (0 == offset) 
-         {
-            if (ioChip.mode) 
-            {
-               retVal = input.ports[0].current.byte;
-            } 
-            else 
-            {
-               retVal = updateCoinAndCredit(&digdugCoinAndCreditParams);
-            }
-            input.ports[0].previous.byte = input.ports[0].current.byte;
-         }
-         
-         if ( (1 == offset) || (2 == offset) ) 
-         {
-            INT32 jp = input.ports[offset].current.byte;
-
-            if (0 == ioChip.mode)
-            {
-               /* check directions, according to the following 8-position rule */
-               /*         0          */
-               /*        7 1         */
-               /*       6 8 2        */
-               /*        5 3         */
-               /*         4          
-               if ((jp & 0x01) == 0)		// up 
-                  jp = (jp & ~0x0f) | 0x00;
-               else if ((jp & 0x02) == 0)	// right
-                  jp = (jp & ~0x0f) | 0x02;
-               else if ((jp & 0x04) == 0)	// down
-                  jp = (jp & ~0x0f) | 0x04;
-               else if ((jp & 0x08) == 0) // left 
-                  jp = (jp & ~0x0f) | 0x06;
-               else
-                  jp = (jp & ~0x0f) | 0x08;*/
-               jp = namcoControls[jp & 0x0f] | (jp & 0xf0);
-            }
-
-            retVal = updateJoyAndButtons(offset, jp);
-         }
-      }
-   }
-   
-   return retVal;
-}
-
-static void digdugZ80WriteIoChip(UINT16 offset, UINT8 dta)
-{
-   if (0xc1 == ioChip.customCommand) 
-   {
-      ioChip.leftCoinPerCredit = ioChip.buffer[2] & 0x0f;
-      ioChip.leftCreditPerCoin = ioChip.buffer[3] & 0x0f;
-   }
-}
-#endif
 
 static void digdug_pf_latch_w(UINT16 offset, UINT8 dta)
 {
@@ -3803,49 +3534,28 @@ struct BurnDriver BurnDrvDigdug =
 
 /* === XEVIOUS === */
 
-#ifndef USE_NAMCO51
-#define INP_XEVIOUS_COIN_TRIGGER_1  0x00
-#define INP_XEVIOUS_COIN_MASK_1     0x10
-#define INP_XEVIOUS_COIN_TRIGGER_2  0x00
-#define INP_XEVIOUS_COIN_MASK_2     0x20
-#define INP_XEVIOUS_START_TRIGGER_1 0x00
-#define INP_XEVIOUS_START_MASK_1    0x04
-#define INP_XEVIOUS_START_TRIGGER_2 0x00
-#define INP_XEVIOUS_START_MASK_2    0x08
-
-static struct CoinAndCredit_Def xeviousCoinAndCreditParams = 
-{
-   /*                   .portNumber,   .triggerValue,                .triggerMask*/
-   /*.leftCoin = */  {  0,             INP_XEVIOUS_COIN_TRIGGER_1,   INP_XEVIOUS_COIN_MASK_1    },
-   /*.rightCoin =*/  {  0,             INP_XEVIOUS_COIN_TRIGGER_2,   INP_XEVIOUS_COIN_MASK_2    },
-   /*.auxCoin = */   {  0,             0,                            0                          },
-   /*.start1 = */    {  0,             INP_XEVIOUS_START_TRIGGER_1,  INP_XEVIOUS_START_MASK_1,  },
-   /*.start2 = */    {  0,             INP_XEVIOUS_START_TRIGGER_2,  INP_XEVIOUS_START_MASK_2,  },
-};
-#endif
-
 static struct BurnInputInfo XeviousInputList[] =
 {
-	{"Dip 1"             , BIT_DIPSWITCH,  &input.dip[0].byte,            "dip"       },
-	{"Dip 2"             , BIT_DIPSWITCH,  &input.dip[1].byte,            "dip"       },
+	{"Dip 1"             , BIT_DIPSWITCH,  &input.dip[0].byte,                  "dip"       },
+	{"Dip 2"             , BIT_DIPSWITCH,  &input.dip[1].byte,                  "dip"       },
 
-	{"Reset"             , BIT_DIGITAL,    &input.reset,                  "reset"     },
+	{"Reset"             , BIT_DIGITAL,    &input.reset,                        "reset"     },
 
 	{"Up"                , BIT_DIGITAL,    &input.ports[1].current.bits.bit[0], "p1 up"     },
 	{"Right"             , BIT_DIGITAL,    &input.ports[1].current.bits.bit[1], "p1 right"  },
 	{"Down"              , BIT_DIGITAL,    &input.ports[1].current.bits.bit[2], "p1 down"   },
 	{"Left"              , BIT_DIGITAL,    &input.ports[1].current.bits.bit[3], "p1 left"   },
-	{"P1 Button 1"       , BIT_DIGITAL,    &input.ports[1].current.bits.bit[5], "p1 fire 1" },
+	{"P1 Button 1"       , BIT_DIGITAL,    &input.ports[1].current.bits.bit[4], "p1 fire 1" },
    // hack! CUF - must remap this input to DIP1.0
-	{"P1 Button 2"       , BIT_DIGITAL,    &input.ports[1].current.bits.bit[4], "p1 fire 2" },
+	{"P1 Button 2"       , BIT_DIGITAL,    &input.ports[1].current.bits.bit[6], "p1 fire 2" },
 	
 	{"Up (Cocktail)"     , BIT_DIGITAL,    &input.ports[2].current.bits.bit[0], "p2 up"     },
 	{"Right (Cocktail)"  , BIT_DIGITAL,    &input.ports[2].current.bits.bit[1], "p2 right"  },
 	{"Down (Cocktail)"   , BIT_DIGITAL,    &input.ports[2].current.bits.bit[2], "p2 down"   },
 	{"Left (Cocktail)"   , BIT_DIGITAL,    &input.ports[2].current.bits.bit[3], "p2 left"   },
-	{"Fire 1 (Cocktail)" , BIT_DIGITAL,    &input.ports[2].current.bits.bit[5], "p2 fire 1" },
+	{"Fire 1 (Cocktail)" , BIT_DIGITAL,    &input.ports[2].current.bits.bit[4], "p2 fire 1" },
    // hack! CUF - must remap this input to DIP1.4
-	{"Fire 2 (Cocktail)" , BIT_DIGITAL,    &input.ports[2].current.bits.bit[4], "p2 fire 2" },
+	{"Fire 2 (Cocktail)" , BIT_DIGITAL,    &input.ports[2].current.bits.bit[6], "p2 fire 2" },
 
 	{"Start 1"           , BIT_DIGITAL,    &input.ports[0].current.bits.bit[2], "p1 start"  },
 	{"Start 2"           , BIT_DIGITAL,    &input.ports[0].current.bits.bit[3], "p2 start"  },
@@ -4093,12 +3803,6 @@ static UINT8 xeviousSharedRAM1Read(UINT16 offset);
 static UINT8 xeviousSharedRAM2Read(UINT16 offset);
 static UINT8 xeviousSharedRAM3Read(UINT16 offset);
 
-#ifndef USE_NAMCO51
-static UINT8 xeviousZ80ReadInputs(UINT16 offset);
-
-static void xeviousZ80WriteIoChip(UINT16 offset, UINT8 dta);
-#endif
-
 static void xevious_bs_wr(UINT16 offset, UINT8 dta);
 static void xevious_vh_latch_w(UINT16 offset, UINT8 dta);
 static void xeviousBGColorRAMWrite(UINT16 offset, UINT8 dta);
@@ -4161,12 +3865,8 @@ static struct CPU_Config_Def xeviousCPU[NAMCO_BRD_CPU_COUNT] =
 static struct CPU_Rd_Table xeviousZ80ReadTable[] =
 {
 	{ 0x6800, 0x6807, namcoZ80ReadDip            }, 
-#ifndef USE_NAMCO51
-   { 0x7000, 0x700f, xeviousZ80ReadInputs       },
-#else
-   { 0x7000, 0x7002, namco51xxRead              },
-#endif
-	{ 0x7100, 0x7100, namcoZ80ReadIoCmd          },
+   { 0x7000, 0x700f, namcoCustomICsReadDta      },
+	{ 0x7100, 0x7100, namcoCustomICsReadCmd      },
    { 0x7800, 0x7fff, xeviousWorkRAMRead         },
    { 0x8000, 0x8fff, xeviousSharedRAM1Read      },
    { 0x9000, 0x9fff, xeviousSharedRAM2Read      },
@@ -4183,12 +3883,8 @@ static struct CPU_Wr_Table xeviousZ80WriteTable[] =
 	{ 0x6822, 0x6822, namcoZ80WriteCPU3Irq       },
 	{ 0x6823, 0x6823, namcoZ80WriteCPUReset      },
 //	{ 0x6830, 0x6830, WatchDogWriteNotImplemented }, 
-#ifndef USE_NAMCO51
-	{ 0x7000, 0x700f, xeviousZ80WriteIoChip      },
-#else
-	{ 0x7000, 0x700f, namco51xxWrite             },
-#endif
-	{ 0x7100, 0x7100, namcoZ80WriteIoCmd         },
+   { 0x7000, 0x700f, namcoCustomICsWriteDta     },
+	{ 0x7100, 0x7100, namcoCustomICsWriteCmd     },
    { 0x7800, 0x7fff, xeviousWorkRAMWrite        },
    { 0x8000, 0x8fff, xeviousSharedRAM1Write     },
    { 0x9000, 0x9fff, xeviousSharedRAM2Write     },
@@ -4276,6 +3972,26 @@ static DrawFunc_t xeviousDrawFuncs[] =
 
 #define XEVIOUS_DRAW_TBL_SIZE  (sizeof(xeviousDrawFuncs) / sizeof(xeviousDrawFuncs[0]))
 
+static struct Namco_Custom_RW_Entry xeviousCustomRWTable[] = 
+{
+   {  0x71,    namco51xxRead     },
+   {  0xa1,    namco51xxWrite    },
+   {  0x61,    namco51xxWrite    },
+   {  0x74,    namco50xxRead     },
+   {  0x64,    namco50xxWrite    },
+   {  0x68,    namco54xxWrite    },
+   {  0x00,    NULL              }
+};
+
+static struct N54XX_Sample_Info_Def xeviousN54xxSampleList[] = 
+{
+   {  0,    "\x40\x00\x02\xdf"   },
+   {  1,    "\x10\x00\x80\xff"   },
+   {  2,    "\x80\x80\x01\xff"   },
+   {  3,    "\x30\x30\x03\xdf"   },
+   {  -1,   ""                   }
+};
+
 static struct Machine_Config_Def xeviousMachineConfig =
 {
    .cpus                = xeviousCPU,
@@ -4291,14 +4007,8 @@ static struct Machine_Config_Def xeviousMachineConfig =
    .drawTableSize       = XEVIOUS_DRAW_TBL_SIZE,
    .getSpriteParams     = xeviousGetSpriteParams,
    .reset               = DrvDoReset,
-#ifndef USE_NAMCO51
-   .ioChipStartEnable   = 1,
-#endif
-   .playerControlPort   = 
-   {  
-      /* Player 1 Port = */      1, 
-      /* Player 2 Port = */      2
-   }
+   .customRWTable       = xeviousCustomRWTable,
+   .n54xxSampleList     = xeviousN54xxSampleList
 };
 
 static INT32 xeviousInit(void)
@@ -4590,145 +4300,6 @@ static UINT8 xeviousSharedRAM3Read(UINT16 offset)
 {
    return memory.RAM.shared3[offset & 0x07ff];
 }
-
-#ifndef USE_NAMCO51
-static UINT8 xeviousZ80ReadInputs(UINT16 offset)
-{
-   UINT8 retVal = 0xff;
-   
-   switch (ioChip.customCommand & 0x0f) 
-   {
-      case 0x01: 
-      {
-         if (0 == offset) 
-         {
-            if (ioChip.mode) 
-            {
-               retVal = input.ports[0].current.byte;
-            } 
-            else 
-            {
-               retVal = updateCoinAndCredit(&xeviousCoinAndCreditParams);
-            }
-            input.ports[0].previous.byte = input.ports[0].current.byte;
-         }
-         
-         if ( (1 == offset) || (2 == offset) ) 
-         {
-            INT32 jp = input.ports[offset].current.byte;
-
-            if (0 == ioChip.mode)
-            {
-               jp = namcoControls[jp & 0x0f] | (jp & 0xf0);
-            }
-
-            retVal = jp;
-         }
-         break;
-      }
-      
-      case 0x04:
-      {
-         if (3 == offset)
-         {
-            if ((0x80 == ioChip.buffer[0]) || (0x10 == ioChip.buffer[0]))
-               retVal = 0x05;
-            else
-               retVal = 0x95;
-         }
-         else
-            retVal = 0;
-         break;
-      }
-      
-      default:
-      {
-         break;
-      }
-   }
-   
-   return retVal;
-}
-
-static void xeviousZ80WriteIoChip(UINT16 offset, UINT8 dta)
-{
-   ioChip.buffer[offset & 0x0f] = dta;
-   
-   switch (ioChip.customCommand & 0x0f)
-   {
-      case 0x01:
-      {
-         if (0 == offset)
-         {
-            switch (dta & 0x0f)
-            {
-               case 0x00:
-                  // nop
-                  break;
-               case 0x01:
-                  ioChip.credits = 0;
-                  ioChip.mode = 0;
-                  ioChip.startEnable = 1;
-                  break;
-               case 0x02:
-                  ioChip.startEnable = 1;
-                  break;
-               case 0x03:
-                  ioChip.mode = 1;
-                  break;
-               case 0x04:
-                  ioChip.mode = 0;
-                  break;
-               case 0x05:
-                  ioChip.startEnable = 0;
-                  ioChip.mode = 1;
-                  break;
-            }
-         }
-         if (7 == offset)
-         {
-            ioChip.auxCoinPerCredit = ioChip.buffer[1] & 0x0f;
-            ioChip.auxCreditPerCoin = ioChip.buffer[2] & 0x0f;
-            ioChip.leftCoinPerCredit = ioChip.buffer[3] & 0x0f;
-            ioChip.leftCreditPerCoin = ioChip.buffer[4] & 0x0f;
-            ioChip.rightCoinPerCredit = ioChip.buffer[5] & 0x0f;
-            ioChip.rightCreditPerCoin = ioChip.buffer[6] & 0x0f;
-         }
-         break;
-      }
-      
-      case 0x04:
-         break;
-         
-      case 0x08:
-      {
-         if (6 == offset)
-         {
-            // it is not known how the parameters control the explosion. 
-				// We just use samples. 
-				if (memcmp(ioChip.buffer,"\x40\x40\x40\x01\xff\x00\x20",7) == 0)
-				{
-					BurnSamplePlay(0); //sample_start (0, 0, 0);
-            }
-				else if (memcmp(ioChip.buffer,"\x30\x40\x00\x02\xdf\x00\x10",7) == 0)
-				{
-					BurnSamplePlay(1); //sample_start (0, 1, 0);
-				}
-				else if (memcmp(ioChip.buffer,"\x30\x10\x00\x80\xff\x00\x10",7) == 0)
-				{
-					BurnSamplePlay(2); //sample_start (0, 2, 0);
-				}
-				else if (memcmp(ioChip.buffer,"\x30\x80\x80\x01\xff\x00\x10",7) == 0)
-				{
-					BurnSamplePlay(3); //sample_start (0, 3, 0);
-				}
-         }
-         break;
-      }
-   }
-   
-}
-#endif
 
 static void xevious_bs_wr(UINT16 offset, UINT8 dta)
 {
