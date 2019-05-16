@@ -179,7 +179,7 @@ static void InpDIPSWGetOffset (void)
 
 	for(int i = 0; BurnDrvGetDIPInfo(&bdi, i) == 0; i++)
 	{
-		if (bdi.nFlags == 0xF0)
+		if (0xF0 == bdi.nFlags)
 		{
 			nDIPOffset = bdi.nInput;
 			log_cb(RETRO_LOG_INFO, "DIP switches offset: %d.\n", bdi.nInput);
@@ -221,12 +221,13 @@ static int InpDIPSWInit()
    
    if (!drvname)
       return 0;
-      
-   for (int i = 0, j = 0; BurnDrvGetDIPInfo(&bdi, i) == 0; i++)
+   
+   int i= 0;   
+   while (0 == BurnDrvGetDIPInfo(&bdi, i))
    {
       /* 0xFE is the beginning label for a DIP switch entry */
       /* 0xFD are region DIP switches */
-      if ((bdi.nFlags == 0xFE || bdi.nFlags == 0xFD) && bdi.nSetting > 0)
+      if (((0xFE == bdi.nFlags) || (0xFD == bdi.nFlags)) && (bdi.nSetting > 0))
       {
          dipswitch_core_options.push_back(dipswitch_core_option());
          dipswitch_core_option *dip_option = &dipswitch_core_options.back();
@@ -237,7 +238,7 @@ static int InpDIPSWInit()
          // Some dipswitch has no name...
          if (bdi.szText)
          {
-            strcpy(option_name, bdi.szText);
+            strncpy(option_name, bdi.szText, sizeof(option_name));
          }
          else // ... so, to not hang, we will generate a name based on the position of the dip (DIPSWITCH 1, DIPSWITCH 2...)
          {
@@ -277,7 +278,7 @@ static int InpDIPSWInit()
                break;
             }
             
-            if (bdi_value.nFlags == 0xFE || bdi_value.nFlags == 0xFD)
+            if ((0xFE == bdi_value.nFlags) || (0xFD == bdi_value.nFlags))
             {
                log_cb(RETRO_LOG_WARN, "Error in %sDIPList for DIPSWITCH '%s': Start of next DIPSWITCH is too early\n", drvname, dip_option->friendly_name);
                break;
@@ -286,14 +287,15 @@ static int InpDIPSWInit()
             struct GameInp *pgi_value = GameInp + bdi_value.nInput + nDIPOffset;
 
             // When the pVal of one value is NULL => the DIP switch is unusable. So it will be skipped by removing it from the list
-            if (pgi_value->Input.pVal == 0)
+            if (0 == pgi_value->Input.pVal)
             {
                skip_unusable_option = true;
+               log_cb(RETRO_LOG_WARN, "Error in %sDIPList for DIPSWITCH '%s'%d: Unusable Option Found\n", drvname, dip_option->friendly_name, k + 1);
                break;
             }
                
             // Filter away NULL entries
-            if (bdi_value.nFlags == 0)
+            if (0 == bdi_value.nFlags)
             {
                log_cb(RETRO_LOG_WARN, "Error in %sDIPList for DIPSWITCH '%s': the line '%d' is useless\n", drvname, dip_option->friendly_name, k + 1);
                continue;
@@ -324,7 +326,7 @@ static int InpDIPSWInit()
          {
             // Truncate the list at the values_count found to not have empty values
             dip_option->values.resize(values_count + 1); // +1 for default value
-            log_cb(RETRO_LOG_WARN, "Error in %sDIPList for DIPSWITCH '%s': '%d' values were intended and only '%d' were found\n", drvname, dip_option->friendly_name, bdi.nSetting, values_count);
+            log_cb(RETRO_LOG_WARN, "Error in %sDIPList for %d DIPSWITCH '%s': '%d' values were intended and only '%d' were found\n", drvname, i, dip_option->friendly_name, bdi.nSetting, values_count);
          }
          
          // Skip the unusable option by removing it from the list
@@ -351,8 +353,8 @@ static int InpDIPSWInit()
          }
          std::basic_string<char>(dip_option->values_str).swap(dip_option->values_str);
 
-         j++;
       }
+      i++;
    }
 
    evaluate_neogeo_bios_mode(drvname);

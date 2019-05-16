@@ -262,26 +262,26 @@ inline static INT32 readbit(const UINT8 *src, INT32 bitnum)
 	return src[bitnum / 8] & (0x80 >> (bitnum % 8));
 }
 
-void GfxDecode(INT32 num, INT32 numPlanes, INT32 xSize, INT32 ySize, INT32 planeoffsets[], INT32 xoffsets[], INT32 yoffsets[], INT32 modulo, UINT8 *pSrc, UINT8 *pDest)
+void GfxDecode(INT32 numOfSymbols, INT32 numPlanes, INT32 xSize, INT32 ySize, INT32 planeOffsets[], INT32 xOffsets[], INT32 yOffsets[], INT32 planeModulo, UINT8 *pSrc, UINT8 *pDest)
 {
-	INT32 c;
+	for (INT32 symbol = 0; symbol < numOfSymbols; symbol ++) 
+   {
+		UINT8 *destPtr = pDest + (symbol * xSize * ySize);
+		memset(destPtr, 0, xSize * ySize);
 
-	for (c = 0; c < num; c++) {
-		INT32 plane, x, y;
-
-		UINT8 *dp = pDest + (c * xSize * ySize);
-		memset(dp, 0, xSize * ySize);
-
-		for (plane = 0; plane < numPlanes; plane++) {
-			INT32 planebit = 1 << (numPlanes - 1 - plane);
-			INT32 planeoffs = (c * modulo) + planeoffsets[plane];
-
-			for (y = 0; y < ySize; y++) {
-				INT32 yoffs = planeoffs + yoffsets[y];
-				dp = pDest + (c * xSize * ySize) + (y * xSize);
-
-				for (x = 0; x < xSize; x++) {
-					if (readbit(pSrc, yoffs + xoffsets[x])) dp[x] |= planebit;
+		for (INT32 plane = 0; plane < numPlanes; plane ++) 
+      {
+			INT32 planeBit = 1 << (numPlanes - 1 - plane);
+			INT32 srcOffs = planeOffsets[plane] + (symbol * planeModulo);
+         destPtr = pDest + (symbol * xSize * ySize);
+         
+			for (INT32 y = 0; y < ySize; y ++) 
+         {
+				for (INT32 x = 0; x < xSize; x ++) 
+            {
+					if (readbit(pSrc, srcOffs + yOffsets[y] + xOffsets[x])) 
+                  *destPtr |= planeBit;
+               destPtr ++;
 				}
 			}
 		}
@@ -2098,7 +2098,8 @@ void RenderCustomTile_Clip(UINT16* pDestDraw, INT32 nWidth, INT32 nHeight, INT32
 
 	UINT16* pPixel = pDestDraw + (StartY * nScreenWidth) + StartX;
 
-	for (INT32 y = 0; y < nHeight; y++, pPixel += nScreenWidth, pTileData += nWidth) {
+	for (INT32 y = 0; y < nHeight; y++, pPixel += nScreenWidth, pTileData += nWidth) 
+   {
 		if ((StartY + y) < nScreenHeightMin || (StartY + y) >= nScreenHeightMax) {
 			continue;
 		}
@@ -4211,6 +4212,7 @@ void RenderCustomTile_Prio_Clip(UINT16* pDestDraw, INT32 nWidth, INT32 nHeight, 
 	UINT8 *pPri = pPrioDraw + (StartY * nScreenWidth) + StartX;
 
 	for (INT32 y = 0; y < nHeight; y++, pPixel += nScreenWidth, pPri += nScreenWidth, pTileData += nWidth) {
+
 		if ((StartY + y) < nScreenHeightMin || (StartY + y) >= nScreenHeightMax) {
 			continue;
 		}
