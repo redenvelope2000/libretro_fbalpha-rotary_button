@@ -2,20 +2,11 @@
 // Dig Dug added July 27, 2015
 // Xevious added April 22, 2019
 
-// notes: galaga freeplay mode doesn't display "freeplay" - need to investigate.
-
 #include "tiles_generic.h"
 #include "z80_intf.h"
 #include "namco_snd.h"
 #include "samples.h"
 #include "earom.h"
-
-enum
-{
-   PLAYER1 = 0,
-   PLAYER2,
-   NO_OF_PLAYERS
-};
 
 enum
 {
@@ -96,7 +87,7 @@ enum
    MEM_TYPES
 };
 
-struct Memory_Layout_Def
+struct Memory_Map_Def
 {
    union
    {
@@ -202,15 +193,6 @@ static const UINT8 namcoControls[16] = {
    8,    8,    8,    5,    8,    8,    7,    6,    8,    3,    8,    4,    1,    2,    0,    8
 };
 
-struct Button_Def
-{
-   INT32 hold;
-   INT32 held;
-   INT32 last;
-};
-
-static struct Button_Def button[NO_OF_PLAYERS] = { 0 };
-
 struct CPU_Rd_Table
 {
    UINT16 startAddr;
@@ -258,17 +240,6 @@ struct Namco_Sprite_Params
    INT32 paletteOffset;
 };
 
-#define NAMCO54XX_CFG1_SIZE   4
-#define NAMCO54XX_CFG2_SIZE   4
-#define NAMCO54XX_CFG3_SIZE   5
-
-enum
-{
-   NAMCO54_WR_CFG1 = 1,
-   NAMCO54_WR_CFG2,
-   NAMCO54_WR_CFG3
-};
-
 #define N06XX_BUF_SIZE       16
 
 struct N06XX_Def
@@ -297,15 +268,18 @@ struct N51XX_Def
    UINT8 credits;
    UINT8 startEnable;
    UINT8 remapJoystick;
-   UINT8 lastCoin;
-   UINT8 coinCreditDataCounter;
+   UINT8 coinCreditDataCount;
    UINT8 coinCreditDataIndex;
 };
+
+#define NAMCO54XX_CFG1_SIZE   4
+#define NAMCO54XX_CFG2_SIZE   4
+#define NAMCO54XX_CFG3_SIZE   5
 
 struct N54XX_Def
 {
    INT32 fetch;
-   INT32 fetchMode;
+   UINT8 *fetchDestination;
    UINT8 config1[NAMCO54XX_CFG1_SIZE];
    UINT8 config2[NAMCO54XX_CFG2_SIZE]; 
    UINT8 config3[NAMCO54XX_CFG3_SIZE];
@@ -330,10 +304,10 @@ struct Machine_Config_Def
    struct CPU_Config_Def         *cpus;
    struct CPU_Wr_Table           *wrAddrList;
    struct CPU_Rd_Table           *rdAddrList;
-   struct Memory_Layout_Def      *memLayoutTable;
-   UINT32                        memLayoutSize;
+   struct Memory_Map_Def         *memMapTable;
+   UINT32                        sizeOfMemMapTable;
    struct ROM_Load_Def           *romLayoutTable;
-   UINT32                        romLayoutSize;
+   UINT32                        sizeOfRomLayoutTable;
    UINT32                        tempRomSize;
    INT32                         (*tilemapsConfig)(void);
    void                          (**drawLayerTable)(void);
@@ -352,7 +326,7 @@ enum GAMES_ON_MACHINE
    NAMCO_TOTAL_GAMES
 };
 
-struct MachineDef
+struct Machine_Def
 {
    struct Machine_Config_Def *config;
    enum GAMES_ON_MACHINE game;
@@ -361,14 +335,7 @@ struct MachineDef
    UINT32 numOfDips;
 };
 
-static struct MachineDef machine = { 0 };
-
-struct InputMisc_Def
-{
-   UINT8 portNumber;
-   UINT8 triggerValue;
-   UINT8 triggerMask;
-};
+static struct Machine_Def machine = { 0 };
 
 enum
 {
@@ -478,6 +445,8 @@ static INT32 namcoMachineInit(void)
 	BurnSampleSetAllRoutesAllSamples(0.25, BURN_SND_ROUTE_BOTH);
 	machine.hasSamples = BurnSampleGetStatus(0) != -1;
    
+   bprintf(PRINT_NORMAL, _T("samples %d"), machine.hasSamples);
+   
    GenericTilesInit();
    
    if (machine.config->tilemapsConfig)
@@ -530,37 +499,44 @@ static INT32 DrvDoReset(void)
 
 static INT32 namcoMemIndex(void)
 {
-   struct Memory_Layout_Def *memoryLayout = machine.config->memLayoutTable;
+   struct Memory_Map_Def *memoryMapEntry = machine.config->memMapTable;
+   if (NULL == memoryMapEntry) return 1;
+   
 	UINT8 *next = memory.all.start;
 
-   for (UINT32 i = 0; i < machine.config->memLayoutSize; i ++)
+   UINT32 i = 0; 
+   while (i < machine.config->sizeOfMemMapTable)
    {
       if (next)
       {
-         if ((MEM_RAM == memoryLayout[i].type) && (0 == memory.RAM.start))
+         if ((MEM_RAM == memoryMapEntry->type) && (0 == memory.RAM.start))
          {
             memory.RAM.start = next;
          }
-         switch (memoryLayout[i].type)
+         switch (memoryMapEntry->type)
          {
             case MEM_DATA32:
-               *(memoryLayout[i].region.uint32) = (UINT32 *)next;
+               *(memoryMapEntry->region.uint32) = (UINT32 *)next;
             break;
             
             default:
-               *(memoryLayout[i].region.uint8) = next;
+               *(memoryMapEntry->region.uint8) = next;
             break;
          }
-         next += memoryLayout[i].size;
-         if ((MEM_RAM == memoryLayout[i].type) && (memory.RAM.size < (next - memory.RAM.start)))
+         next += memoryMapEntry->size;
+         if ( (MEM_RAM == memoryMapEntry->type) && 
+              (memory.RAM.size < (next - memory.RAM.start)) )
          {
             memory.RAM.size = next - memory.RAM.start;
          }
       }
       else
       {
-         memory.all.size += memoryLayout[i].size;
+         memory.all.size += memoryMapEntry->size;
       }
+      
+      i ++; 
+      memoryMapEntry ++;
    }
    
 	return 0;
@@ -568,14 +544,14 @@ static INT32 namcoMemIndex(void)
 
 static INT32 namcoLoadGameROMS(void)
 {
-   struct ROM_Load_Def *romTable = machine.config->romLayoutTable;
-   UINT32 tableSize = machine.config->romLayoutSize;
+   struct ROM_Load_Def *romEntry = machine.config->romLayoutTable;
+   UINT32 tableSize = machine.config->sizeOfRomLayoutTable;
    UINT32 tempSize = machine.config->tempRomSize;
    INT32 retVal = 1;
    
    if (tempSize) tempRom = (UINT8 *)BurnMalloc(tempSize);
    
-   if (NULL != tempRom)
+   if ((NULL != tempRom) && (NULL != romEntry))
    {
       memset(tempRom, 0, tempSize);
       
@@ -583,11 +559,11 @@ static INT32 namcoLoadGameROMS(void)
       
       for (UINT32 idx = 0; ((idx < tableSize) && (0 == retVal)); idx ++)
       {
-         retVal = BurnLoadRom(*(romTable->address) + romTable->offset, idx, 1);
-         if ((0 == retVal) && (NULL != romTable->postProcessing)) 
-            retVal = romTable->postProcessing();
+         retVal = BurnLoadRom(*(romEntry->address) + romEntry->offset, idx, 1);
+         if ((0 == retVal) && (NULL != romEntry->postProcessing)) 
+            retVal = romEntry->postProcessing();
          
-         romTable ++;
+         romEntry ++;
       }
       
       BurnFree(tempRom);
@@ -605,7 +581,7 @@ static void namcoCustomReset(void)
 
 static void namco51xxReset(void)
 {
-	namcoCustomIC.n51xx.coinCreditDataCounter = 0;
+	namcoCustomIC.n51xx.coinCreditDataCount = 0;
 
 	namcoCustomIC.n51xx.leftCoinPerCredit = 0;
 	namcoCustomIC.n51xx.leftCreditPerCoins = 0;
@@ -622,15 +598,13 @@ static void namco51xxReset(void)
 
    namcoCustomIC.n51xx.remapJoystick = 0;
    
-	input.ports[0].previous.byte = 0;
-	input.ports[1].previous.byte = 0;
-	input.ports[2].previous.byte = 0;
-
 	input.ports[0].current.byte = 0xff;
 	input.ports[1].current.byte = 0xff;
 	input.ports[2].current.byte = 0xff;
    
-   namcoCustomIC.n51xx.lastCoin = input.ports[0].current.byte;
+   input.ports[0].previous.byte = input.ports[0].current.byte;
+   input.ports[1].previous.byte = input.ports[1].current.byte;
+   input.ports[2].previous.byte = input.ports[2].current.byte;
 
 }
 
@@ -643,47 +617,40 @@ static void namco51xxReset(void)
  */ 
 static UINT8 updateJoyAndButtons(UINT16 offset, UINT8 jp)
 {
+   UINT8 portValue = input.ports[1].current.byte;
+
+   UINT8 joy = portValue & 0x0f;
+   if (namcoCustomIC.n51xx.remapJoystick) joy = namcoControls[joy];
+   
+   UINT8 portLast = input.ports[1].previous.byte;
+   
+   UINT8 buttonsValue = 0;
+   
+   UINT8 buttonsDown = ~(portValue & 0xf0);
+   UINT8 buttonsLast = ~(portLast  & 0xf0);
+
+   UINT8 toggle = buttonsDown ^ buttonsLast;
+
    switch (offset)
    {
       case 1:
       {
-         UINT8 portValue = input.ports[1].current.byte;
-         UINT8 joy = portValue & 0x0f;
-         if (namcoCustomIC.n51xx.remapJoystick) joy = namcoControls[joy];
-         
-         struct Button_Def *buttonSet = &button[1];
-         
-         UINT8 buttonsDown = ~(portValue & 0xf0);
-
-         UINT8 toggle = buttonsDown ^ buttonSet->last;
-         buttonSet->last = (buttonSet->last & 0xe0) | (buttonsDown & 0x10);
-
          /* fire */
-         joy |=  ((toggle & buttonsDown & 0x10)^0x10);
-         joy |= (((         buttonsDown & 0x10)^0x10) << 1);
-
-         return joy;
+         buttonsValue  =  ((toggle & buttonsDown & 0x10)^0x10);
+         buttonsValue |= (((         buttonsDown & 0x10)^0x10) << 1);
       }
       break;
 
       case 2:
       {
-         UINT8 portValue = input.ports[2].current.byte;
-         UINT8 joy = portValue & 0x0f;
-         if (namcoCustomIC.n51xx.remapJoystick) joy = namcoControls[joy];
-         
-         struct Button_Def *buttonSet = &button[0];
-         
-         UINT8 buttonsDown = ~(portValue & 0xf0) << 1;
+         buttonsDown <<= 1;
+         buttonsLast <<= 1;
 
-         UINT8 toggle = buttonsDown ^ buttonSet->last;
-         buttonSet->last = (buttonSet->last & 0xd0) | (buttonsDown & 0x20);
+         toggle <<= 1;
 
          /* fire */
-         joy |= (((toggle & buttonsDown & 0x20)^0x20)>>1);
-         joy |=  ((         buttonsDown & 0x20)^0x20);
-
-         return joy;
+         buttonsValue  = (((toggle & buttonsDown & 0x20)^0x20)>>1);
+         buttonsValue |=  ((         buttonsDown & 0x20)^0x20);
       }
       break;
       
@@ -691,7 +658,9 @@ static UINT8 updateJoyAndButtons(UINT16 offset, UINT8 jp)
       break;
    }
    
-   return 0;
+   input.ports[offset].previous.byte = input.ports[offset].current.byte;
+   
+   return (joy | buttonsValue);
 }
 
 static UINT8 namco51xxRead(UINT8 offset, UINT8 dummyDta)
@@ -709,9 +678,8 @@ static UINT8 namco51xxRead(UINT8 offset, UINT8 dummyDta)
          else 
          {
             UINT8 in = input.ports[0].current.byte;
-            UINT8 toggle = in ^ namcoCustomIC.n51xx.lastCoin;
-            namcoCustomIC.n51xx.lastCoin = in;
-
+            UINT8 toggle = in ^ input.ports[0].previous.byte;
+            
             if (0 < namcoCustomIC.n51xx.leftCoinPerCredit) 
             {
                if (99 >= namcoCustomIC.n51xx.credits)
@@ -749,7 +717,6 @@ static UINT8 namco51xxRead(UINT8 offset, UINT8 dummyDta)
             
             if (namcoCustomIC.n51xx.startEnable)
             {
-               in = input.ports[0].current.byte;
                if (toggle & in & 0x04)
                {
                   if (1 <= namcoCustomIC.n51xx.credits) 
@@ -824,19 +791,17 @@ static UINT8 namco53xxRead(UINT8 offset, UINT8 dummyDta)
 static UINT8 namcoCustomICsReadDta(UINT16 offset)
 {
    UINT8 retVal = 0xff;
-   UINT8 rds = 0;
    
-   struct Namco_Custom_RW_Entry *tablePtr = machine.config->customRWTable;
-   if (NULL != tablePtr)
+   struct Namco_Custom_RW_Entry *customRdEntry = machine.config->customRWTable;
+   if (NULL != customRdEntry)
    {
-      while (NULL != tablePtr->customRWFunc)
+      while (NULL != customRdEntry->customRWFunc)
       {
-         if (namcoCustomIC.n06xx.customCommand == tablePtr->n06xxCmd)
+         if (namcoCustomIC.n06xx.customCommand == customRdEntry->n06xxCmd)
          {
-            retVal = tablePtr->customRWFunc((UINT8)(offset & 0xff), 0);
-            rds ++;
+            retVal = customRdEntry->customRWFunc((UINT8)(offset & 0xff), 0);
          }
-         tablePtr ++;
+         customRdEntry ++;
       }
    }
    
@@ -855,13 +820,13 @@ static UINT8 namco51xxWrite(UINT8 offset, UINT8 dta)
 {
    dta &= 0x07;
 
-   if (namcoCustomIC.n51xx.coinCreditDataCounter)
+   if (namcoCustomIC.n51xx.coinCreditDataCount)
    {
       namcoCustomIC.n51xx.coinCreditDataIndex ++;
          
-      if (namcoCustomIC.n51xx.coinCreditDataIndex >= namcoCustomIC.n51xx.coinCreditDataCounter)
+      if (namcoCustomIC.n51xx.coinCreditDataIndex >= namcoCustomIC.n51xx.coinCreditDataCount)
       {
-         namcoCustomIC.n51xx.coinCreditDataCounter = 0;
+         namcoCustomIC.n51xx.coinCreditDataCount = 0;
       }
       
       switch (namcoCustomIC.n51xx.coinCreditDataIndex)
@@ -906,14 +871,14 @@ static UINT8 namco51xxWrite(UINT8 offset, UINT8 dta)
             {
                case NAMCO_XEVIOUS:
                {
-                  namcoCustomIC.n51xx.coinCreditDataCounter = 6;
+                  namcoCustomIC.n51xx.coinCreditDataCount = 6;
                   namcoCustomIC.n51xx.remapJoystick = 1;
                }
                break;
                
                default:
                {
-                  namcoCustomIC.n51xx.coinCreditDataCounter = 4;
+                  namcoCustomIC.n51xx.coinCreditDataCount = 4;
                }
                break;
             }
@@ -935,7 +900,7 @@ static UINT8 namco51xxWrite(UINT8 offset, UINT8 dta)
          
          case 5:
             memset(&namcoCustomIC.n51xx, 0, sizeof(struct N51XX_Def));
-            namcoCustomIC.n51xx.lastCoin = input.ports[0].current.byte;
+            input.ports[0].previous.byte = input.ports[0].current.byte;
          break;
          
          default:
@@ -951,21 +916,39 @@ static INT32 n54xxCheckBuffer(UINT8 *n54xxBuffer, UINT32 bufferSize)
 {
    INT32 retVal = -1;
    
+   char bufCheck[32];
+   
    struct N54XX_Sample_Info_Def *sampleEntry = machine.config->n54xxSampleList;
    
    if (NULL != sampleEntry)
    {
-      while (0 >= sampleEntry->sampleNo)
+      while (0 <= sampleEntry->sampleNo)
       {
          if (0 == memcmp(n54xxBuffer, sampleEntry->sampleTrigger, bufferSize) )
          {
             retVal = sampleEntry->sampleNo;
          }
          
+         sprintf(bufCheck, "%d, %d %02x,%02x,%02x,%02x : %02x,%02x,%02x,%02x", 
+            retVal, 
+            sampleEntry->sampleNo, 
+            n54xxBuffer[0],
+            n54xxBuffer[1],
+            n54xxBuffer[2],
+            n54xxBuffer[3],
+            sampleEntry->sampleTrigger[0],
+            sampleEntry->sampleTrigger[1],
+            sampleEntry->sampleTrigger[2],
+            sampleEntry->sampleTrigger[3]
+         );
+         bprintf(PRINT_NORMAL, _T("%s\n"), bufCheck);
+         
          sampleEntry ++;
       }
+
+      bprintf(PRINT_NORMAL, _T("  %d (%d)\n"), retVal, sampleEntry->sampleNo);
    }
-   
+      
    return retVal;
 }
 
@@ -973,29 +956,10 @@ static UINT8 namco54xxWrite(UINT8 offset, UINT8 dta)
 {
 	if (namcoCustomIC.n54xx.fetch) 
    {
-		switch (namcoCustomIC.n54xx.fetchMode) 
-      {
-			case NAMCO54_WR_CFG3:
-				namcoCustomIC.n54xx.config3[NAMCO54XX_CFG3_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
-				break;
-            
-			case NAMCO54_WR_CFG2:
-				namcoCustomIC.n54xx.config2[NAMCO54XX_CFG2_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
-				break;
-
-			case NAMCO54_WR_CFG1:
-				namcoCustomIC.n54xx.config1[NAMCO54XX_CFG1_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
-				break;
-            
-         default:
-            if (NAMCO54XX_CFG1_SIZE <= namcoCustomIC.n54xx.fetch)
-            {
-               namcoCustomIC.n54xx.fetch = 1;
-            }
-            namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG1;
-				namcoCustomIC.n54xx.config1[NAMCO54XX_CFG1_SIZE - (namcoCustomIC.n54xx.fetch --)] = dta;
-            break;
-		}
+      if (NULL != namcoCustomIC.n54xx.fetchDestination)
+         *(namcoCustomIC.n54xx.fetchDestination ++) = dta;
+         
+      namcoCustomIC.n54xx.fetch --;
 	} 
    else 
    {
@@ -1021,14 +985,14 @@ static UINT8 namco54xxWrite(UINT8 offset, UINT8 dta)
 			case 0x30:
          {
 				namcoCustomIC.n54xx.fetch = NAMCO54XX_CFG1_SIZE;
-				namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG1;
+				namcoCustomIC.n54xx.fetchDestination = namcoCustomIC.n54xx.config1;
          }
          break;
 
 			case 0x40:
 			{
             namcoCustomIC.n54xx.fetch = NAMCO54XX_CFG2_SIZE;
-				namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG2;
+				namcoCustomIC.n54xx.fetchDestination = namcoCustomIC.n54xx.config2;
          }
          break;
 
@@ -1042,7 +1006,7 @@ static UINT8 namco54xxWrite(UINT8 offset, UINT8 dta)
 			case 0x60:
          {
 				namcoCustomIC.n54xx.fetch = NAMCO54XX_CFG3_SIZE;
-				namcoCustomIC.n54xx.fetchMode = NAMCO54_WR_CFG3;
+				namcoCustomIC.n54xx.fetchDestination = namcoCustomIC.n54xx.config3;
          }
          break;
 
@@ -1080,19 +1044,18 @@ static void namcoCustomICsWriteDta(UINT16 offset, UINT8 dta)
    namcoCustomIC.n06xx.buffer[offset & 0x0f] = dta;
    
    UINT8 retVal = 0x0;
-   struct Namco_Custom_RW_Entry *tablePtr = machine.config->customRWTable;
-   if (NULL != tablePtr)
+   struct Namco_Custom_RW_Entry *customWrEntry = machine.config->customRWTable;
+   if (NULL != customWrEntry)
    {
-      while (NULL != tablePtr->customRWFunc)
+      while (NULL != customWrEntry->customRWFunc)
       {
-         if (namcoCustomIC.n06xx.customCommand == tablePtr->n06xxCmd)
+         if (namcoCustomIC.n06xx.customCommand == customWrEntry->n06xxCmd)
          {
-            retVal += tablePtr->customRWFunc((UINT8)(offset & 0xff), dta);
+            retVal += customWrEntry->customRWFunc((UINT8)(offset & 0xff), dta);
          }
-         tablePtr ++;
+         customWrEntry ++;
       }
    }
-   
 }
 
 static UINT8 namcoCustomICsReadCmd(UINT16 offset)
@@ -1263,7 +1226,7 @@ static void namcoRenderSprites(void)
             for (INT32 x = 0; x <= spriteCols; x ++) 
             {
                INT32 code = spriteParams.sprite;
-               if (spriteRows | spriteCols)
+               if (spriteRows || spriteCols)
                   code += ((y * 2 + x) ^ (spriteParams.flags & orient));
                INT32 xPos = spriteParams.xStart + spriteParams.xStep * x;
                INT32 yPos = spriteParams.yStart + spriteParams.yStep * y;
@@ -1389,20 +1352,22 @@ static INT32 DrvDraw(void)
 {
    BurnTransferClear();
 
-   for (UINT32 drawLayer = 0; drawLayer < machine.config->drawTableSize; drawLayer ++)
+   if (NULL != machine.config->drawLayerTable)
    {
-      machine.config->drawLayerTable[drawLayer]();
+      for (UINT32 drawLayer = 0; drawLayer < machine.config->drawTableSize; drawLayer ++)
+      {
+         machine.config->drawLayerTable[drawLayer]();
+      }
+      
+      BurnTransferCopy(graphics.palette);
+
+      return 0;
    }
-   
-   BurnTransferCopy(graphics.palette);
-
-	return 0;
+   return 1;
 }
-
 
 static INT32 DrvFrame(void)
 {
-	
 	if (input.reset)
    {
       machine.config->reset();
@@ -1454,8 +1419,8 @@ static INT32 DrvFrame(void)
 			nCurrentCPU = CPU3;
 			ZetOpen(nCurrentCPU);
 			ZetRun(nCyclesTotal[nCurrentCPU] / nInterleave);
-			if (((i == ((64 + 000) * nInterleave) / 272) ||
-				 (i == ((64 + 128) * nInterleave) / 272)) && cpus.CPU[CPU3].fireIRQ) 
+			if ( ((i == ((64 + 000) * nInterleave) / 272) ||
+				   (i == ((64 + 128) * nInterleave) / 272))   && cpus.CPU[CPU3].fireIRQ) 
          {
 				ZetNmi();
 			}
@@ -1543,7 +1508,7 @@ static INT32 DrvScan(INT32 nAction, INT32 *pnMin)
 		SCAN_VAR(input.ports);
 
 		SCAN_VAR(namcoCustomIC.n54xx.fetch);
-		SCAN_VAR(namcoCustomIC.n54xx.fetchMode);
+		SCAN_VAR(namcoCustomIC.n54xx.fetchDestination);
 		SCAN_VAR(namcoCustomIC.n54xx.config1);
 		SCAN_VAR(namcoCustomIC.n54xx.config2);
 		SCAN_VAR(namcoCustomIC.n54xx.config3);
@@ -1569,10 +1534,10 @@ static struct BurnInputInfo GalagaInputList[] =
 	{"Right (Cocktail)"  , BIT_DIGITAL  , &input.ports[2].current.bits.bit[1], "p2 right"  },
 	{"Fire 1 (Cocktail)" , BIT_DIGITAL  , &input.ports[2].current.bits.bit[4], "p2 fire 1" },
 
-	{"Reset"             , BIT_DIGITAL  , &input.reset,                    "reset"     },
+	{"Reset"             , BIT_DIGITAL  , &input.reset,                        "reset"     },
 	{"Service"           , BIT_DIGITAL  , &input.ports[0].current.bits.bit[6], "service"   },
-	{"Dip 1"             , BIT_DIPSWITCH, &input.dip[0].byte,              "dip"       },
-	{"Dip 2"             , BIT_DIPSWITCH, &input.dip[1].byte,              "dip"       },
+	{"Dip 1"             , BIT_DIPSWITCH, &input.dip[0].byte,                  "dip"       },
+	{"Dip 2"             , BIT_DIPSWITCH, &input.dip[1].byte,                  "dip"       },
 };
 
 STDINPUTINFO(Galaga)
@@ -2057,7 +2022,7 @@ static struct CPU_Wr_Table galagaWriteTable[] =
    { 0x0000, 0x0000, NULL                    }, // End of Table marker
 };
 
-static struct Memory_Layout_Def galagaMemTable[] = 
+static struct Memory_Map_Def galagaMemTable[] = 
 {
 	{  &memory.Z80.rom1,           0x04000,                               MEM_PGM        },
 	{  &memory.Z80.rom2,           0x04000,                               MEM_PGM        },
@@ -2078,7 +2043,7 @@ static struct Memory_Layout_Def galagaMemTable[] =
 	{  (UINT8 **)&graphics.palette, GALAGA_PALETTE_SIZE * sizeof(UINT32),  MEM_DATA32     },
 };
 
-#define GALAGA_MEM_TBL_SIZE      (sizeof(galagaMemTable) / sizeof(struct Memory_Layout_Def))
+#define GALAGA_MEM_TBL_SIZE      (sizeof(galagaMemTable) / sizeof(struct Memory_Map_Def))
 
 static struct ROM_Load_Def galagaROMTable[] =
 {
@@ -2149,21 +2114,21 @@ static struct N54XX_Sample_Info_Def galagaN54xxSampleList[] =
 
 static struct Machine_Config_Def galagaMachineConfig =
 {
-   .cpus                = galagaCPU,
-   .wrAddrList          = galagaWriteTable,
-   .rdAddrList          = galagaReadTable,
-   .memLayoutTable      = galagaMemTable,
-   .memLayoutSize       = GALAGA_MEM_TBL_SIZE,
-   .romLayoutTable      = galagaROMTable,
-   .romLayoutSize       = GALAGA_ROM_TBL_SIZE,
-   .tempRomSize         = 0x2000,
-   .tilemapsConfig      = galagaTilemapConfig,
-   .drawLayerTable      = galagaDrawFuncs,
-   .drawTableSize       = GALAGA_DRAW_TBL_SIZE,
-   .getSpriteParams     = galagaGetSpriteParams,
-   .reset               = galagaReset,
-   .customRWTable       = galagaCustomICRW,
-   .n54xxSampleList     = galagaN54xxSampleList
+   .cpus                   = galagaCPU,
+   .wrAddrList             = galagaWriteTable,
+   .rdAddrList             = galagaReadTable,
+   .memMapTable            = galagaMemTable,
+   .sizeOfMemMapTable      = GALAGA_MEM_TBL_SIZE,
+   .romLayoutTable         = galagaROMTable,
+   .sizeOfRomLayoutTable   = GALAGA_ROM_TBL_SIZE,
+   .tempRomSize            = 0x2000,
+   .tilemapsConfig         = galagaTilemapConfig,
+   .drawLayerTable         = galagaDrawFuncs,
+   .drawTableSize          = GALAGA_DRAW_TBL_SIZE,
+   .getSpriteParams        = galagaGetSpriteParams,
+   .reset                  = galagaReset,
+   .customRWTable          = galagaCustomICRW,
+   .n54xxSampleList        = galagaN54xxSampleList
 };
 
 static INT32 galagaInit(void)
@@ -2178,21 +2143,21 @@ static INT32 galagaInit(void)
 
 static struct Machine_Config_Def gallagMachineConfig =
 {
-   .cpus                = galagaCPU,
-   .wrAddrList          = galagaWriteTable,
-   .rdAddrList          = galagaReadTable,
-   .memLayoutTable      = galagaMemTable,
-   .memLayoutSize       = GALAGA_MEM_TBL_SIZE,
-   .romLayoutTable      = gallagROMTable,
-   .romLayoutSize       = GALLAG_ROM_TBL_SIZE,
-   .tempRomSize         = 0x2000,
-   .tilemapsConfig      = galagaTilemapConfig,
-   .drawLayerTable      = galagaDrawFuncs,
-   .drawTableSize       = GALAGA_DRAW_TBL_SIZE,
-   .getSpriteParams     = galagaGetSpriteParams,
-   .reset               = galagaReset,
-   .customRWTable       = galagaCustomICRW,
-   .n54xxSampleList     = galagaN54xxSampleList
+   .cpus                   = galagaCPU,
+   .wrAddrList             = galagaWriteTable,
+   .rdAddrList             = galagaReadTable,
+   .memMapTable            = galagaMemTable,
+   .sizeOfMemMapTable      = GALAGA_MEM_TBL_SIZE,
+   .romLayoutTable         = gallagROMTable,
+   .sizeOfRomLayoutTable   = GALLAG_ROM_TBL_SIZE,
+   .tempRomSize            = 0x2000,
+   .tilemapsConfig         = galagaTilemapConfig,
+   .drawLayerTable         = galagaDrawFuncs,
+   .drawTableSize          = GALAGA_DRAW_TBL_SIZE,
+   .getSpriteParams        = galagaGetSpriteParams,
+   .reset                  = galagaReset,
+   .customRWTable          = galagaCustomICRW,
+   .n54xxSampleList        = galagaN54xxSampleList
 };
 
 static INT32 gallagInit(void)
@@ -3100,7 +3065,7 @@ static struct CPU_Wr_Table digdugWriteTable[] =
 
 };
 
-static struct Memory_Layout_Def digdugMemTable[] = 
+static struct Memory_Map_Def digdugMemTable[] = 
 {
 	{  &memory.Z80.rom1,             0x04000,                               MEM_PGM        },
 	{  &memory.Z80.rom2,             0x04000,                               MEM_PGM        },
@@ -3122,7 +3087,7 @@ static struct Memory_Layout_Def digdugMemTable[] =
 	{  (UINT8 **)&graphics.palette,  DIGDUG_PALETTE_SIZE * sizeof(UINT32),  MEM_DATA32     },
 };
 
-#define DIGDUG_MEM_TBL_SIZE      (sizeof(digdugMemTable) / sizeof(struct Memory_Layout_Def))
+#define DIGDUG_MEM_TBL_SIZE      (sizeof(digdugMemTable) / sizeof(struct Memory_Map_Def))
 
 static struct ROM_Load_Def digdugROMTable[] =
 {
@@ -3172,21 +3137,21 @@ static struct Namco_Custom_RW_Entry digdugCustomRWTable[] =
 
 static struct Machine_Config_Def digdugMachineConfig =
 {
-   .cpus                = digdugCPU,
-   .wrAddrList          = digdugWriteTable,
-   .rdAddrList          = digdugReadTable,
-   .memLayoutTable      = digdugMemTable,
-   .memLayoutSize       = DIGDUG_MEM_TBL_SIZE,
-   .romLayoutTable      = digdugROMTable,
-   .romLayoutSize       = DIGDUG_ROM_TBL_SIZE,
-   .tempRomSize         = 0x4000,
-   .tilemapsConfig      = digdugTilemapConfig,
-   .drawLayerTable      = digdugDrawFuncs,
-   .drawTableSize       = DIGDUG_DRAW_TBL_SIZE,
-   .getSpriteParams     = digdugGetSpriteParams,
-   .reset               = digdugReset,
-   .customRWTable       = digdugCustomRWTable,
-   .n54xxSampleList     = NULL
+   .cpus                   = digdugCPU,
+   .wrAddrList             = digdugWriteTable,
+   .rdAddrList             = digdugReadTable,
+   .memMapTable            = digdugMemTable,
+   .sizeOfMemMapTable      = DIGDUG_MEM_TBL_SIZE,
+   .romLayoutTable         = digdugROMTable,
+   .sizeOfRomLayoutTable   = DIGDUG_ROM_TBL_SIZE,
+   .tempRomSize            = 0x4000,
+   .tilemapsConfig         = digdugTilemapConfig,
+   .drawLayerTable         = digdugDrawFuncs,
+   .drawTableSize          = DIGDUG_DRAW_TBL_SIZE,
+   .getSpriteParams        = digdugGetSpriteParams,
+   .reset                  = digdugReset,
+   .customRWTable          = digdugCustomRWTable,
+   .n54xxSampleList        = NULL
 };
 
 static INT32 digdugInit(void)
@@ -3698,10 +3663,10 @@ STD_ROM_FN(Xevious)
 
 static struct BurnSampleInfo XeviousSampleDesc[] = {
 #if !defined (ROM_VERIFY)
-	{ "explo1.wav", SAMPLE_NOLOOP },	// ground target explosion 
-	{ "explo2.wav", SAMPLE_NOLOOP },	// Solvalou explosion 
-	{ "explo3.wav", SAMPLE_NOLOOP },	// credit 
-	{ "explo4.wav", SAMPLE_NOLOOP },	// Garu Zakato explosion 
+	{ "explo1", SAMPLE_NOLOOP },	// ground target explosion 
+	{ "explo2", SAMPLE_NOLOOP },	// Solvalou explosion 
+	{ "explo3", SAMPLE_NOLOOP },	// credit 
+	{ "explo4", SAMPLE_NOLOOP },	// Garu Zakato explosion 
 #endif
    { "",           0 }
 };
@@ -3898,7 +3863,7 @@ static struct CPU_Wr_Table xeviousZ80WriteTable[] =
    { 0x0000, 0x0000, NULL                       },
 };
 
-static struct Memory_Layout_Def xeviousMemTable[] = 
+static struct Memory_Map_Def xeviousMemTable[] = 
 {
 	{  &memory.Z80.rom1,           0x04000,                           MEM_PGM  },
 	{  &memory.Z80.rom2,           0x04000,                           MEM_PGM  },
@@ -3923,7 +3888,7 @@ static struct Memory_Layout_Def xeviousMemTable[] =
 	{  (UINT8 **)&graphics.palette, XEVIOUS_PALETTE_MEM_SIZE_IN_BYTES,MEM_DATA32},
 };
 	
-#define XEVIOUS_MEM_TBL_SIZE      (sizeof(xeviousMemTable) / sizeof(struct Memory_Layout_Def))
+#define XEVIOUS_MEM_TBL_SIZE      (sizeof(xeviousMemTable) / sizeof(struct Memory_Map_Def))
 
 static struct ROM_Load_Def xeviousROMTable[] =
 {
@@ -3985,30 +3950,30 @@ static struct Namco_Custom_RW_Entry xeviousCustomRWTable[] =
 
 static struct N54XX_Sample_Info_Def xeviousN54xxSampleList[] = 
 {
-   {  0,    "\x40\x00\x02\xdf"   },
-   {  1,    "\x10\x00\x80\xff"   },
-   {  2,    "\x80\x80\x01\xff"   },
-   {  3,    "\x30\x30\x03\xdf"   },
+   {  0,    "\x40\x40\x01\xff"   }, // ground target explosion
+   {  1,    "\x40\x00\x02\xdf"   }, // Solvalou explosion 
+   {  2,    "\x10\x00\x80\xff"   },	// credit
+   {  3,    "\x30\x30\x03\xdf"   },	// Garu Zakato explosion 
    {  -1,   ""                   }
 };
 
 static struct Machine_Config_Def xeviousMachineConfig =
 {
-   .cpus                = xeviousCPU,
-   .wrAddrList          = xeviousZ80WriteTable,
-   .rdAddrList          = xeviousZ80ReadTable,
-   .memLayoutTable      = xeviousMemTable,
-   .memLayoutSize       = XEVIOUS_MEM_TBL_SIZE,
-   .romLayoutTable      = xeviousROMTable,
-   .romLayoutSize       = XEVIOUS_ROM_TBL_SIZE,
-   .tempRomSize         = 0x8000,
-   .tilemapsConfig      = xeviousTilemapConfig,
-   .drawLayerTable      = xeviousDrawFuncs,
-   .drawTableSize       = XEVIOUS_DRAW_TBL_SIZE,
-   .getSpriteParams     = xeviousGetSpriteParams,
-   .reset               = DrvDoReset,
-   .customRWTable       = xeviousCustomRWTable,
-   .n54xxSampleList     = xeviousN54xxSampleList
+   .cpus                   = xeviousCPU,
+   .wrAddrList             = xeviousZ80WriteTable,
+   .rdAddrList             = xeviousZ80ReadTable,
+   .memMapTable            = xeviousMemTable,
+   .sizeOfMemMapTable      = XEVIOUS_MEM_TBL_SIZE,
+   .romLayoutTable         = xeviousROMTable,
+   .sizeOfRomLayoutTable   = XEVIOUS_ROM_TBL_SIZE,
+   .tempRomSize            = 0x8000,
+   .tilemapsConfig         = xeviousTilemapConfig,
+   .drawLayerTable         = xeviousDrawFuncs,
+   .drawTableSize          = XEVIOUS_DRAW_TBL_SIZE,
+   .getSpriteParams        = xeviousGetSpriteParams,
+   .reset                  = DrvDoReset,
+   .customRWTable          = xeviousCustomRWTable,
+   .n54xxSampleList        = xeviousN54xxSampleList
 };
 
 static INT32 xeviousInit(void)
@@ -4316,25 +4281,25 @@ static void xevious_vh_latch_w(UINT16 offset, UINT8 dta)
       case 0:
       {
          // set bg tilemap x
-         GenericTilemapSetScrollX(0, dta16+20);
+         GenericTilemapSetScrollX(0, dta16 + 20);
          break;
       }
       case 1:
       {
          // set fg tilemap x
-         GenericTilemapSetScrollX(1, dta16+32);
+         GenericTilemapSetScrollX(1, dta16 + 32);
          break;
       }
       case 2:
       {
          // set bg tilemap y
-         GenericTilemapSetScrollY(0, dta16+16);
+         GenericTilemapSetScrollY(0, dta16 + 16);
          break;
       }
       case 3:
       {
          // set fg tilemap y
-         GenericTilemapSetScrollY(1, dta16+18);
+         GenericTilemapSetScrollY(1, dta16 + 18);
          break;
       }
       case 7:
@@ -4494,7 +4459,7 @@ struct BurnDriver BurnDrvXevious =
 	/* filename of zip without extension = */    "xevious",
    /* filename of parent, no extension = */     NULL, 
    /* filename of board ROMs = */               NULL, 
-   /* filename of samples ZIP = */              NULL, 
+   /* filename of samples ZIP = */              "xevious", 
    /* date = */                                 "1982",
    /* FullName = */                             "Xevious (Namco)\0",
    /* Comment = */                              NULL, 
