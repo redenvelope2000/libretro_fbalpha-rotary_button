@@ -26,7 +26,8 @@ MIPS3_X64_DYNAREC_DIR	:= $(FBA_CPU_DIR)/mips3/x64
 TMS34010_DIR			:= $(FBA_CPU_DIR)/tms34010
 ADSP2100_DIR			:= $(FBA_CPU_DIR)/adsp2100
 
-BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
+BURN_BLACKLIST := \
+	$(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_CPU_DIR)/arm7/arm7core.c \
 	$(FBA_CPU_DIR)/adsp2100/2100ops.c \
 	$(FBA_CPU_DIR)/hd6309/6309tbl.c \
@@ -43,9 +44,7 @@ BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_CPU_DIR)/sh2/mksh2-x86.cpp \
 	$(FBA_CPU_DIR)/m68k/m68kmake.c \
 	$(FBA_CPU_DIR)/m68k/m68kfpu.c \
-	$(FBA_BURNER_DIR)/wave_writer.cpp \
 	$(FBA_CPU_DIR)/m68k/m68kdasm.c \
-	$(FBA_LIBRETRO_DIR)/menu.cpp \
 	$(FBA_CPU_DIR)/sh2/mksh2.cpp \
 	$(FBA_BURNER_DIR)/sshot.cpp \
 	$(FBA_BURNER_DIR)/conc.cpp \
@@ -55,6 +54,7 @@ BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_BURNER_DIR)/state.cpp \
 	$(FBA_BURNER_DIR)/gami.cpp \
 	$(FBA_BURNER_DIR)/gamc.cpp \
+	$(FBA_BURNER_DIR)/wave_writer.cpp \
 	$(FBA_CPU_DIR)/h6280/tblh6280.c \
 	$(FBA_CPU_DIR)/m6502/t65sc02.c \
 	$(FBA_CPU_DIR)/m6502/t65c02.c \
@@ -93,8 +93,7 @@ BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_CPU_DIR)/z180/z180op.c \
 	$(FBA_CPU_DIR)/z180/z180ed.c \
 	$(FBA_CPU_DIR)/z180/z180dd.c \
-	$(FBA_CPU_DIR)/z180/z180cb.c \
-	$(ATARI_DIR)/WHATSNEW.txt.cpp
+	$(FBA_CPU_DIR)/z180/z180cb.c
 
 ifeq ($(AUTOGEN_DATS), 0)
 	BURN_BLACKLIST += $(FBA_BURNER_DIR)/dat.cpp
