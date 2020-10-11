@@ -437,8 +437,8 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 # Windows
 else
 	TARGET := $(TARGET_NAME)_libretro.dll
-	CC = gcc
-	CXX = g++
+	CC ?= gcc
+	CXX ?= g++
 	SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(VERSION_SCRIPT)
 	LDFLAGS += -static-libgcc -static-libstdc++
 	ENDIANNESS_DEFINES := -DLSB_FIRST
@@ -652,13 +652,11 @@ src/cpu/mips3/x64/mips3_x64.o: src/cpu/mips3/x64/mips3_x64.cpp
 	$(CC) $(CFLAGS) $(INCFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJS)
-	@echo "** BUILDING $(TARGET) FOR PLATFORM $(platform) **"
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJS)
 else
 	$(LD) $(LINKOUT)$@ $(SHARED) $^ $(LDFLAGS) $(LIBS)
 endif
-	@echo "** BUILD SUCCESSFUL! **"
 
 clean-objs:
 	rm -f $(OBJS)
