@@ -1,6 +1,6 @@
 .core-defs:
   variables:
-    JNI_PATH: projectfiles/libretro-android
+    JNI_PATH: .
     CORENAME: fbalpha
 
 include:
