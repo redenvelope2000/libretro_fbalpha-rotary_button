@@ -447,6 +447,10 @@ endif
 CC_SYSTEM = gcc
 CXX_SYSTEM = g++
 
+ifeq ($(STATIC_LINKING), 1)
+INCLUDE_7Z_SUPPORT = 0
+endif
+
 include makefile.libretro_common
 
 FBA_CXXOBJ := $(SOURCES_CXX:.cpp=.o)
