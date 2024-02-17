@@ -15,6 +15,7 @@ static UINT8 DrvInputPort2[8]       = {0, 0, 0, 0, 0, 0, 0, 0};
 static UINT8 DrvDip[2]              = {0, 0};
 static UINT8 DrvInput[3]            = {0x00, 0x00, 0x00};
 static UINT8 DrvReset               = 0;
+static UINT16 Dec0InpAimStickX[2], Dec0InpAimStickY[2];
 
 static UINT8 *Mem                   = NULL;
 static UINT8 *MemEnd                = NULL;
@@ -108,6 +109,8 @@ static INT32 Dec0Game = 0;
 #define DEC0_GAME_HBARREL	2
 #define DEC0_GAME_BIRDTRY	3
 #define DEC1_GAME_MIDRES    4
+
+#define A(a, b, c, d) { a, b, (UINT8*)(c), d }
 
 static struct BurnInputInfo Dec0InputList[] =
 {
@@ -203,6 +206,11 @@ static struct BurnInputInfo HbarrelInputList[] =
 	{"Service"           , BIT_DIGITAL  , DrvInputPort2 + 6, "service"   },
 	{"Dip 1"             , BIT_DIPSWITCH, DrvDip + 0       , "dip"       },
 	{"Dip 2"             , BIT_DIPSWITCH, DrvDip + 1       , "dip"       },
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickY[1],  "p2 aim-stick Y-axis"),
 };
 
 STDINPUTINFO(Hbarrel)
@@ -267,6 +275,11 @@ static struct BurnInputInfo MidresInputList[] =
 	{"Service"           , BIT_DIGITAL  , DrvInputPort2 + 2, "service"   },
 	{"Dip 1"             , BIT_DIPSWITCH, DrvDip + 0       , "dip"       },
 	{"Dip 2"             , BIT_DIPSWITCH, DrvDip + 1       , "dip"       },
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &Dec0InpAimStickY[1],  "p2 aim-stick Y-axis"),
 };
 
 STDINPUTINFO(Midres)
@@ -2206,6 +2219,7 @@ static void RotateReset() {
 		nRotateTarget[playernum] = -1;
 		nRotateTime[playernum] = 0;
 		nRotateHoldInput[0] = nRotateHoldInput[1] = 0;
+		Dec0InpAimStickX[playernum] = Dec0InpAimStickY[playernum] = 32767;
 	}
 }
 
@@ -2281,6 +2295,7 @@ static UINT8 rotate_gunpos_multiplier = 1;
 // game     p1           p2           clockwise value in memory  multiplier
 // hbarrell 0xff8066     0xff80aa     00 04 08 0c 10 14 18 1c    4
 // midres   0x1021bc     0x102238     SAME
+// midresj  0x1021be     0x10223a
 
 static void RotateSetGunPosRAM(UINT8 *p1, UINT8 *p2, UINT8 multiplier) {
 	rotate_gunpos[0] = p1;
@@ -2340,6 +2355,8 @@ static void RotateDoTick() {
 	}
 }
 
+#include "aimstick.h"
+
 static void SuperJoy2Rotate() {
 	for (INT32 i = 0; i < 2; i++) { // p1 = 0, p2 = 1
 		if (DrvFakeInput[4 + i]) { //  rotate-button had been pressed
@@ -2354,6 +2371,15 @@ static void SuperJoy2Rotate() {
 			// This feature is for Midnight Resistance, if you are crawling on the
 			// ground and need to rotate your gun WITHOUT getting up.
 			nRotateHoldInput[i] = DrvInput[i];
+		}
+
+		// aim-stick
+		int jk_x = 32767 - Dec0InpAimStickX[i];
+		int jk_y = 32767 - Dec0InpAimStickY[i];
+		int dis = jk_x*jk_x + jk_y*jk_y;
+		int steps = 8; // this is fixed to 8.
+		if (dis > DEAD_ZONE_AIM_STICK*DEAD_ZONE_AIM_STICK) {
+			nRotateTarget[i] = rotate_gunpos_multiplier * aim_angle (jk_x, jk_y, steps);
 		}
 	}
 
@@ -4612,7 +4638,11 @@ static INT32 MidresInit()
 	DrvCharPalOffset = 256;
 	DrvSpritePalOffset = 0;
 
-	RotateSetGunPosRAM(Drv68KRam + (0x21bc+1), Drv68KRam + (0x2238+1), 4);
+	if (strstr(BurnDrvGetTextA(DRV_NAME), "midresj")) {
+		RotateSetGunPosRAM(Drv68KRam + (0x21be + 1), Drv68KRam + (0x223a + 1), 4);
+	} else {
+		RotateSetGunPosRAM(Drv68KRam + (0x21bc + 1), Drv68KRam + (0x2238 + 1), 4);
+	}
 	game_rotates = 1;
 
 	Dec0Game = DEC1_GAME_MIDRES;
