@@ -12,9 +12,9 @@ This is specially created for supporting rotary button games -
 
 Capcom (d_cps1) -
 
-Forgotten Worlds
+	Forgotten Worlds (done)
 
-Lost Worlds
+	Lost Worlds (done)
 
 
 SNK (d_snk) -
@@ -44,16 +44,16 @@ Time Soldiers
 
 Data East (d_dec0) -
 
-Midnight Resistance
+	Midnight Resistance (done)
 
-Heavy Barrel
+	Heavy Barrel (done)
 
 
 Seta-
 
-Caliber 50
+	Caliber 50 (done)
 
-Downtown
+	Downtown (done)
 
 
 Konami (d_jackal) -
