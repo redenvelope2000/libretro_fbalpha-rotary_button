@@ -252,6 +252,7 @@ CPSINPEX
 extern UINT16 CpsInp055, CpsInp05d;
 extern UINT16 CpsInpPaddle1, CpsInpPaddle2;
 extern UINT8 CpsDigUD[4];
+extern UINT16 CpsInpAimStickX[2], CpsInpAimStickY[2];
 
 extern INT32 PangEEP;
 extern INT32 Forgottn;

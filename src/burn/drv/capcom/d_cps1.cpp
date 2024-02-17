@@ -332,9 +332,11 @@ static struct BurnInputInfo ForgottnInputList[] =
 	{"P1 Left"          , BIT_DIGITAL,    CpsInp001+1, "p1 left"  },
 	{"P1 Right"         , BIT_DIGITAL,    CpsInp001+0, "p1 right" },
 	{"P1 Attack"        , BIT_DIGITAL,    CpsInp001+4, "p1 fire 1"},
-	A("P1 Turn (analog)", BIT_ANALOG_REL, &CpsInp055,  "p1 z-axis"),
+	//A("P1 Turn (analog)", BIT_ANALOG_REL, &CpsInp055,  "p1 z-axis"),
 	{"P1 Turn - (digital)", BIT_DIGITAL,  CpsDigUD+0,  "p1 fire 2"},
 	{"P1 Turn + (digital)", BIT_DIGITAL,  CpsDigUD+1,  "p1 fire 3"},
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &CpsInpAimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &CpsInpAimStickY[0],  "p1 aim-stick Y-axis"),
 
 	{"P2 Coin"          , BIT_DIGITAL,    CpsInp018+1, "p2 coin"  },
 	{"P2 Start"         , BIT_DIGITAL,    CpsInp018+5, "p2 start" },
@@ -346,6 +348,8 @@ static struct BurnInputInfo ForgottnInputList[] =
 	A("P2 Turn (analog)", BIT_ANALOG_REL, &CpsInp05d,  "p2 z-axis"),
 	{"P2 Turn - (digital)", BIT_DIGITAL,  CpsDigUD+2,  "p2 fire 2"},
 	{"P2 Turn + (digital)", BIT_DIGITAL,  CpsDigUD+3,  "p2 fire 3"},
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &CpsInpAimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &CpsInpAimStickY[1],  "p2 aim-stick Y-axis"),
 
 	{"Reset"            , BIT_DIGITAL,    &CpsReset,   "reset"    },
 	{"Service"          , BIT_DIGITAL,    CpsInp018+2, "service"  },
@@ -15332,6 +15336,19 @@ static INT32 ForgottnNewerInit()
 	
 	CpsLoadStarsForgottnAlt(CpsStar, 18);
 	
+	// patch 1: mitigate notice
+	//[0000116A] 303C0809         move.w  #$806, D0
+	//[0000116E] 4EB840CE         jsr     $40ce.RequestBGUpdate
+	//[00001172] 7202             moveq   #$4, D1
+	//[00001174] 303C0050         move.w  #$50, D0
+	//[00001178] 4EB80820         jsr     $820.NextFrame
+	//[0000117C] 51C9FFF6         dbra    D1, 1174
+	SekWriteByteROM(0x116d, 1);
+	SekWriteByteROM(0x1177, 1);
+	// patch 2: make megacrash attack easier
+	//[00008780] 117C00080049     move.b  #$8, ($49,A0)
+	SekWriteByteROM(0x8783, 0xc);
+
 	return nRet;
 }
 
@@ -15347,6 +15364,19 @@ static INT32 ForgottnInit()
 	
 	CpsLoadStars(CpsStar, 9);
 	
+	// patch 1: mitigate notice
+	//[0000116A] 303C0809         move.w  #$806, D0
+	//[0000116E] 4EB840CE         jsr     $40ce.RequestBGUpdate
+	//[00001172] 7202             moveq   #$4, D1
+	//[00001174] 303C0050         move.w  #$50, D0
+	//[00001178] 4EB80820         jsr     $820.NextFrame
+	//[0000117C] 51C9FFF6         dbra    D1, 1174
+	SekWriteByteROM(0x116d, 1);
+	SekWriteByteROM(0x1177, 1);
+	// patch 2: make megacrash attack easier
+	//[000087F2] 117C00080049     move.b  #$8, ($49,A0)
+	SekWriteByteROM(0x87f5, 0xc);
+   	
 	return nRet;
 }
 
@@ -15463,14 +15493,128 @@ static INT32 GhoulsInit()
 	Ghouls = 1;
 	AmendProgRomCallback = GhoulsCallback;
 
-	return DrvInit();
+	INT32 ret = DrvInit();
+	
+	// patch 1: clear clouds in 1-2: pc-engine port style
+	//*m68k_raw_mem (0xf4ba1)=0x00; *m68k_raw_mem (0xf4ba5)=0x00;
+	//*m68k_raw_mem (0xf4bc1)=0x00; *m68k_raw_mem (0xf4bc5)=0x00;
+	//*m68k_raw_mem (0xf4be1)=0x00; *m68k_raw_mem (0xf4be5)=0x00;
+	//*m68k_raw_mem (0xf4c01)=0x00; *m68k_raw_mem (0xf4c05)=0x00;
+	//
+	//00000100 0c79 0001 00ff         cmp.w   #$0001, $ff0708
+	//         0708
+	//00000108 6600 001a              bne     nofix
+	//
+	//0000010c 42b9 0091 0c80         clr.l   $910c80
+	//00000112 42b9 0091 0c84         clr.l   $910c84
+	//00000118 42b9 0091 0c88         clr.l   $910c88
+	//0000011e 42b9 0091 0c8c         clr.l   $910c8c
+	//                        nofix
+	//00000124 4e75                   rts
+	//
+	//[00054866] 6000F8D4         bra     5413c  -> jmp $100.w
+	//[00061BFA] 4BFA0006         lea     ($6,Pc), A5; ($61c02)  -> jmp $400.w
+	static UINT16 patch1[] = {
+	   0x0c79,0x0001,0x00ff
+	  ,0x0708
+	  ,0x6600,0x001a
+	  ,0x42b9,0x0091,0x0c80
+	  ,0x42b9,0x0091,0x0c84
+	  ,0x42b9,0x0091,0x0c88
+	  ,0x42b9,0x0091,0x0c8c
+	  ,0x4e75
+	};
+	int i;
+	for (i=0; i<sizeof(patch1)/sizeof(patch1[0]); i++) {
+		SekWriteWordROM (0x100 + i*2, patch1[i]);
+	}
+	SekWriteLongROM (0x54866, 0x4ef80100);
+	SekWriteLongROM (0x61bfa, 0x4EF80400);
+	
+	// patch 2: round 5 bg graphics fix.
+	SekWriteLongROM (0x000B97F0, 0x1c840013);
+	SekWriteLongROM (0x000B9520, 0x1c1c0010);
+	SekWriteLongROM (0x000B9560, 0x1c1d0010);
+	SekWriteLongROM (0x000B95A8, 0x1c1e0010);
+	SekWriteLongROM (0x000B95E8, 0x1c1f0010);
+	
+	SekWriteByteROM (0xb6cbc+3, 0x1a);
+	SekWriteByteROM (0xb6cfc+3, 0x1a);
+	SekWriteByteROM (0xb6d3c+3, 0x1a);
+	SekWriteByteROM (0xb6d84+3, 0x1a);
+	SekWriteByteROM (0xb6dc4+3, 0x1a);
+	SekWriteByteROM (0xb6e04+3, 0x1a);
+	
+	SekWriteLongROM (0xb65b4, 0x1cca0618); // still has problem.
+	SekWriteLongROM (0xb65f4, 0x1cc70618);
+	SekWriteLongROM (0xb6c34, 0x1cc60618);
+	SekWriteLongROM (0xb6c74, 0x1cc70618);
+	
+	return ret;
 }
 
 static INT32 DaimakaiInit()
 {
 	Ghouls = 1;
 	
-	return DrvInit();
+	INT32 ret = DrvInit();
+	
+	// patch 1: clear clouds in 1-2: pc-engine port style
+	//*m68k_raw_mem (0xf4ba1)=0x00; *m68k_raw_mem (0xf4ba5)=0x00;
+	//*m68k_raw_mem (0xf4bc1)=0x00; *m68k_raw_mem (0xf4bc5)=0x00;
+  //*m68k_raw_mem (0xf4be1)=0x00; *m68k_raw_mem (0xf4be5)=0x00;
+	//*m68k_raw_mem (0xf4c01)=0x00; *m68k_raw_mem (0xf4c05)=0x00;
+	//
+	//00000100 0c79 0001 00ff         cmp.w   #$0001, $ff0708
+	//         0708
+	//00000108 6600 001a              bne     nofix
+	//
+	//0000010c 42b9 0091 0c80         clr.l   $910c80
+	//00000112 42b9 0091 0c84         clr.l   $910c84
+	//00000118 42b9 0091 0c88         clr.l   $910c88
+	//0000011e 42b9 0091 0c8c         clr.l   $910c8c
+	//                        nofix
+	//00000124 4e75                   rts
+	//
+  //[0005488A] 6000F8D4         bra     54160  -> jmp $100.w
+	//[00061C1E] 4BFA0006         lea     ($6,Pc), A5; ($61c26)  -> jmp $400.w
+	static UINT16 patch1[] = {
+	   0x0c79,0x0001,0x00ff
+	  ,0x0708
+	  ,0x6600,0x001a
+	  ,0x42b9,0x0091,0x0c80
+	  ,0x42b9,0x0091,0x0c84
+	  ,0x42b9,0x0091,0x0c88
+	  ,0x42b9,0x0091,0x0c8c
+	  ,0x4e75
+	};
+	int i;
+	for (i=0; i<sizeof(patch1)/sizeof(patch1[0]); i++) {
+		SekWriteWordROM (0x100 + i*2, patch1[i]);
+	}
+	SekWriteLongROM (0x5488a, 0x4ef80100);
+	SekWriteLongROM (0x61c1e, 0x4EF80400);
+
+	// patch 2: round 5 bg graphics fix.
+	SekWriteLongROM (0x000B97F0, 0x1c840013);
+	SekWriteLongROM (0x000B9520, 0x1c1c0010);
+	SekWriteLongROM (0x000B9560, 0x1c1d0010);
+	SekWriteLongROM (0x000B95A8, 0x1c1e0010);
+	SekWriteLongROM (0x000B95E8, 0x1c1f0010);
+	
+	SekWriteByteROM (0xb6cbc+3, 0x1a);
+	SekWriteByteROM (0xb6cfc+3, 0x1a);
+	SekWriteByteROM (0xb6d3c+3, 0x1a);
+	SekWriteByteROM (0xb6d84+3, 0x1a);
+	SekWriteByteROM (0xb6dc4+3, 0x1a);
+	SekWriteByteROM (0xb6e04+3, 0x1a);
+	
+	SekWriteLongROM (0xb65b4, 0x1cca0618); // still has problem.
+	SekWriteLongROM (0xb65f4, 0x1cc70618);
+	SekWriteLongROM (0xb6c34, 0x1cc60618);
+	SekWriteLongROM (0xb6c74, 0x1cc70618);
+
+	return ret;
 }
 
 void __fastcall Daimakaib88WriteWord(UINT32 a, UINT16 d)

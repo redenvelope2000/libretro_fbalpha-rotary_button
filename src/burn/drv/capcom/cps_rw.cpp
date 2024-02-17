@@ -1,4 +1,8 @@
 #include "cps.h"
+#include <math.h>
+#include <stdarg.h>
+extern void dbg_printf(const char *str, ...);
+
 // CPS - Read/Write
 
 // Input bits
@@ -23,6 +27,7 @@ INT32 CpsPaddle1 = 0;
 INT32 CpsPaddle2 = 0;
 static INT32 nDial055, nDial05d;
 UINT8 fFakeDip = 0;
+UINT16 CpsInpAimStickX[2], CpsInpAimStickY[2];
 
 INT32 PangEEP = 0;
 INT32 Forgottn = 0;
@@ -263,7 +268,7 @@ static UINT8 CpsReadPort(const UINT32 ia)
 			d = (UINT8)~Inpc003;
 			return d;
 		}
-		
+
 		// Forgotten Worlds Dial
 		if (Forgottn) {
 			if (ia == 0x053) {
@@ -487,6 +492,7 @@ static INT32 InpBlank()
 
 	CpsInp055 = CpsInp05d = 0;
 	memset(CpsDigUD, 0, sizeof(CpsDigUD));
+	CpsInpAimStickX[0] = CpsInpAimStickY[0] = CpsInpAimStickX[1] = CpsInpAimStickY[1] = 32767;
 
 	return 0;
 }
@@ -514,6 +520,10 @@ inline static void StopOpposite(UINT8* pInput)
 	}
 }
 
+#include "aimstick.h"
+
+#define ABS(A) (A<0?-A:A)
+
 INT32 CpsRwGetInp()
 {
 	// Compile separate buttons into Inpxxx
@@ -533,19 +543,95 @@ INT32 CpsRwGetInp()
 	if (Forgottn) {
 		// Handle analog controls
 		if (fFakeDip & 0x80) {
-			if (CpsDigUD[0]) nDial055 += 4080; // p1
-			if (CpsDigUD[1]) nDial055 -= 4080;
-			if (CpsDigUD[2]) nDial05d += 4080; // p2
-			if (CpsDigUD[3]) nDial05d -= 4080;
+		  #define ROTATE_SPEED  4080*7/4;
+			if (CpsDigUD[0]) nDial055 += ROTATE_SPEED; // p1
+			if (CpsDigUD[1]) nDial055 -= ROTATE_SPEED;
+			if (CpsDigUD[2]) nDial05d += ROTATE_SPEED; // p2
+			if (CpsDigUD[3]) nDial05d -= ROTATE_SPEED;
 			nDial055 += (INT32)((INT16)CpsInp055) * 4;
 			nDial05d += (INT32)((INT16)CpsInp05d) * 4;
 		} else {
-			if (CpsDigUD[0]) nDial055 -= 4080; // p1
-			if (CpsDigUD[1]) nDial055 += 4080;
-			if (CpsDigUD[2]) nDial05d -= 4080; // p2
-			if (CpsDigUD[3]) nDial05d += 4080;
+			if (CpsDigUD[0]) nDial055 -= ROTATE_SPEED; // p1
+			if (CpsDigUD[1]) nDial055 += ROTATE_SPEED;
+			if (CpsDigUD[2]) nDial05d -= ROTATE_SPEED; // p2
+			if (CpsDigUD[3]) nDial05d += ROTATE_SPEED;
 			nDial055 -= (INT32)((INT16)CpsInp055) * 4;
 			nDial05d -= (INT32)((INT16)CpsInp05d) * 4;
+		}
+		
+		// compute the abs vector (CpsInpAimStickX,CpsInpAimStickY) to cc rotation value rot_val (000~7FF)
+		{
+			int jk_x = CpsInpAimStickX[0] - 32767;
+			int jk_y = CpsInpAimStickY[0] - 32767;
+			int dis = jk_x*jk_x + jk_y*jk_y;
+			static int prev_dis =0;
+			if (dis > DEAD_ZONE_AIM_STICK*DEAD_ZONE_AIM_STICK) {
+				// joystick vector
+				int rot_val = (0x200 + aim_angle (jk_x, jk_y, 0x800)) & 0x7ff;
+				// gun vector
+				int cur_gun_rot_val = SekReadWord (0xffb36a) & 0x7ff;
+				// sattelite vector
+				int cur_sat_rot_val = SekReadWord (0xffcf0a) & 0x7ff;
+				for (int i=1; i<10; i++) {
+				  cur_sat_rot_val += SekReadWord (0xff8dac + i*4); // adds all buffered inputs of the sat.
+				}
+				cur_sat_rot_val = (cur_sat_rot_val - 0x200) & 0x7ff;
+				bool sat_mode = SekReadWord (0xffb366) == 0; // use sat vec as ref if the fire button is not pressed.
+				int ref_rot_val = sat_mode ?cur_sat_rot_val :cur_gun_rot_val;
+				
+				int d1 = rot_val - ref_rot_val;
+				int d2 = d1<0 ?0x800+d1 :d1-0x800; // find the nearest distance of (prev, now) on the circle.
+				int dd = (ABS(d1) < ABS(d2)) ?d1 :d2;
+				double dr = prev_dis? ((float)(dis-prev_dis))/prev_dis*100.0 :0.0;
+				if (ABS(dr) < 10.0 || ABS(dd) > 0x200) { // only keep the data if the stick is not moven backward 10% in one single frame or the changed angle is>0x200.
+				  #define MAXIMUM_MOVEMENT1  0x40
+				  #define MAXIMUM_MOVEMENT2  0x66
+				  int maximium = sat_mode? MAXIMUM_MOVEMENT1:MAXIMUM_MOVEMENT2;
+    			nDial055 = dd;
+    			if (nDial055 > maximium) nDial055 = maximium;
+     			if (nDial055 < -maximium) nDial055 = -maximium;
+    			nDial055<<=8;
+    		}
+    		//dbg_printf ("%d,%d<%d,%d>=%03x ref=%03x", CpsInpAimStick1X, CpsInpAimStick1Y, jk_x, jk_y, rot_val, ref_rot_val);
+			  //dbg_printf ("<%d,%d>, r=%03x c=%03x disk=%d(%4.1f) dd=%d d=%x %c", jk_x, jk_y, rot_val, ref_rot_val, dis/1000, dr, dd, nDial055, d1<0?'-':'+');
+			  prev_dis = dis;
+			}
+		  //dbg_printf ("<%04x %04x>", Inp000, Inp001);
+		}
+		{
+			int jk_x = CpsInpAimStickX[1] - 32767;
+			int jk_y = CpsInpAimStickY[1] - 32767;
+			int dis = jk_x*jk_x + jk_y*jk_y;
+			static int prev_dis =0;
+			if (dis > DEAD_ZONE_AIM_STICK*DEAD_ZONE_AIM_STICK) {
+				// joystick vector
+				int rot_val = (0x200 + aim_angle (jk_x, jk_y, 0x800)) & 0x7ff;
+				// gun vector
+				int cur_gun_rot_val = SekReadWord (0xffb3ba) & 0x7ff;
+				// sattelite vector
+				int cur_sat_rot_val = SekReadWord (0xffcf5a) & 0x7ff;
+				for (int i=1; i<10; i++) {
+				  cur_sat_rot_val += SekReadWord (0xff8dd4 + i*4); // adds all buffered inputs of the sat.
+				}
+				cur_sat_rot_val = (cur_sat_rot_val - 0x200) & 0x7ff;
+				
+				bool sat_mode = SekReadWord (0xffb3b6) == 0; // use sat vec as ref if the fire button is not pressed.
+				int ref_rot_val = sat_mode ?cur_sat_rot_val :cur_gun_rot_val;
+				
+				int d1 = rot_val - ref_rot_val;
+				int d2 = d1<0 ?0x800+d1 :d1-0x800; // find the nearest distance of (prev, now) on the circle.
+				int dd = (ABS(d1) < ABS(d2)) ?d1 :d2;
+				double dr = prev_dis? ((float)(dis-prev_dis))/prev_dis*100.0 :0.0;
+				if (ABS(dr) < 10.0 || ABS(dd) > 0x200) { // only keep the data if the stick is not moven backward 10% in one single frame or the changed angle is>0x200.
+				  #define MAXIMUM_MOVEMENT1  0x40
+				  #define MAXIMUM_MOVEMENT2  0x66
+				  int maximium = sat_mode? MAXIMUM_MOVEMENT1:MAXIMUM_MOVEMENT2;
+    			nDial05d = dd;
+    			if (nDial05d > maximium) nDial05d = maximium;
+     			if (nDial05d < -maximium) nDial05d = -maximium;
+    			nDial05d<<=8;
+    		}
+			}
 		}
 	}
 	
