@@ -745,10 +745,16 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		(drvname && strcmp(drvname, "forgottn") == 0)
 	) {
 		if (strcmp("Turn (analog)", description) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description);
+		}
+		if (strcmp("Aim-stick X (analog)", description) == 0) {
 			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
 		}
+		if (strcmp("Aim-stick Y (analog)", description) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
+		}
 		if (strcmp("Attack", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
 		}
 		if (strcmp("Turn - (digital)", description) == 0) {
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
@@ -758,6 +764,29 @@ static INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, ch
 		}
 	}
 	
+	if ((parentrom && strcmp(parentrom, "calibr50") == 0) ||
+		(drvname && strcmp(drvname, "calibr50") == 0) ||
+		(parentrom && strcmp(parentrom, "downtown") == 0) ||
+		(drvname && strcmp(drvname, "downtown") == 0) ||
+		(parentrom && strcmp(parentrom, "midres") == 0) ||
+		(drvname && strcmp(drvname, "midres") == 0) ||
+		(parentrom && strcmp(parentrom, "hbarrel") == 0) ||
+		(drvname && strcmp(drvname, "hbarrel") == 0)
+	) {
+		if (strcmp("Aim-stick X (analog)", description) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
+		}
+		if (strcmp("Aim-stick Y (analog)", description) == 0) {
+			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
+		}
+		if (strcmp("Button 1", description) == 0 || strcmp("Fire 1", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
+		}		
+		if (strcmp("Button 2", description) == 0 || strcmp("Fire 2", description) == 0) {
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L2, description);
+		}
+	}
+		
 	// Pop 'n Bounce / Gapporin
 	if ((parentrom && strcmp(parentrom, "popbounc") == 0) ||
 		(drvname && strcmp(drvname, "popbounc") == 0)
@@ -1920,7 +1949,7 @@ void InputMake(void)
 					if (nJoy >  32767) {
 						nJoy =  32767;
 					}
-				} else {
+				} else if (pgi->nType == BIT_ANALOG_ABS) {
 					nJoy >>= 1;
 					nJoy += 0x8000;
 
