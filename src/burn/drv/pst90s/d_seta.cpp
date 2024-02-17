@@ -104,6 +104,7 @@ static UINT8 DrvJoy7[16];
 static UINT8 DrvDips[7];
 static UINT16 DrvInputs[7];
 static UINT8 DrvReset;
+static UINT16 SetaInpAimStickX[2], SetaInpAimStickY[2];
 
 // trackball stuff for Krazy Bowl & usclssic
 static INT32 trackball_mode = 0;
@@ -937,6 +938,11 @@ static struct BurnInputInfo DowntownInputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"		},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"		},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[1],  "p2 aim-stick Y-axis"),
 };
 
 STDINPUTINFO(Downtown)
@@ -1183,6 +1189,11 @@ static struct BurnInputInfo Calibr50InputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"		},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"		},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"		},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[1],  "p2 aim-stick Y-axis"),
 };
 
 STDINPUTINFO(Calibr50)
@@ -5173,6 +5184,7 @@ static void RotateReset() {
 		nRotateTarget[playernum] = -1;
 		nRotateTime[playernum] = 0;
 		nRotateHoldInput[0] = nRotateHoldInput[1] = 0;
+		SetaInpAimStickX[playernum] = SetaInpAimStickY[playernum] = 32767;
 	}
 }
 
@@ -5331,6 +5343,8 @@ static void RotateDoTick() {
 	}
 }
 
+#include "aimstick.h"
+
 static void SuperJoy2Rotate() {
 	for (INT32 i = 0; i < 2; i++) { // p1 = 0, p2 = 1
 		if (DrvFakeInput[4 + i]) { //  rotate-button had been pressed
@@ -5346,6 +5360,15 @@ static void SuperJoy2Rotate() {
 			// This feature is for Midnight Resistance, if you are crawling on the
 			// ground and need to rotate your gun WITHOUT getting up.
 			nRotateHoldInput[i] = DrvInputs[i];
+		}
+
+		// aim-stick
+		int jk_x = 32767 - SetaInpAimStickX[i];
+		int jk_y = 32767 - SetaInpAimStickY[i];
+		int dis = jk_x*jk_x + jk_y*jk_y;
+		int steps = rotate_gunpos_multiplier * 8;
+		if (dis > DEAD_ZONE_AIM_STICK*DEAD_ZONE_AIM_STICK) {
+			nRotateTarget[i] = aim_angle (jk_x, jk_y, steps) & 0x7ff;
 		}
 	}
 
