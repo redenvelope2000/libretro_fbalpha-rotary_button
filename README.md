@@ -19,27 +19,27 @@ Capcom (d_cps1) -
 
 SNK (d_snk) -
 
-Ikari
+	Ikari (done)
 
-Victory Road
+	Victory Road (done)
 
-TANK
+	TANK3 (done)
 
-Bermuda Triangle
+	Bermuda Triangle (done)
 
-Guerrila War
+	Guerrila War (done)
 
 
 SNK (d_snk68) -
 
-S.A.R
+	S.A.R (done)
 
-Ikari 3
+	Ikari 3 (done)
 
 
 SNK (d_alpha68k2) -
 
-Time Soldiers
+	Time Soldiers (done)
 
 
 Data East (d_dec0) -
@@ -49,7 +49,7 @@ Data East (d_dec0) -
 	Heavy Barrel (done)
 
 
-Seta-
+Seta (d_seta) -
 
 	Caliber 50 (done)
 
@@ -58,7 +58,7 @@ Seta-
 
 Konami (d_jackal) -
 
-Jackal (rotary button version)
+	Jackal (rotary button version) (done)
 
 
 A PS4/5 controller or a XBOX one controller with two analog sticks is needed. The rotary button will be replaced by the right stick and the trigger button on the controller.
