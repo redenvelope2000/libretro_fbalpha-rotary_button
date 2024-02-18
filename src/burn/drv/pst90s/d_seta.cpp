@@ -104,7 +104,8 @@ static UINT8 DrvJoy7[16];
 static UINT8 DrvDips[7];
 static UINT16 DrvInputs[7];
 static UINT8 DrvReset;
-static UINT16 SetaInpAimStickX[2], SetaInpAimStickY[2];
+static UINT16 AimStickX[2], AimStickY[2];
+static int AimStickD[2];
 
 // trackball stuff for Krazy Bowl & usclssic
 static INT32 trackball_mode = 0;
@@ -939,10 +940,10 @@ static struct BurnInputInfo DowntownInputList[] = {
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"		},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"		},
 
-  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[0],  "p1 aim-stick X-axis"),
-  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[0],  "p1 aim-stick Y-axis"),
-  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[1],  "p2 aim-stick X-axis"),
-  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[1],  "p2 aim-stick Y-axis"),
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),
 };
 
 STDINPUTINFO(Downtown)
@@ -1190,10 +1191,10 @@ static struct BurnInputInfo Calibr50InputList[] = {
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"		},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"		},
 
-  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[0],  "p1 aim-stick X-axis"),
-  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[0],  "p1 aim-stick Y-axis"),
-  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &SetaInpAimStickX[1],  "p2 aim-stick X-axis"),
-  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &SetaInpAimStickY[1],  "p2 aim-stick Y-axis"),
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),
 };
 
 STDINPUTINFO(Calibr50)
@@ -5184,7 +5185,8 @@ static void RotateReset() {
 		nRotateTarget[playernum] = -1;
 		nRotateTime[playernum] = 0;
 		nRotateHoldInput[0] = nRotateHoldInput[1] = 0;
-		SetaInpAimStickX[playernum] = SetaInpAimStickY[playernum] = 32767;
+		AimStickX[playernum] = AimStickY[playernum] = 32767;
+		AimStickD[playernum] = 0;
 	}
 }
 
@@ -5363,12 +5365,11 @@ static void SuperJoy2Rotate() {
 		}
 
 		// aim-stick
-		int jk_x = 32767 - SetaInpAimStickX[i];
-		int jk_y = 32767 - SetaInpAimStickY[i];
-		int dis = jk_x*jk_x + jk_y*jk_y;
+		int jk_x = 32767 - AimStickX[i];
+		int jk_y = 32767 - AimStickY[i];
 		int steps = rotate_gunpos_multiplier * 8;
-		if (dis > DEAD_ZONE_AIM_STICK*DEAD_ZONE_AIM_STICK) {
-			nRotateTarget[i] = aim_angle (jk_x, jk_y, steps) & 0x7ff;
+		if (aim_stick_range (jk_x, jk_y, &AimStickD[i])) {
+			nRotateTarget[i] = aim_angle (jk_x, jk_y, steps);
 		}
 	}
 
