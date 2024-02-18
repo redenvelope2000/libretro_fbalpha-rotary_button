@@ -1,6 +1,11 @@
 //
 // Support routines for the AIM STICK function.
 //
+
+#define ABS(A) (A<0?-A:A)
+#define DEAD_ZONE_AIM_STICK 5000
+#define FLOAT_ZONE_AIM_STICK 30.0
+
 static double angle_between(double x1, double y1, double x2, double y2) {
     double d = atan2(x2, y2) - atan2(x1, y1);
     if (d < 0) d += 2 * M_PI;
@@ -16,4 +21,13 @@ static int aim_angle(int x1, int y1, int steps) {
     if (fa == steps) fa = 0;
     return fa;
 }
-#define DEAD_ZONE_AIM_STICK 3000
+static bool aim_stick_range(int x, int y, int *d) {
+		int dis = x*x + y*y;
+		int prev_dis = *d;
+		double dr = prev_dis? ((float)(dis-prev_dis))/prev_dis*100.0 :0.0;
+		*d = dis;
+		if (dis > DEAD_ZONE_AIM_STICK*DEAD_ZONE_AIM_STICK && ABS(dr) < FLOAT_ZONE_AIM_STICK) {
+			return true;
+		}
+		return false;
+}
