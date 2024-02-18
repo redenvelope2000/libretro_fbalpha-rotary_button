@@ -88,7 +88,10 @@ static UINT32 nRotateTime[2]  = {0, 0};
 static UINT8  game_rotates = 0;
 static UINT8  gwar_rot_last[2] = {0, 0};
 static UINT8  gwar_rot_cnt[2] = {0, 0};
+static UINT16 AimStickX[2], AimStickY[2];
+static int AimStickD[2];
 
+#define A(a, b, c, d) { a, b, (UINT8*)(c), d }
 
 static struct BurnInputInfo PsychosInputList[] = {
 	{"P1 Coin",		BIT_DIGITAL,	DrvJoy1 + 5,	"p1 coin"	},
@@ -149,6 +152,11 @@ static struct BurnInputInfo GwarInputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),	
 };
 
 STDINPUTINFO(Gwar)
@@ -425,6 +433,11 @@ static struct BurnInputInfo Tnk3InputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),	
 };
 
 STDINPUTINFO(Tnk3)
@@ -459,6 +472,11 @@ static struct BurnInputInfo IkariInputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),	
 };
 
 STDINPUTINFO(Ikari)
@@ -493,6 +511,11 @@ static struct BurnInputInfo IkariaInputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),	
 };
 
 STDINPUTINFO(Ikaria)
@@ -528,6 +551,11 @@ static struct BurnInputInfo VictroadInputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),	
 };
 
 STDINPUTINFO(Victroad)
@@ -679,6 +707,11 @@ static struct BurnInputInfo BermudatInputList[] = {
 	{"Dip A",		BIT_DIPSWITCH,	DrvDips + 0,	"dip"},
 	{"Dip B",		BIT_DIPSWITCH,	DrvDips + 1,	"dip"},
 	{"Dip C",		BIT_DIPSWITCH,	DrvDips + 2,	"dip"},
+
+  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[0],  "p1 aim-stick X-axis"),
+  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[0],  "p1 aim-stick Y-axis"),
+  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &AimStickX[1],  "p2 aim-stick X-axis"),
+  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &AimStickY[1],  "p2 aim-stick Y-axis"),	
 };
 
 STDINPUTINFO(Bermudat)
@@ -2105,6 +2138,8 @@ static void RotateReset() {
 		nRotate[playernum] = 0; // start out pointing straight up (0=up)
 		nRotateTarget[playernum] = -1;
 		nRotateTime[playernum] = 0;
+		AimStickX[playernum] = AimStickY[playernum] = 32767;
+		AimStickD[playernum] = 0;
 	}
 }
 
@@ -2242,6 +2277,8 @@ static void RotateDoTick() {
 	}
 }
 
+#include "aimstick.h"
+
 static void SuperJoy2Rotate() {
 	for (INT32 i = 0; i < 2; i++) { // p1 = 0, p2 = 1
 		if (DrvFakeInput[4 + i]) { //  rotate-button had been pressed
@@ -2255,6 +2292,14 @@ static void SuperJoy2Rotate() {
 		}
 
 		DrvInputs[1 + i] = (DrvInputs[1 + i] & 0x0f) + (dialRotation(i) << 4);
+
+		// aim-stick
+		int jk_x = 32767 - AimStickX[i];
+		int jk_y = 32767 - AimStickY[i];
+		int steps = 8;
+		if (aim_stick_range (jk_x, jk_y, &AimStickD[i])) {
+			nRotateTarget[i] = rotate_gunpos_multiplier * aim_angle (jk_x, jk_y, steps);
+		}
 	}
 
 	RotateDoTick();
