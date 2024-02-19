@@ -59,5 +59,5 @@ Konami (d_jackal) -
 	Jackal (jackalr)
 
 
-All validations were done on Retroarch 1.16.0 running Windows 10 64-bit.
+All validations were done on Retroarch 1.16.0 64-bit.
 
