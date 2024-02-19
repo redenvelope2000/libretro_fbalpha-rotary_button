@@ -8,58 +8,56 @@ This is a fork of the official repository of the FB Alpha Emulator.
 Use of this program and it's source code is subject to the license conditions provided in the [license.txt](src/license.txt) file in the src folder.
 
 # Purpose
-This is specially created for supporting rotary button games -
+This is for supporting rotary button arcade games using modern PS4/5 and xbox one controllers. The aim'n shoot dial is emulated by the right stick and the right trigger button. The direction of the right trick, or the aim vector, is converted to the angle from the Y axis. Then it is compared with the dial position from the game's current execution context to generate the difference value for the movement. Supported games are -
 
 Capcom (d_cps1) -
 
-	Forgotten Worlds (done)
-
-	Lost Worlds (done)
+	Forgotten Worlds (forgottn, lostwrld)
 
 
 SNK (d_snk) -
 
-	Ikari (done)
+	Ikari (ikari)
 
-	Victory Road (done)
+	Victory Road (victroad, dogosoke)
 
-	TANK3 (done)
+	T.N.K III (tnk3)
 
-	Bermuda Triangle (done)
+	Bermuda Triangle (bermudat)
 
-	Guerrila War (done)
+	Guerrila War (gwar, gwarj)
 
 
 SNK (d_snk68) -
 
-	S.A.R (done)
+	S.A.R (searchar, searcharj)
 
-	Ikari 3 (done)
+	Ikari III (ikari3u, ikari3j)
 
 
 SNK (d_alpha68k2) -
 
-	Time Soldiers (done)
+	Time Soldiers (timesold, btlfield)
 
 
 Data East (d_dec0) -
 
-	Midnight Resistance (done)
+	Midnight Resistance (midres, midresj)
 
-	Heavy Barrel (done)
+	Heavy Barrel (hbarrel)
 
 
 Seta (d_seta) -
 
-	Caliber 50 (done)
+	Caliber 50 (calibr50)
 
-	Downtown (done)
+	Downtown (downtown)
 
 
 Konami (d_jackal) -
 
-	Jackal (rotary button version) (done)
+	Jackal (jackalr)
 
 
-A PS4/5 controller or a XBOX one controller with two analog sticks is needed. The rotary button will be replaced by the right stick and the trigger button on the controller.
+All validations were done on Retroarch 1.16.0 running Windows 10 64-bit.
 
