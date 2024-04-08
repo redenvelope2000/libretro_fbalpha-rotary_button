@@ -332,11 +332,9 @@ static struct BurnInputInfo ForgottnInputList[] =
 	{"P1 Left"          , BIT_DIGITAL,    CpsInp001+1, "p1 left"  },
 	{"P1 Right"         , BIT_DIGITAL,    CpsInp001+0, "p1 right" },
 	{"P1 Attack"        , BIT_DIGITAL,    CpsInp001+4, "p1 fire 1"},
-	//A("P1 Turn (analog)", BIT_ANALOG_REL, &CpsInp055,  "p1 z-axis"),
+	A("P1 Turn (analog)", BIT_ANALOG_REL, &CpsInp055,  "p1 z-axis"),
 	{"P1 Turn - (digital)", BIT_DIGITAL,  CpsDigUD+0,  "p1 fire 2"},
 	{"P1 Turn + (digital)", BIT_DIGITAL,  CpsDigUD+1,  "p1 fire 3"},
-  A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &CpsInpAimStickX[0],  "p1 aim-stick X-axis"),
-  A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &CpsInpAimStickY[0],  "p1 aim-stick Y-axis"),
 
 	{"P2 Coin"          , BIT_DIGITAL,    CpsInp018+1, "p2 coin"  },
 	{"P2 Start"         , BIT_DIGITAL,    CpsInp018+5, "p2 start" },
@@ -348,8 +346,6 @@ static struct BurnInputInfo ForgottnInputList[] =
 	A("P2 Turn (analog)", BIT_ANALOG_REL, &CpsInp05d,  "p2 z-axis"),
 	{"P2 Turn - (digital)", BIT_DIGITAL,  CpsDigUD+2,  "p2 fire 2"},
 	{"P2 Turn + (digital)", BIT_DIGITAL,  CpsDigUD+3,  "p2 fire 3"},
-  A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &CpsInpAimStickX[1],  "p2 aim-stick X-axis"),
-  A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &CpsInpAimStickY[1],  "p2 aim-stick Y-axis"),
 
 	{"Reset"            , BIT_DIGITAL,    &CpsReset,   "reset"    },
 	{"Service"          , BIT_DIGITAL,    CpsInp018+2, "service"  },
@@ -358,6 +354,11 @@ static struct BurnInputInfo ForgottnInputList[] =
 	{"Dip B"            , BIT_DIPSWITCH,  &Cpi01C    , "dip"      },
 	{"Dip C"            , BIT_DIPSWITCH,  &Cpi01E    , "dip"      },
 	{"Dip D"            , BIT_DIPSWITCH,  &fFakeDip  , "dip"      },
+
+	A("P1 Aim-stick X (analog)", BIT_ANALOG_ABS, &CpsInpAimStickX[0],  "p1 aim-stick X-axis"),
+	A("P1 Aim-stick Y (analog)", BIT_ANALOG_ABS, &CpsInpAimStickY[0],  "p1 aim-stick Y-axis"),
+	A("P2 Aim-stick X (analog)", BIT_ANALOG_ABS, &CpsInpAimStickX[1],  "p2 aim-stick X-axis"),
+	A("P2 Aim-stick Y (analog)", BIT_ANALOG_ABS, &CpsInpAimStickY[1],  "p2 aim-stick Y-axis"),
 };
 
 #undef A
